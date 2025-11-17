@@ -3,8 +3,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { AppNavigator } from "./appNavigator";
 import { AuthNavigator } from "./authNavigator";
+import { RootStackParamList } from "./types";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigation = () => {
   //Replace with actual authentication logic (e.g., from Context, Redux, or AsyncStorage)
