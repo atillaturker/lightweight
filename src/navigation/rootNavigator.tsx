@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { AppNavigator } from "./appNavigator";
 import { AuthNavigator } from "./authNavigator";
+import { SCREENS } from "./screenNames";
 import { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -15,9 +16,9 @@ export const RootNavigation = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isSignedIn ? (
-          <Stack.Screen name="App" component={AppNavigator} />
+          <Stack.Screen name={SCREENS.APP} component={AppNavigator} />
         ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
+          <Stack.Screen name={SCREENS.AUTH} component={AuthNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
