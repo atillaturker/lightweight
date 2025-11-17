@@ -1,14 +1,16 @@
+import { SCREENS } from "./screenNames";
+
 export type RootStackParamList = {
-  App: undefined;
-  Auth: undefined;
+  [SCREENS.APP]: undefined;
+  [SCREENS.AUTH]: undefined;
 };
 
 export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
+  [SCREENS.LOGIN]: undefined;
+  [SCREENS.REGISTER]: undefined;
 };
 
 export type AppStackParamList = {
-  Home: undefined;
-  Profile: undefined;
+  [SCREENS.HOME]: undefined;
+  [SCREENS.PROFILE]: undefined;
 };
