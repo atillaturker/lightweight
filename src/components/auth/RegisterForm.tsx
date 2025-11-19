@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { colors } from "../../theme/colors";
 
 export const RegisterForm = () => {
   return (
@@ -15,7 +16,7 @@ export const RegisterForm = () => {
         <TextInput
           style={styles.input}
           placeholder="Enter your email"
-          placeholderTextColor={colors.placeHolderTextColor}
+          placeholderTextColor={colors.text.tertiary}
         />
       </View>
 
@@ -24,7 +25,7 @@ export const RegisterForm = () => {
         <TextInput
           style={styles.input}
           placeholder="Enter your password"
-          placeholderTextColor={colors.placeHolderTextColor}
+          placeholderTextColor={colors.text.tertiary}
           secureTextEntry
         />
       </View>
@@ -34,7 +35,7 @@ export const RegisterForm = () => {
         <TextInput
           style={styles.input}
           placeholder="Confirm your password"
-          placeholderTextColor={colors.placeHolderTextColor}
+          placeholderTextColor={colors.text.tertiary}
           secureTextEntry
         />
       </View>
@@ -45,20 +46,6 @@ export const RegisterForm = () => {
     </View>
   );
 };
-
-const colors = {
-  backgroundColor: "#101922",
-  textColor: "#FFFFFF",
-  placeHolderColor: "#1F2937",
-  sectionText: "#1D5DB",
-  placeHolderTextColor: "#9CA3AF",
-  inputBackgroundColor: "#18212D",
-  buttonBackgroundColor: "#137FEC",
-  forgetPasswordTextColor: "#137FEC",
-  dividerColor: "#374151",
-  borderColor: "#374151",
-};
-
 const styles = StyleSheet.create({
   container: {
     width: "100%",
@@ -69,43 +56,36 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     paddingHorizontal: 12,
-    backgroundColor: colors.inputBackgroundColor,
+    backgroundColor: colors.background.tertiary,
     color: "#6B7281",
     fontSize: 16,
     fontFamily: "Inter",
     borderWidth: 1,
     borderRadius: 8,
-    borderColor: colors.borderColor,
+    borderColor: colors.ui.border,
   },
   labelText: {
-    color: colors.textColor,
+    color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
     marginBottom: 8,
   },
   inputText: {
-    color: colors.textColor,
+    color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
     paddingHorizontal: 12,
   },
   button: {
-    backgroundColor: colors.buttonBackgroundColor,
+    backgroundColor: colors.brand.primary,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
     height: 48,
   },
   buttonText: {
-    color: colors.textColor,
+    color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
-  },
-  forgetPasswordText: {
-    color: colors.forgetPasswordTextColor,
-    fontSize: 14,
-    fontFamily: "Inter",
-    marginTop: 16,
-    textAlign: "right",
   },
 });
