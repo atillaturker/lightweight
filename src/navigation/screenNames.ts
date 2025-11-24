@@ -1,11 +1,10 @@
 export const SCREENS = {
   // Root screens
-  APP: "App",
-  AUTH: "Auth",
+  APP_STACK: "App",
+  AUTH_STACK: "Auth",
 
   // Auth screens
-  LOGIN: "Login",
-  REGISTER: "Register",
+  AUTH: "Auth",
 
   // App screens
   HOME: "Home",

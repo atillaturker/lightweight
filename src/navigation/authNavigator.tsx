@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 
-import { LoginScreen, RegisterScreen } from "../screens/auth";
+import { AuthScreen } from "../screens/auth";
 import { SCREENS } from "./screenNames";
 import { AuthStackParamList } from "./types";
 
@@ -14,16 +14,7 @@ export const AuthNavigator = () => {
         headerShown: true,
       }}
     >
-      <Stack.Screen
-        name={SCREENS.REGISTER}
-        component={RegisterScreen}
-        options={{ title: "Sign Up" }}
-      />
-      <Stack.Screen
-        name={SCREENS.LOGIN}
-        component={LoginScreen}
-        options={{ title: "Login" }}
-      />
+      <Stack.Screen name={SCREENS.AUTH} component={AuthScreen} />
     </Stack.Navigator>
   );
 };
