@@ -4,7 +4,11 @@ import {
   isSuccessResponse,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import {
+  signOut as firebaseSignOut,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "firebase/auth";
 import { auth } from "./config";
 
 GoogleSignin.configure({
@@ -20,7 +24,18 @@ export const authService = {
       if (isSuccessResponse(response)) {
         const idToken = response?.data?.idToken;
         const googleCredential = GoogleAuthProvider.credential(idToken);
-        await signInWithCredential(auth, googleCredential);
+        const userCredential = await signInWithCredential(
+          auth,
+          googleCredential
+        );
+        const user = userCredential.user;
+        return {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          emailVerified: user.emailVerified,
+        };
       } else {
         // Sign in cancelled by user
         return null;
@@ -42,7 +57,19 @@ export const authService = {
           default:
             throw new Error("An unknown error occurred during Google sign-in");
         }
+      } else {
+        console.error("Authentication Error:", error);
+        throw error;
       }
+    }
+  },
+  logoutGoogle: async () => {
+    try {
+      await GoogleSignin.signOut();
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error("Logout Error:", error);
+      throw error;
     }
   },
 };

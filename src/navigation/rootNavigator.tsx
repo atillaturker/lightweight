@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect } from "react";
 import LoadingScreen from "../screens/auth/LoadingScreen";
 import { auth } from "../services/firebase";
+import { setLoading, setUser, useAppDispatch, useAppSelector } from "../store";
 import { AppNavigator } from "./appNavigator";
 import { AuthNavigator } from "./authNavigator";
 import { RootStackParamList } from "./types";
@@ -11,28 +12,39 @@ import { RootStackParamList } from "./types";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigation = () => {
-  //Replace with actual authentication logic (e.g., from Context, Redux, or AsyncStorage)
-  const [isSignedIn, setIsSignedIn] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
+  const { isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // Simulate checking authentication status this could be replaced with real logic
-    const subscriber = onAuthStateChanged(auth, (currentUser) => {
-      setIsSignedIn(!!currentUser);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        dispatch(
+          setUser({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            emailVerified: user.emailVerified,
+          })
+        );
+      } else {
+        dispatch(setLoading(false));
+      }
     });
-    return subscriber; // Unsubscribe on unmount
-  }, []);
+    return () => unsubscribe();
+  }, [dispatch]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {loading ? (
-          <Stack.Screen name="AuthLoading" component={LoadingScreen} />
-        ) : isSignedIn ? (
+        {isAuthenticated ? (
           <Stack.Screen name="AppNavigator" component={AppNavigator} />
         ) : (
-          <Stack.Screen name="AuthNavigator" component={AuthNavigator} />
+          <Stack.Screen name="AuthLoading" component={AuthNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
