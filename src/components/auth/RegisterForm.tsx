@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 12,
     backgroundColor: colors.background.tertiary,
-    color: "#6B7281",
+    color: colors.text.tertiary,
     fontSize: 16,
     fontFamily: "Inter",
     borderWidth: 1,

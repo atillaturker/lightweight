@@ -1,6 +1,8 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import React, { useEffect } from "react";
+import { auth } from "../services/firebase";
 import { AppNavigator } from "./appNavigator";
 import { AuthNavigator } from "./authNavigator";
 import { SCREENS } from "./screenNames";
@@ -10,15 +12,25 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigation = () => {
   //Replace with actual authentication logic (e.g., from Context, Redux, or AsyncStorage)
-  const isSignedIn = false;
+  const [isSignedIn, setIsSignedIn] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+
+  useEffect(() => {
+    // Simulate checking authentication status this could be replaced with real logic
+    const subscriber = onAuthStateChanged(auth, (currentUser) => {
+      setIsSignedIn(!!currentUser);
+      setLoading(false);
+    });
+    return subscriber; // Unsubscribe on unmount
+  }, []);
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isSignedIn ? (
-          <Stack.Screen name={SCREENS.APP} component={AppNavigator} />
+          <Stack.Screen name={SCREENS.APP_STACK} component={AppNavigator} />
         ) : (
-          <Stack.Screen name={SCREENS.AUTH} component={AuthNavigator} />
+          <Stack.Screen name={SCREENS.AUTH_STACK} component={AuthNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
