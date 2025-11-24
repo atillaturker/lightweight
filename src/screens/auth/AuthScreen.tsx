@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LoginForm, RegisterForm } from "../../components/auth";
+import { colors } from "../../theme/colors";
 
-export const RegisterScreen = () => {
+export const AuthScreen = () => {
   const [activeSegment, setActiveSegment] = useState<string>("login");
   return (
     <View style={styles.container}>
@@ -22,7 +23,7 @@ export const RegisterScreen = () => {
             styles.segmentButton,
             {
               backgroundColor:
-                activeSegment === "login" ? colors.backgroundColor : "",
+                activeSegment === "login" ? colors.background.primary : "",
             },
           ]}
           onPress={() => {
@@ -36,7 +37,7 @@ export const RegisterScreen = () => {
             styles.segmentButton,
             {
               backgroundColor:
-                activeSegment === "register" ? colors.backgroundColor : "",
+                activeSegment === "register" ? colors.background.primary : "",
             },
           ]}
           onPress={() => {
@@ -55,18 +56,18 @@ export const RegisterScreen = () => {
   );
 };
 
-const colors = {
-  backgroundColor: "#101922",
-  textColor: "#FFFFFF",
-  placeHolderColor: "#1F2937",
-  sectionText: "#1D5DB",
-  placeHolderTextColor: "#9CA3AF",
-};
+// const colors = {
+//   backgroundColor: "#101922",
+//   textColor: "#FFFFFF",
+//   placeHolderColor: "#1F2937",
+//   sectionText: "#1D5DB",
+//   placeHolderTextColor: "#9CA3AF",
+// };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundColor,
+    backgroundColor: colors.background.primary,
     paddingHorizontal: 24,
     paddingTop: 40,
   },
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
   },
   segmentControl: {
     flexDirection: "row",
-    backgroundColor: colors.placeHolderColor,
+    backgroundColor: colors.ui.placeholder,
     height: 40,
     padding: 4,
     borderRadius: 8,
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontFamily: "Inter",
-    color: colors.textColor,
+    color: colors.text.primary,
     fontSize: 32,
     fontWeight: "700",
     textAlign: "center",
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
   sectionText: {
     fontSize: 16,
     fontFamily: "Inter",
-    color: colors.placeHolderTextColor,
+    color: colors.text.tertiary,
     textAlign: "center",
     fontWeight: "500",
   },
@@ -112,8 +113,5 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 25,
-  },
-  selectedOpacity: {
-    backgroundColor: colors.backgroundColor,
   },
 });
