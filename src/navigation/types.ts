@@ -1,6 +1,7 @@
 export type RootStackParamList = {
-  App: undefined;
-  Auth: undefined;
+  AppNavigator: undefined;
+  AuthNavigator: undefined;
+  AuthLoading: undefined;
 };
 
 export type AuthStackParamList = {

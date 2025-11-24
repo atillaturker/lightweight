@@ -7,9 +7,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { authService } from "../../services/firebase/index";
 import { colors } from "../../theme/colors";
 
 export const LoginForm = () => {
+  const handleGoogleLogin = async () => {
+    const response = await authService.signInWithGoogle();
+    console.log("Google Login Pressed", JSON.stringify(response, null, 2));
+  };
   return (
     <View>
       <View style={styles.loginSection}>
@@ -43,7 +48,10 @@ export const LoginForm = () => {
           <View style={styles.dividerLine} />
         </View>
 
-        <TouchableOpacity style={styles.googleLoginButton} onPress={() => {}}>
+        <TouchableOpacity
+          style={styles.googleLoginButton}
+          onPress={handleGoogleLogin}
+        >
           {/* These icons are placeholders. They should be replaced with actual icons. */}
 
           <Image
@@ -75,7 +83,7 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 12,
     backgroundColor: colors.background.tertiary,
-    color: "#6B7281",
+    color: colors.text.tertiary,
     fontSize: 16,
     fontFamily: "Inter",
     borderWidth: 1,
