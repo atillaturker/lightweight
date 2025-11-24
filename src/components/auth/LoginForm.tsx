@@ -7,8 +7,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { authService } from "../../services/firebase/index";
+import { colors } from "../../theme/colors";
 
 export const LoginForm = () => {
+  const handleGoogleLogin = async () => {
+    const response = await authService.signInWithGoogle();
+    console.log("Google Login Pressed", JSON.stringify(response, null, 2));
+  };
   return (
     <View>
       <View style={styles.loginSection}>
@@ -17,7 +23,7 @@ export const LoginForm = () => {
           <TextInput
             style={styles.input}
             placeholder="Enter your email"
-            placeholderTextColor={colors.placeHolderTextColor}
+            placeholderTextColor={colors.text.tertiary}
           />
         </View>
 
@@ -26,7 +32,7 @@ export const LoginForm = () => {
           <TextInput
             style={styles.input}
             placeholder="Enter your password"
-            placeholderTextColor={colors.placeHolderTextColor}
+            placeholderTextColor={colors.text.tertiary}
             secureTextEntry
           />
         </View>
@@ -42,15 +48,19 @@ export const LoginForm = () => {
           <View style={styles.dividerLine} />
         </View>
 
-        <TouchableOpacity style={styles.googleLoginButton} onPress={() => {}}>
+        <TouchableOpacity
+          style={styles.googleLoginButton}
+          onPress={handleGoogleLogin}
+        >
           {/* These icons are placeholders. They should be replaced with actual icons. */}
+
           <Image
-            source={require("../../../assets/icon.png")}
             style={{ width: 24, height: 24, marginRight: 8 }}
+            source={require("../../../assets/icon.png")}
           />
           <Text style={styles.buttonText}>Login with Google</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.googleLoginButton} onPress={() => {}}>
+        <TouchableOpacity style={styles.appleLoginButton} onPress={() => {}}>
           <Image
             source={require("../../../assets/icon.png")}
             style={{ width: 24, height: 24, marginRight: 8 }}
@@ -60,19 +70,6 @@ export const LoginForm = () => {
       </View>
     </View>
   );
-};
-
-const colors = {
-  backgroundColor: "#101922",
-  textColor: "#FFFFFF",
-  placeHolderColor: "#1F2937",
-  sectionText: "#1D5DB",
-  placeHolderTextColor: "#6B7281",
-  inputBackgroundColor: "#18212D",
-  buttonBackgroundColor: "#137FEC",
-  forgetPasswordTextColor: "#137FEC",
-  borderColor: "#374151",
-  dividerColor: "#374151",
 };
 
 const styles = StyleSheet.create({
@@ -85,13 +82,13 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     paddingHorizontal: 12,
-    backgroundColor: colors.inputBackgroundColor,
-    color: "#6B7281",
+    backgroundColor: colors.background.tertiary,
+    color: colors.text.tertiary,
     fontSize: 16,
     fontFamily: "Inter",
     borderWidth: 1,
     borderRadius: 8,
-    borderColor: colors.borderColor,
+    borderColor: colors.ui.border,
   },
   dividerContainer: {
     flexDirection: "row",
@@ -101,34 +98,34 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.dividerColor,
+    backgroundColor: colors.ui.border,
   },
   labelText: {
-    color: colors.textColor,
+    color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
     marginBottom: 10,
   },
   inputText: {
-    color: colors.textColor,
+    color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
     paddingHorizontal: 12,
   },
   button: {
-    backgroundColor: colors.buttonBackgroundColor,
+    backgroundColor: colors.brand.primary,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
     height: 48,
   },
   buttonText: {
-    color: colors.textColor,
+    color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
   },
   forgetPasswordText: {
-    color: colors.forgetPasswordTextColor,
+    color: colors.brand.primary,
     fontSize: 14,
     fontFamily: "Inter",
     textAlign: "right",
@@ -136,21 +133,34 @@ const styles = StyleSheet.create({
   },
   otherLogin: {
     textAlign: "center",
-    color: colors.placeHolderTextColor,
+    color: colors.text.tertiary,
     fontSize: 14,
     fontFamily: "Inter",
     paddingHorizontal: 12,
   },
   googleLoginButton: {
     flexDirection: "row",
-    backgroundColor: colors.backgroundColor,
+    backgroundColor: colors.background.primary,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 12,
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: colors.ui.border,
     gap: 8,
     height: 48,
+  },
+  appleLoginButton: {
+    flexDirection: "row",
+    backgroundColor: colors.background.primary,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.ui.border,
+    gap: 8,
+    height: 48,
+    paddingRight: 12,
   },
 });

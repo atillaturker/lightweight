@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1011048157060",
+    "project_id": "lightweight-3bc46",
+    "storage_bucket": "lightweight-3bc46.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1011048157060:android:ad005c03d8bea98d2f97d1",
+        "android_client_info": {
+          "package_name": "com.atillaturker.lightweight"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1011048157060-dpgt6rpl68bcsoti8ctr43run5agam3n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVsfxVRuvHBdKg9SYa5z0VhNYASKwYqUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1011048157060-dpgt6rpl68bcsoti8ctr43run5agam3n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
