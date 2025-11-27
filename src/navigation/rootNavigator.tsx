@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect } from "react";
 import { auth } from "../services/firebase";
+import { setLoading, setUser, useAppDispatch, useAppSelector } from "../store";
 import { AppNavigator } from "./appNavigator";
 import { AuthNavigator } from "./authNavigator";
 import { SCREENS } from "./screenNames";
@@ -11,18 +12,31 @@ import { RootStackParamList } from "./types";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigation = () => {
-  //Replace with actual authentication logic (e.g., from Context, Redux, or AsyncStorage)
-  const [isSignedIn, setIsSignedIn] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
+  const { isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // Simulate checking authentication status this could be replaced with real logic
-    const subscriber = onAuthStateChanged(auth, (currentUser) => {
-      setIsSignedIn(!!currentUser);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        dispatch(
+          setUser({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            emailVerified: user.emailVerified,
+          })
+        );
+      } else {
+        dispatch(setLoading(false));
+      }
     });
-    return subscriber; // Unsubscribe on unmount
-  }, []);
+    return () => unsubscribe();
+  }, [dispatch]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <NavigationContainer>
