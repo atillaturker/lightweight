@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LoginForm, RegisterForm } from "../../components/auth";
-import { colors } from "../../theme/colors";
+import { colors } from "../../theme";
 
 export const AuthScreen = () => {
   const [activeSegment, setActiveSegment] = useState<string>("login");
@@ -23,7 +23,9 @@ export const AuthScreen = () => {
             styles.segmentButton,
             {
               backgroundColor:
-                activeSegment === "login" ? colors.background.primary : "",
+                activeSegment === "login"
+                  ? colors.background.primary
+                  : colors.background.tertiary,
             },
           ]}
           onPress={() => {
@@ -37,7 +39,9 @@ export const AuthScreen = () => {
             styles.segmentButton,
             {
               backgroundColor:
-                activeSegment === "register" ? colors.background.primary : "",
+                activeSegment === "register"
+                  ? colors.background.primary
+                  : colors.background.tertiary,
             },
           ]}
           onPress={() => {
@@ -55,14 +59,6 @@ export const AuthScreen = () => {
     </View>
   );
 };
-
-// const colors = {
-//   backgroundColor: "#101922",
-//   textColor: "#FFFFFF",
-//   placeHolderColor: "#1F2937",
-//   sectionText: "#1D5DB",
-//   placeHolderTextColor: "#9CA3AF",
-// };
 
 const styles = StyleSheet.create({
   container: {
