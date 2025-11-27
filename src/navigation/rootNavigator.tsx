@@ -2,11 +2,11 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect } from "react";
-import LoadingScreen from "../screens/auth/LoadingScreen";
 import { auth } from "../services/firebase";
 import { setLoading, setUser, useAppDispatch, useAppSelector } from "../store";
 import { AppNavigator } from "./appNavigator";
 import { AuthNavigator } from "./authNavigator";
+import { SCREENS } from "./screenNames";
 import { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -41,10 +41,10 @@ export const RootNavigation = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <Stack.Screen name="AppNavigator" component={AppNavigator} />
+        {isSignedIn ? (
+          <Stack.Screen name={SCREENS.APP_STACK} component={AppNavigator} />
         ) : (
-          <Stack.Screen name="AuthLoading" component={AuthNavigator} />
+          <Stack.Screen name={SCREENS.AUTH_STACK} component={AuthNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
