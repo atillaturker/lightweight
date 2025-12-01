@@ -1,36 +1,84 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
+import { useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
+import { useAuthActions } from "../../hooks";
+import { RegisterFormData, registerSchema } from "../../schemas/authScemas";
+import { useAppSelector } from "../../store";
 import { colors } from "../../theme/colors";
 import { AppButton } from "../ui/AppButton";
-import { AppInput } from "../ui/AppInput";
+import { ControlledAppInput } from "../ui/ControlledAppInput";
 
 export const RegisterForm = () => {
+  const { isLoading } = useAppSelector((state) => state.auth);
+  // This form state will be used to capture user input
+  const { handleSubmit, control } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+  const { handleRegisterWithEmailAndPassword } = useAuthActions();
   return (
     <View style={styles.container}>
-      <AppInput
+      <ControlledAppInput
+        name={"username"}
+        control={control}
+        label="Username"
+        placeholder="Enter your username"
+        containerStyle={styles.inputContainerStyle}
+        autoCapitalize="none"
+        keyboardType="default"
+      />
+
+      <ControlledAppInput
+        name={"email"}
+        control={control}
         label="Email Address"
-        containerStyle={styles.inputContainerStyle}
         placeholder="Enter your email"
-        placeholderTextColor={colors.text.tertiary}
+        containerStyle={styles.inputContainerStyle}
+        autoCapitalize="none"
+        keyboardType="email-address"
       />
-      <AppInput
+      <ControlledAppInput
+        name={"password"}
+        control={control}
         label="Password"
-        containerStyle={styles.inputContainerStyle}
         placeholder="Enter your password"
-        placeholderTextColor={colors.text.tertiary}
-        secureTextEntry
-      />
-      <AppInput
-        label="Confirm Password"
         containerStyle={styles.inputContainerStyle}
-        placeholder="Confirm your password"
-        placeholderTextColor={colors.text.tertiary}
         secureTextEntry
+        autoCapitalize="none"
+      />
+      <ControlledAppInput
+        name={"confirmPassword"}
+        control={control}
+        label="Confirm Password"
+        placeholder="Re-enter your password"
+        containerStyle={styles.inputContainerStyle}
+        secureTextEntry
+        autoCapitalize="none"
       />
       <AppButton
         title="Create Account"
-        containerStyle={{ backgroundColor: colors.brand.primary }}
-        onPress={() => {}}
+        containerStyle={{
+          opacity: isLoading ? 0.7 : 1,
+          backgroundColor: colors.brand.primary,
+        }}
+        disabled={isLoading}
+        onPress={handleSubmit(
+          (data) =>
+            handleRegisterWithEmailAndPassword(
+              data.email,
+              data.username,
+              data.password
+            ),
+          (errors) => {
+            console.log("Form Errors:", errors);
+          }
+        )}
       />
     </View>
   );
