@@ -6,14 +6,14 @@ import { logout, useAppDispatch } from "../../store";
 
 export const HomeScreen = () => {
   const dispatch = useAppDispatch();
-  const handleGoogleLogout = async () => {
-    const response = await authService.logoutGoogle();
+  const handleUserLogout = async () => {
+    const response = await authService.logout();
     dispatch(logout());
   };
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={handleGoogleLogout}>
-        <Text>Google logout</Text>
+      <TouchableOpacity onPress={handleUserLogout}>
+        <Text>Logout</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

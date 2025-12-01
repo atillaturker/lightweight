@@ -27,7 +27,7 @@ export const AppInput = ({
       <Text style={styles.labelText}>{label}</Text>
       <TextInput
         style={[styles.input, error ? styles.inputError : null, style]}
-        placeholder={colors.text.tertiary}
+        placeholderTextColor={colors.text.secondary}
         {...props}
       />
       {error && <Text style={styles.errorText}>{error}</Text>}
@@ -55,12 +55,12 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
-    marginBottom: 10,
+    marginBottom: 6,
   },
   errorText: {
     color: colors.semantic.error,
     fontSize: 16,
     fontFamily: "Inter",
-    marginBottom: 10,
+    marginTop: 4,
   },
 });
