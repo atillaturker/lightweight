@@ -1,73 +1,72 @@
 import React from "react";
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { authService } from "../../services/firebase/index";
+import { useForm } from "react-hook-form";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { useAuthActions } from "../../hooks/useAuthActionts";
 import { colors } from "../../theme/colors";
+import { AppButton } from "../ui/AppButton";
+import { ControlledAppInput } from "../ui/ControlledAppInput";
 
 export const LoginForm = () => {
-  const handleGoogleLogin = async () => {
-    const response = await authService.signInWithGoogle();
-    console.log("Google Login Pressed", JSON.stringify(response, null, 2));
-  };
+  const { control, handleSubmit } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+  const { handleGoogleSignIn, handleSignInWithEmailAndPassword } =
+    useAuthActions();
   return (
-    <View>
-      <View style={styles.loginSection}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.labelText}>Email Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            placeholderTextColor={colors.text.tertiary}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.labelText}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your password"
-            placeholderTextColor={colors.text.tertiary}
-            secureTextEntry
-          />
-        </View>
-
-        <Text style={styles.forgetPasswordText}>Forgot your Password?</Text>
-        <TouchableOpacity style={styles.button} onPress={() => {}}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.otherLogin}>Or login with</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <TouchableOpacity
-          style={styles.googleLoginButton}
-          onPress={handleGoogleLogin}
-        >
-          {/* These icons are placeholders. They should be replaced with actual icons. */}
-
-          <Image
-            style={{ width: 24, height: 24, marginRight: 8 }}
-            source={require("../../../assets/icon.png")}
-          />
-          <Text style={styles.buttonText}>Login with Google</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.appleLoginButton} onPress={() => {}}>
-          <Image
-            source={require("../../../assets/icon.png")}
-            style={{ width: 24, height: 24, marginRight: 8 }}
-          />
-          <Text style={styles.buttonText}>Login with Apple</Text>
-        </TouchableOpacity>
+    <View style={styles.loginSection}>
+      <ControlledAppInput
+        control={control}
+        name="email"
+        placeholder="Enter your Mail Address"
+        label="Email Address"
+        containerStyle={styles.inputContainerStyle}
+      />
+      <ControlledAppInput
+        control={control}
+        name="password"
+        label="Password"
+        containerStyle={styles.inputContainerStyle}
+        placeholder="Enter your password"
+        secureTextEntry
+      />
+      <Text style={styles.forgetPasswordText}>Forgot your Password?</Text>
+      <AppButton
+        title="Login"
+        containerStyle={{ backgroundColor: colors.brand.primary }}
+        onPress={handleSubmit((data) =>
+          handleSignInWithEmailAndPassword(data.email, data.password)
+        )}
+      />
+      <View style={styles.dividerContainer}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.otherLogin}>Or login with</Text>
+        <View style={styles.dividerLine} />
       </View>
+      <AppButton
+        title="Login with Google"
+        onPress={handleGoogleSignIn}
+        containerStyle={styles.googleLoginButton}
+        icon={
+          <Image
+            style={styles.icon}
+            source={require("../../../assets/icon.png")}
+          />
+        }
+      />
+      <AppButton
+        title="Login with Apple"
+        containerStyle={styles.appleLoginButton}
+        icon={
+          <Image
+            source={require("../../../assets/icon.png")}
+            style={styles.icon}
+          />
+        }
+        onPress={() => {}}
+      />
     </View>
   );
 };
@@ -76,19 +75,13 @@ const styles = StyleSheet.create({
   loginSection: {
     width: "100%",
   },
-  inputContainer: {
-    marginBottom: 20,
+  icon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
   },
-  input: {
-    height: 48,
-    paddingHorizontal: 12,
-    backgroundColor: colors.background.tertiary,
-    color: colors.text.tertiary,
-    fontSize: 16,
-    fontFamily: "Inter",
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: colors.ui.border,
+  inputContainerStyle: {
+    marginBottom: 20,
   },
   dividerContainer: {
     flexDirection: "row",
@@ -99,30 +92,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     backgroundColor: colors.ui.border,
-  },
-  labelText: {
-    color: colors.text.primary,
-    fontSize: 16,
-    fontFamily: "Inter",
-    marginBottom: 10,
-  },
-  inputText: {
-    color: colors.text.primary,
-    fontSize: 16,
-    fontFamily: "Inter",
-    paddingHorizontal: 12,
-  },
-  button: {
-    backgroundColor: colors.brand.primary,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    height: 48,
-  },
-  buttonText: {
-    color: colors.text.primary,
-    fontSize: 16,
-    fontFamily: "Inter",
   },
   forgetPasswordText: {
     color: colors.brand.primary,
