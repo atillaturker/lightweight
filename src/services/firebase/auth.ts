@@ -5,18 +5,63 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import {
-  signOut as firebaseSignOut,
+  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
+  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithCredential,
+  signOut,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "./config";
+import { AuthService, UserData } from "./types";
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   offlineAccess: true,
 });
 
-export const authService = {
+export const authService: AuthService = {
+  createUserWithEmailAndPassword: async (email, password, username) => {
+    try {
+      const userCredential = await firebaseCreateUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      await updateProfile(userCredential.user, {
+        displayName: username,
+      });
+      return userCredential.user;
+    } catch (error: any) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error("Create User Error:", errorCode, errorMessage);
+      throw error;
+    }
+  },
+  signInWithEmailAndPassword: async (email, password) => {
+    try {
+      const userCredential = await firebaseSignInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      return {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified,
+      } as UserData;
+    } catch (error: any) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error("Sign-In Error:", errorCode, errorMessage);
+      throw error;
+    }
+  },
   signInWithGoogle: async () => {
     try {
       await GoogleSignin.hasPlayServices();
@@ -35,10 +80,10 @@ export const authService = {
           displayName: user.displayName,
           photoURL: user.photoURL,
           emailVerified: user.emailVerified,
-        };
+        } as UserData;
       } else {
         // Sign in cancelled by user
-        return null;
+        throw new Error("Google Sign-In was cancelled by the user");
       }
     } catch (error) {
       if (isErrorWithCode(error)) {
@@ -63,12 +108,20 @@ export const authService = {
       }
     }
   },
-  logoutGoogle: async () => {
+  logout: async () => {
     try {
-      await GoogleSignin.signOut();
-      await firebaseSignOut(auth);
-    } catch (error) {
-      console.error("Logout Error:", error);
+      const user = auth.currentUser;
+      const isGoogleUser = user?.providerData.some(
+        (provider) => provider.providerId === "google.com"
+      );
+      if (isGoogleUser) {
+        await GoogleSignin.signOut();
+      }
+      await signOut(auth);
+    } catch (error: any) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error("Logout Error:", errorCode, errorMessage);
       throw error;
     }
   },

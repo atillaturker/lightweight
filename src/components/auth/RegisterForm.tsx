@@ -1,48 +1,85 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useForm } from "react-hook-form";
+import { StyleSheet, View } from "react-native";
+import { useAuthActions } from "../../hooks";
+import { RegisterFormData, registerSchema } from "../../schemas/authScemas";
+import { useAppSelector } from "../../store";
 import { colors } from "../../theme/colors";
+import { AppButton } from "../ui/AppButton";
+import { ControlledAppInput } from "../ui/ControlledAppInput";
 
 export const RegisterForm = () => {
+  const { isLoading } = useAppSelector((state) => state.auth);
+  // This form state will be used to capture user input
+  const { handleSubmit, control } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+  const { handleRegisterWithEmailAndPassword } = useAuthActions();
   return (
     <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <Text style={styles.labelText}>Email Address</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          placeholderTextColor={colors.text.tertiary}
-        />
-      </View>
+      <ControlledAppInput
+        name={"username"}
+        control={control}
+        label="Username"
+        placeholder="Enter your username"
+        containerStyle={styles.inputContainerStyle}
+        autoCapitalize="none"
+        keyboardType="default"
+      />
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.labelText}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          placeholderTextColor={colors.text.tertiary}
-          secureTextEntry
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.labelText}>Confirm Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm your password"
-          placeholderTextColor={colors.text.tertiary}
-          secureTextEntry
-        />
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={() => {}}>
-        <Text style={styles.buttonText}>Create Account</Text>
-      </TouchableOpacity>
+      <ControlledAppInput
+        name={"email"}
+        control={control}
+        label="Email Address"
+        placeholder="Enter your email"
+        containerStyle={styles.inputContainerStyle}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      <ControlledAppInput
+        name={"password"}
+        control={control}
+        label="Password"
+        placeholder="Enter your password"
+        containerStyle={styles.inputContainerStyle}
+        secureTextEntry
+        autoCapitalize="none"
+      />
+      <ControlledAppInput
+        name={"confirmPassword"}
+        control={control}
+        label="Confirm Password"
+        placeholder="Re-enter your password"
+        containerStyle={styles.inputContainerStyle}
+        secureTextEntry
+        autoCapitalize="none"
+      />
+      <AppButton
+        title="Create Account"
+        containerStyle={{
+          opacity: isLoading ? 0.7 : 1,
+          backgroundColor: colors.brand.primary,
+        }}
+        disabled={isLoading}
+        onPress={handleSubmit(
+          (data) =>
+            handleRegisterWithEmailAndPassword(
+              data.email,
+              data.username,
+              data.password
+            ),
+          (errors) => {
+            console.log("Form Errors:", errors);
+          }
+        )}
+      />
     </View>
   );
 };
@@ -50,42 +87,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
   },
-  inputContainer: {
+  inputContainerStyle: {
     marginBottom: 20,
-  },
-  input: {
-    height: 48,
-    paddingHorizontal: 12,
-    backgroundColor: colors.background.tertiary,
-    color: colors.text.tertiary,
-    fontSize: 16,
-    fontFamily: "Inter",
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: colors.ui.border,
-  },
-  labelText: {
-    color: colors.text.primary,
-    fontSize: 16,
-    fontFamily: "Inter",
-    marginBottom: 8,
-  },
-  inputText: {
-    color: colors.text.primary,
-    fontSize: 16,
-    fontFamily: "Inter",
-    paddingHorizontal: 12,
-  },
-  button: {
-    backgroundColor: colors.brand.primary,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    height: 48,
-  },
-  buttonText: {
-    color: colors.text.primary,
-    fontSize: 16,
-    fontFamily: "Inter",
   },
 });
