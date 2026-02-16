@@ -1,11 +1,12 @@
+import { SCREENS } from "./screenNames";
+
 export type RootStackParamList = {
-  AppNavigator: undefined;
-  AuthNavigator: undefined;
-  AuthLoading: undefined;
+  [SCREENS.APP_STACK]: undefined;
+  [SCREENS.AUTH_STACK]: undefined;
 };
 
 export type AuthStackParamList = {
-  Auth: undefined;
+  [SCREENS.AUTH]: undefined;
 };
 
 export type BottomTabParamList = {
