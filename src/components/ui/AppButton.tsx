@@ -1,5 +1,7 @@
 import React from "react";
 import {
+  ActivityIndicator,
+  StyleProp,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -7,12 +9,13 @@ import {
   ViewStyle,
 } from "react-native";
 import { colors } from "../../theme/colors";
+import { spacing } from "../../theme/spacing";
 
 interface AppButtonProps extends TouchableOpacityProps {
   title: string;
   isLoading?: boolean;
   icon?: React.ReactNode;
-  containerStyle?: ViewStyle;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export const AppButton = ({
@@ -24,8 +27,18 @@ export const AppButton = ({
 }: AppButtonProps) => {
   return (
     <TouchableOpacity style={[styles.button, containerStyle]} {...props}>
-      {icon}
-      <Text style={styles.buttonText}>{title}</Text>
+      {isLoading ? (
+        <ActivityIndicator
+          style={{ margin: spacing.xl }}
+          size="small"
+          color={colors.text.primary}
+        />
+      ) : (
+        <>
+          {icon}
+          <Text style={styles.buttonText}>{title}</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 };

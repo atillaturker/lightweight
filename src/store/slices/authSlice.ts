@@ -11,6 +11,7 @@ export interface UserData {
 
 interface authState {
   isAuthenticated: boolean;
+  isInitialized: boolean;
   isLoading: boolean;
   error: string | null;
   user: UserData | null;
@@ -18,6 +19,7 @@ interface authState {
 
 const initialState: authState = {
   isAuthenticated: false,
+  isInitialized: false,
   isLoading: true,
   error: null,
   user: null,
@@ -43,11 +45,15 @@ export const authSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
+    setInitialized: (state, action: PayloadAction<boolean>) => {
+      state.isInitialized = action.payload;
+    },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
   },
 });
 
-export const { setUser, logout, setLoading, setError } = authSlice.actions;
+export const { setUser, logout, setLoading, setInitialized, setError } =
+  authSlice.actions;
 export default authSlice.reducer;

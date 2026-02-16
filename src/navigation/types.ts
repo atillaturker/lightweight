@@ -9,7 +9,8 @@ export type AuthStackParamList = {
   [SCREENS.AUTH]: undefined;
 };
 
-export type AppStackParamList = {
-  [SCREENS.HOME]: undefined;
-  [SCREENS.PROFILE]: undefined;
+export type BottomTabParamList = {
+  Home: undefined;
+  Profile: undefined;
+  Settings: undefined;
 };

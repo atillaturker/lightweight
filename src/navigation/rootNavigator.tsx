@@ -3,7 +3,13 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect } from "react";
 import { auth } from "../services/firebase";
-import { setLoading, setUser, useAppDispatch, useAppSelector } from "../store";
+import {
+  setInitialized,
+  setLoading,
+  setUser,
+  useAppDispatch,
+  useAppSelector,
+} from "../store";
 import { AppNavigator } from "./appNavigator";
 import { AuthNavigator } from "./authNavigator";
 import { SCREENS } from "./screenNames";
@@ -12,7 +18,9 @@ import { RootStackParamList } from "./types";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigation = () => {
-  const { isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isInitialized, isAuthenticated } = useAppSelector(
+    (state) => state.auth
+  );
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -30,11 +38,12 @@ export const RootNavigation = () => {
       } else {
         dispatch(setLoading(false));
       }
+      dispatch(setInitialized(true));
     });
     return () => unsubscribe();
   }, [dispatch]);
 
-  if (isLoading) {
+  if (!isInitialized) {
     return <LoadingScreen />;
   }
 
