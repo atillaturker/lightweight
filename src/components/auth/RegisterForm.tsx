@@ -5,6 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { useAuthActions } from "../../hooks";
 import { RegisterFormData, registerSchema } from "../../schemas/authScemas";
 import { useAppSelector } from "../../store";
+import { spacing } from "../../theme";
 import { colors } from "../../theme/colors";
 import { AppButton } from "../ui/AppButton";
 import { ControlledAppInput } from "../ui/ControlledAppInput";
@@ -88,6 +89,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   inputContainerStyle: {
-    marginBottom: 20,
+    paddingBottom: spacing.xl,
   },
 });

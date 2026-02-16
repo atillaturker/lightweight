@@ -2,6 +2,7 @@ import { useFonts } from "expo-font";
 
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { RootNavigation } from "./src/navigation/rootNavigator";
 import { store } from "./src/store";
@@ -24,8 +25,10 @@ export default function App() {
   }
 
   return (
-    <Provider store={store}>
-      <RootNavigation />
-    </Provider>
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <RootNavigation />
+      </Provider>
+    </SafeAreaProvider>
   );
 }
