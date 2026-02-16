@@ -1,4 +1,4 @@
-import { authService } from "../services/firebase";
+import { authService, getAuthErrorMessage } from "../services/firebase";
 import { setError, setLoading, setUser, useAppDispatch } from "../store";
 
 export const useAuthActions = () => {
@@ -6,14 +6,14 @@ export const useAuthActions = () => {
   const handleRegisterWithEmailAndPassword = async (
     email: string,
     password: string,
-    username: string
+    username: string,
   ) => {
     try {
       dispatch(setLoading(true));
       const response = await authService.createUserWithEmailAndPassword(
         email,
         username,
-        password
+        password,
       );
       if (response) {
         dispatch(
@@ -23,7 +23,7 @@ export const useAuthActions = () => {
             displayName: response.displayName,
             photoURL: response.photoURL,
             emailVerified: response.emailVerified,
-          })
+          }),
         );
       }
       dispatch(setLoading(false));
@@ -36,24 +36,24 @@ export const useAuthActions = () => {
 
   const handleSignInWithEmailAndPassword = async (
     email: string,
-    password: string
+    password: string,
   ) => {
     try {
       dispatch(setLoading(true));
       const response = await authService.signInWithEmailAndPassword(
         email,
-        password
+        password,
       );
       if (response) {
         dispatch(setUser(response));
-      } else {
-        dispatch(setLoading(false));
+        setError(null);
       }
     } catch (error: any) {
       const errorCode = error.code;
       const errorMessage = error.message;
-      console.error("Login Error:", errorCode, errorMessage);
-      dispatch(setError(error.message || "Login Error"));
+      const userErrorMessage = getAuthErrorMessage(errorCode) || "Login Error";
+      console.error("Login Code:", errorCode, "ErrorMessage:", errorMessage);
+      dispatch(setError(userErrorMessage));
       dispatch(setLoading(false));
       throw error;
     }
@@ -68,8 +68,11 @@ export const useAuthActions = () => {
         dispatch(setLoading(false));
       }
     } catch (error: any) {
-      console.error("Login Error:", error);
-      dispatch(setError(error.message || "Login Error"));
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error("Login Error:", errorCode, errorMessage);
+      const userErrorMessage = getAuthErrorMessage(errorCode) || "Login Error";
+      dispatch(setError(userErrorMessage));
       dispatch(setLoading(false));
     }
   };

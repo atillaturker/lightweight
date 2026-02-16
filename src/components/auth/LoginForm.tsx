@@ -1,13 +1,18 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { useAuthActions } from "../../hooks/useAuthActionts";
+import { LoginFormData, loginSchema } from "../../schemas/authScemas";
+import { useAppSelector } from "../../store";
+import { spacing } from "../../theme";
 import { colors } from "../../theme/colors";
 import { AppButton } from "../ui/AppButton";
 import { ControlledAppInput } from "../ui/ControlledAppInput";
 
 export const LoginForm = () => {
-  const { control, handleSubmit } = useForm({
+  const { handleSubmit, control } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -15,6 +20,8 @@ export const LoginForm = () => {
   });
   const { handleGoogleSignIn, handleSignInWithEmailAndPassword } =
     useAuthActions();
+  const isLoading = useAppSelector((state) => state.auth.isLoading);
+  const error = useAppSelector((state) => state.auth.error);
   return (
     <View style={styles.loginSection}>
       <ControlledAppInput
@@ -33,11 +40,14 @@ export const LoginForm = () => {
         secureTextEntry
       />
       <Text style={styles.forgetPasswordText}>Forgot your Password?</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <AppButton
         title="Login"
+        isLoading={isLoading}
         containerStyle={{ backgroundColor: colors.brand.primary }}
-        onPress={handleSubmit((data) =>
-          handleSignInWithEmailAndPassword(data.email, data.password)
+        onPress={handleSubmit(
+          (data) => handleSignInWithEmailAndPassword(data.email, data.password),
+          (errors) => console.log(errors),
         )}
       />
       <View style={styles.dividerContainer}>
@@ -48,7 +58,7 @@ export const LoginForm = () => {
       <AppButton
         title="Login with Google"
         onPress={handleGoogleSignIn}
-        containerStyle={styles.googleLoginButton}
+        containerStyle={styles.loginButton}
         icon={
           <Image
             style={styles.icon}
@@ -58,7 +68,7 @@ export const LoginForm = () => {
       />
       <AppButton
         title="Login with Apple"
-        containerStyle={styles.appleLoginButton}
+        containerStyle={[styles.loginButton, { paddingRight: spacing.s }]}
         icon={
           <Image
             source={require("../../../assets/icon.png")}
@@ -78,15 +88,15 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
-    marginRight: 8,
+    paddingLeft: spacing.s,
   },
   inputContainerStyle: {
-    marginBottom: 20,
+    paddingBottom: spacing.xl,
   },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 20,
+    paddingVertical: spacing.xl,
   },
   dividerLine: {
     flex: 1,
@@ -98,38 +108,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter",
     textAlign: "right",
-    marginBottom: 12,
+    paddingBottom: spacing.m,
   },
   otherLogin: {
     textAlign: "center",
     color: colors.text.tertiary,
     fontSize: 14,
     fontFamily: "Inter",
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.m,
   },
-  googleLoginButton: {
+  loginButton: {
     flexDirection: "row",
-    backgroundColor: colors.background.primary,
-    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: colors.ui.border,
-    gap: 8,
-    height: 48,
-  },
-  appleLoginButton: {
-    flexDirection: "row",
     backgroundColor: colors.background.primary,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 12,
-    borderWidth: 1,
+    paddingBottom: spacing.xxs,
     borderColor: colors.ui.border,
-    gap: 8,
+    borderRadius: 8,
+    borderWidth: 1,
     height: 48,
-    paddingRight: 12,
+    gap: 12,
+    marginTop: spacing.m,
+  },
+  errorText: {
+    color: colors.semantic.error,
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: spacing.s,
+    marginTop: spacing.s,
   },
 });
