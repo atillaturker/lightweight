@@ -7,6 +7,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import { spacing } from "../../theme";
 import { colors } from "../../theme/colors";
 
 interface AppInput extends TextInputProps {
@@ -55,12 +56,12 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontSize: 16,
     fontFamily: "Inter",
-    marginBottom: 6,
+    paddingBottom: spacing.s,
   },
   errorText: {
     color: colors.semantic.error,
     fontSize: 16,
     fontFamily: "Inter",
-    marginTop: 4,
+    paddingTop: spacing.xs,
   },
 });
