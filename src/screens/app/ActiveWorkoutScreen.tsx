@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.s,
     borderRadius: 10,
     gap: 4,
-  },List
+  },
   listContent: {
     paddingBottom: 120,
     paddingTop: spacing.s,

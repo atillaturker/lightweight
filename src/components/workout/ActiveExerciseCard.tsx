@@ -47,8 +47,8 @@ export const ActiveExerciseCard = ({
       <View style={styles.setRowHeader}>
         <Text style={[styles.headerLabel, styles.colSet]}>SET</Text>
         <Text style={[styles.headerLabel, styles.colPrev]}>PREVIOUS</Text>
-        <Text style={[styles.headerLabel, styles.colInput]}>KG</Text>
-        <Text style={[styles.headerLabel, styles.colInput]}>REPS</Text>
+        <Text style={[styles.headerLabel, styles.colKg]}>KG</Text>
+        <Text style={[styles.headerLabel, styles.colReps]}>REPS</Text>
         <View style={styles.colCheck} />
       </View>
 
@@ -77,7 +77,7 @@ export const ActiveExerciseCard = ({
                   isCompleted && { color: colors.brand.primary },
                 ]}
                 keyboardType="numeric"
-                placeholder="-"
+                placeholder=""
                 placeholderTextColor={colors.text.tertiary}
                 value={set.weight.toString()}
                 onChangeText={(text) => onUpdateSet(set.id, "weight", text)}
@@ -90,7 +90,7 @@ export const ActiveExerciseCard = ({
                   isCompleted && { color: colors.brand.primary },
                 ]}
                 keyboardType="numeric"
-                placeholder="-"
+                placeholder=""
                 placeholderTextColor={colors.text.tertiary}
                 value={set.reps.toString()}
                 onChangeText={(text) => onUpdateSet(set.id, "reps", text)}
@@ -98,7 +98,6 @@ export const ActiveExerciseCard = ({
             </View>
             <TouchableOpacity
               style={[
-                styles.colCheck,
                 styles.checkButton,
                 isCompleted && styles.checkButtonCompleted,
               ]}
@@ -106,8 +105,8 @@ export const ActiveExerciseCard = ({
             >
               <Ionicons
                 name="checkmark"
-                size={16}
-                color={isCompleted ? colors.text.primary : "transparent"}
+                size={24}
+                color={colors.text.primary}
               />
             </TouchableOpacity>
           </View>
@@ -158,11 +157,12 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
     textAlign: "center",
   },
-  colSet: { width: 30 },
-  colPrev: { flex: 1, textAlign: "center" },
-  colInput: { width: 60, marginHorizontal: 4 },
+  colSet: { width: 30, marginRight: 12 },
+  colPrev: { flex: 1,  textAlign: "center" },
+  colKg: { width: 45, marginHorizontal: 4, borderRadius: 4 ,  },
+  colReps: { width: 45, marginRight: 18, borderRadius: 4 ,  },
+  colInput: { width: 45, marginHorizontal: 4, borderRadius: 4 },
   colCheck: { width: 30, alignItems: "center" },
-
   setNumber: {
     color: colors.text.tertiary,
     fontWeight: "600",
@@ -177,20 +177,19 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     color: colors.text.primary,
     textAlign: "center",
-    height: 36,
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "600",
   },
   checkButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 4,
-    backgroundColor: colors.background.tertiary,
+    width: 24,
+    height: 24,
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 12,
   },
   checkButtonCompleted: {
-    backgroundColor: colors.brand.primary, // Green or Primary color
+    backgroundColor: colors.brand.primary,
+    borderRadius: 12,
   },
   addSetButton: {
     flexDirection: "row",
