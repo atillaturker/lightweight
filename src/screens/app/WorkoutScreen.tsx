@@ -20,6 +20,7 @@ import { AppStackParamList } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { startWorkout } from "../../store/slices/workoutSlice";
 import { colors, spacing } from "../../theme";
+import { id } from "zod/locales";
 
 // Mock Data for Routines (Placeholder for now)
 const MOCK_ROUTINES = [
@@ -30,12 +31,25 @@ const MOCK_ROUTINES = [
     exercisesCount: 6,
     duration: "~55m",
   },
+  {
+    id: "2",
+    title: "Leg Day",
+    lastPerformed: "1 week ago",
+    exercisesCount: 5,
+    duration: "~45m",
+  },
+  {
+    id: "3",
+    title: "Full Body Circuit",
+    lastPerformed: "2 weeks ago",
+    exercisesCount: 8,
+    duration: "~60m",
+  }
 ];
 
 export const WorkoutScreen = () => {
   const dispatch = useAppDispatch();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   const activeWorkout = useAppSelector((state) => state.workout.activeWorkout);
   // Get history from Redux
@@ -70,6 +84,9 @@ export const WorkoutScreen = () => {
             name="settings-sharp"
             size={24}
             color={colors.text.tertiary}
+            onPress={()=>{
+              console.log("Settings tab pressed.")
+            }}
           />
         </TouchableOpacity>
       </View>
@@ -79,8 +96,6 @@ export const WorkoutScreen = () => {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Search Bar */}
-
         {/* Quick Start */}
         <QuickStartCard
           onStartPress={handleQuickStart}
@@ -156,7 +171,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: spacing.l,
-    paddingVertical: spacing.m,
+    paddingVertical: spacing.l,
   },
   headerTitle: {
     fontSize: 24,
