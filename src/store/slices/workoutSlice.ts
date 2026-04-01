@@ -31,7 +31,7 @@ const workoutSlice = createSlice({
       state.activeWorkout = {
         id: Date.now().toString(),
         name: action.payload.name || "Untitled Workout",
-        startTime: new Date().toISOString(),
+        date: Date.now().toString(),
         exercises: [],
         status: "active",
       };
@@ -39,13 +39,12 @@ const workoutSlice = createSlice({
     cancelWorkout: (state) => {
       state.activeWorkout = null;
     },
-    finishWorkout: (state) => {
+    finishWorkout: (state, action: PayloadAction<{ duration?: number }>) => {
       if (state.activeWorkout) {
         const finishedWorkout: Workout = {
           ...state.activeWorkout,
-          endTime: new Date().toISOString(),
+          duration: action.payload.duration,
           status: "completed",
-          // Calculate duration here in a real app
         };
         state.history.unshift(finishedWorkout); // Add to top of history
         state.activeWorkout = null;
