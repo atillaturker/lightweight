@@ -1,13 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useEffect, useRef, useState } from "react";
-import { Alert, FlatList, StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AddExerciseButton } from "../../components/ui/AddExerciseButton";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Header } from "../../components/ui/Header";
+import ModalComponent from "../../components/ui/Modal";
 import { StatsBar } from "../../components/ui/StatsBar";
+import TimeSelector from "../../components/ui/TimeSelector";
 import { ReadOnlyExerciseCard } from "../../components/workout/ReadOnlyExerciseCard";
 import { SCREENS } from "../../navigation/screenNames";
 import { AppStackParamList } from "../../navigation/types";
@@ -19,15 +28,9 @@ import {
 } from "../../store/slices/workoutSlice";
 import { colors, spacing } from "../../theme";
 
-const formatTime = (seconds: number) => {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-};
+// --- Time Data ---
+const HOURS = Array.from({ length: 13 }, (_, i) => i);
+const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5); // 0, 5, 10... 55
 
 export const ActiveWorkoutScreen = () => {
   const navigation =
@@ -35,21 +38,12 @@ export const ActiveWorkoutScreen = () => {
   const dispatch = useAppDispatch();
   const activeWorkout = useAppSelector((state) => state.workout.activeWorkout);
 
-  // Live timer
-  const [elapsed, setElapsed] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Initialize with 1 hour 0 minutes (or 00:00)
+  // We use a fixed date and only care about time part
 
-  useEffect(() => {
-    if (activeWorkout?.startTime) {
-      const start = new Date(activeWorkout.startTime).getTime();
-      intervalRef.current = setInterval(() => {
-        setElapsed(Math.floor((Date.now() - start) / 1000));
-      }, 1000);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [activeWorkout?.startTime]);
+  const [showFinishModal, setShowFinishModal] = useState<boolean>(false);
+  const [selectedHour, setSelectedHour] = useState<number>(0);
+  const [selectedMinute, setSelectedMinute] = useState<number>(0);
 
   const completedSets =
     activeWorkout?.exercises.reduce(
@@ -79,21 +73,17 @@ export const ActiveWorkoutScreen = () => {
       );
     }, 0) ?? 0;
 
-  const handleFinish = () => {
-    Alert.alert(
-      "Finish Workout",
-      "Are you sure you want to finish this workout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Finish",
-          onPress: () => {
-            dispatch(finishWorkout());
-            navigation.goBack();
-          },
-        },
-      ],
-    );
+  const handleFinishPress = () => {
+    setShowFinishModal(true);
+  };
+
+  const confirmFinish = () => {
+    // Convert to seconds
+    const totalSeconds = selectedHour * 3600 + selectedMinute * 60;
+
+    dispatch(finishWorkout({ duration: totalSeconds }));
+    setShowFinishModal(false);
+    navigation.goBack();
   };
 
   const handleCancel = () => {
@@ -126,10 +116,61 @@ export const ActiveWorkoutScreen = () => {
         onLeftPress={handleCancel}
         rightText="FINISH"
         rightIcon="checkmark-done"
-        onRightPress={handleFinish}
-        timer={formatTime(elapsed)}
+        onRightPress={handleFinishPress}
       />
+      // ActiveWorkoutScreen.tsx içinde
+      <ModalComponent
+        visible={showFinishModal}
+        onClose={() => setShowFinishModal(false)}
+        title="Workout Duration"
+        footer={
+          <>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalCancelButton]}
+              onPress={() => setShowFinishModal(false)}
+            >
+              <Text style={styles.modalCancelButtonText}>Back</Text>
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalFinishButton]}
+              onPress={confirmFinish}
+            >
+              <Text style={styles.finishButtonText}>Complete</Text>
+            </TouchableOpacity>
+          </>
+        }
+      >
+        <View style={styles.modalContent}>
+          <View style={styles.pickersRow}>
+            <TimeSelector
+              label="Hours"
+              data={HOURS}
+              selected={selectedHour}
+              onSelect={setSelectedHour}
+            />
+            <Text style={styles.separator}>:</Text>
+            <TimeSelector
+              label="Minutes"
+              data={MINUTES}
+              selected={selectedMinute}
+              onSelect={setSelectedMinute}
+            />
+          </View>
+
+          {/* Selected Duration Display */}
+          <View style={styles.selectedDurationRow}>
+            <Ionicons
+              name="time-outline"
+              size={20}
+              color={colors.brand.primary}
+            />
+            <Text style={styles.selectedDurationText}>
+              {selectedHour}h {selectedMinute.toString().padStart(2, "0")}m
+            </Text>
+          </View>
+        </View>
+      </ModalComponent>
       <StatsBar
         stats={[
           {
@@ -149,7 +190,6 @@ export const ActiveWorkoutScreen = () => {
           },
         ]}
       />
-
       {/* Exercise List */}
       <FlatList
         data={activeWorkout.exercises}
@@ -198,39 +238,127 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.ui.border,
   },
-  headerButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: colors.background.secondary,
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    // flex: 1, // Bu satırı kaldırın. flex:1 içeriğin sığmasını engelleyip uzatabilir.
+    // borderWidth: 1, // Debug borders kalsın mı? Gerek yoksa kaldırın.
+  },
+  modalHeader: {
+    fontSize: 20,
+    fontWeight: "bold",
+    margin: 20,
+    color: colors.text.primary,
+    borderWidth: 1,
+  },
+  pickersRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 200,
+    marginBottom: 5,
+    borderColor: colors.ui.border,
+    borderRadius: 12,
+    padding: spacing.m,
+  },
+  selectorContainer: {
+    flex: 1,
+    alignItems: "center",
+    height: "100%",
+  },
+
+  separator: {
+    fontSize: 30,
+    fontWeight: "bold",
+    marginHorizontal: 10,
+    marginTop: 20,
+    color: colors.text.primary,
+  },
+  timeOption: {
+    paddingVertical: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  headerCenter: {
-    flex: 1,
-    alignItems: "center",
+  timeOptionSelected: {
+    backgroundColor: colors.background.tertiary,
   },
-  headerTitle: {
-    color: colors.text.primary,
-    fontSize: 17,
-    fontWeight: "700",
-    fontFamily: "Inter",
+  timeText: {
+    fontSize: 18,
+    color: colors.text.secondary,
   },
-  timerRow: {
+  timeTextSelected: {
+    fontWeight: "bold",
+    color: colors.brand.primary,
+  },
+  selectedDurationRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    marginTop: 2,
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
+    marginTop: spacing.s,
+  },
+  selectedDurationText: {
+    fontSize: 22,
+    fontWeight: "700",
+    fontFamily: "Inter",
+    color: colors.brand.primary,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalButton: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  modalCancelButton: {
+    backgroundColor: "#f0f0f0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  finishButton: {
+    backgroundColor: colors.brand.primary,
+  },
+  modalCancelButtonText: {
+    color: "#333",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  finishButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
   },
   timerText: {
     color: colors.brand.primary,
     fontSize: 13,
     fontWeight: "600",
     fontFamily: "Inter",
+    borderBottomColor: colors.ui.border,
   },
-  finishButton: {
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: "#007AFF",
+  },
+  modalFinishButton: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.brand.primary,
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,

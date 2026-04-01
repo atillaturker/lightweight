@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.l,
     paddingVertical: spacing.m,
     borderBottomWidth: 1,
-    borderBottomColor: colors.ui.border,
+    borderColor: colors.ui.border,
   },
   button: {
     width: 36,
@@ -76,8 +76,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   center: {
+    flexDirection: "row",
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     color: colors.text.primary,
@@ -87,9 +89,9 @@ const styles = StyleSheet.create({
   },
   timerRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
+    gap: spacing.xs,
+    marginTop: spacing.xxs,
+    marginLeft: spacing.m,
   },
   timerText: {
     color: colors.brand.primary,
