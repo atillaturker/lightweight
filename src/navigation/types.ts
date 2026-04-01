@@ -9,8 +9,15 @@ export type AuthStackParamList = {
   [SCREENS.AUTH]: undefined;
 };
 
+export type AppStackParamList = {
+  Tabs: undefined;
+  [SCREENS.ACTIVE_WORKOUT]: undefined;
+  [SCREENS.EXERCISE_SELECTOR]: undefined;
+  [SCREENS.ACTIVE_EXERCISE_DETAIL]: { exerciseInstanceId: string };
+};
+
 export type BottomTabParamList = {
-  Home: undefined;
-  Profile: undefined;
-  Settings: undefined;
+  [SCREENS.HOME]: undefined;
+  [SCREENS.WORKOUT]: undefined;
+  [SCREENS.SETTINGS]: undefined;
 };
