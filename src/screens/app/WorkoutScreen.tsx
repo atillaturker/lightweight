@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   FlatList,
   ScrollView,
@@ -18,9 +18,11 @@ import { RoutineCard } from "../../components/workout/RoutineCard";
 import { SCREENS } from "../../navigation/screenNames";
 import { AppStackParamList } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { startWorkout } from "../../store/slices/workoutSlice";
+import {
+  fetchUserWorkouts,
+  startWorkout,
+} from "../../store/slices/workoutSlice";
 import { colors, spacing } from "../../theme";
-import { id } from "zod/locales";
 
 // Mock Data for Routines (Placeholder for now)
 const MOCK_ROUTINES = [
@@ -44,16 +46,22 @@ const MOCK_ROUTINES = [
     lastPerformed: "2 weeks ago",
     exercisesCount: 8,
     duration: "~60m",
-  }
+  },
 ];
 
 export const WorkoutScreen = () => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   const activeWorkout = useAppSelector((state) => state.workout.activeWorkout);
-  // Get history from Redux
-  const history = useAppSelector((state) => state.workout.history);
+  // Get WorkoutHistory from Redux
+  const WorkoutHistory = useAppSelector((state) => state.workout.history);
+
+  useEffect(() => {
+    // Component yüklendiğinde Firestore'dan history verisini çek
+    dispatch(fetchUserWorkouts());
+  }, [dispatch]);
 
   const handleQuickStart = () => {
     dispatch(startWorkout({ name: "Workout" }));
@@ -84,8 +92,8 @@ export const WorkoutScreen = () => {
             name="settings-sharp"
             size={24}
             color={colors.text.tertiary}
-            onPress={()=>{
-              console.log("Settings tab pressed.")
+            onPress={() => {
+              console.log("Settings tab pressed.");
             }}
           />
         </TouchableOpacity>
@@ -125,12 +133,15 @@ export const WorkoutScreen = () => {
         {/* Recent Activity Section */}
         <SectionHeader title="RECENT ACTIVITY" />
         <View style={styles.activityList}>
-          {history.length > 0 ? (
-            history.map((workout) => {
-              const { day, dayNum } = formatActivityDate(workout.startTime);
-              // Calculate volume and duration properly in future
-              const volume = "0kg";
-              const duration = "0m";
+          {WorkoutHistory.length > 0 ? (
+            WorkoutHistory.map((workout) => {
+              console.log("Workout History Item:", workout); // Debug log
+              const { day, dayNum } = formatActivityDate(workout.date);
+
+              // Varsayılan ya da hesaplanan hacmi göster
+              const volumeText = workout.totalVolume
+                ? `${workout.totalVolume} kg`
+                : "0 kg";
 
               return (
                 <ActivityRow
@@ -138,8 +149,12 @@ export const WorkoutScreen = () => {
                   day={day}
                   date={dayNum}
                   title={workout.name}
-                  duration={duration}
-                  volume={volume}
+                  duration={
+                    workout.duration
+                      ? `${Math.round(workout.duration / 60)}m`
+                      : "0m"
+                  }
+                  volume={volumeText}
                   onPress={() => console.log("View Activity", workout.id)}
                 />
               );

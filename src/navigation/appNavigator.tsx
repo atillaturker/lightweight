@@ -36,11 +36,11 @@ const TabNavigator = () => {
           },
           tabBarIcon: ({ focused, color, size }) => {
             let iconName: keyof typeof Ionicons.glyphMap;
-            if (route.name === SCREENS.HOME) {
+            if (route.name === SCREENS.TAB_HOME) {
               iconName = focused ? "home" : "home-outline";
-            } else if (route.name === SCREENS.SETTINGS) {
+            } else if (route.name === SCREENS.TAB_SETTINGS) {
               iconName = focused ? "settings" : "settings-outline";
-            } else if (route.name === SCREENS.WORKOUT) {
+            } else if (route.name === SCREENS.TAB_WORKOUT) {
               iconName = focused ? "barbell" : "barbell-outline";
             } else {
               iconName = "alert";
@@ -50,9 +50,9 @@ const TabNavigator = () => {
         };
       }}
     >
-      <Tab.Screen name={SCREENS.HOME} component={HomeScreen} />
-      <Tab.Screen name={SCREENS.WORKOUT} component={WorkoutScreen} />
-      <Tab.Screen name={SCREENS.SETTINGS} component={SettingsScreen} />
+      <Tab.Screen name={SCREENS.TAB_HOME} component={HomeScreen} />
+      <Tab.Screen name={SCREENS.TAB_WORKOUT} component={WorkoutScreen} />
+      <Tab.Screen name={SCREENS.TAB_SETTINGS} component={SettingsScreen} />
     </Tab.Navigator>
   );
 };

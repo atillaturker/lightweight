@@ -2,14 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
-import {
-  Alert,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AddExerciseButton } from "../../components/ui/AddExerciseButton";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -18,12 +11,13 @@ import ModalComponent from "../../components/ui/Modal";
 import { StatsBar } from "../../components/ui/StatsBar";
 import TimeSelector from "../../components/ui/TimeSelector";
 import { ReadOnlyExerciseCard } from "../../components/workout/ReadOnlyExerciseCard";
+import WorkoutDurationFooter from "../../components/workout/WorkoutDurationFooter";
 import { SCREENS } from "../../navigation/screenNames";
 import { AppStackParamList } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../store";
 import {
   cancelWorkout,
-  finishWorkout,
+  completeAndSyncUserWorkout,
   removeExercise,
 } from "../../store/slices/workoutSlice";
 import { colors, spacing } from "../../theme";
@@ -81,7 +75,7 @@ export const ActiveWorkoutScreen = () => {
     // Convert to seconds
     const totalSeconds = selectedHour * 3600 + selectedMinute * 60;
 
-    dispatch(finishWorkout({ duration: totalSeconds }));
+    dispatch(completeAndSyncUserWorkout(totalSeconds));
     setShowFinishModal(false);
     navigation.goBack();
   };
@@ -118,26 +112,16 @@ export const ActiveWorkoutScreen = () => {
         rightIcon="checkmark-done"
         onRightPress={handleFinishPress}
       />
-      // ActiveWorkoutScreen.tsx içinde
       <ModalComponent
         visible={showFinishModal}
         onClose={() => setShowFinishModal(false)}
         title="Workout Duration"
         footer={
           <>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.modalCancelButton]}
-              onPress={() => setShowFinishModal(false)}
-            >
-              <Text style={styles.modalCancelButtonText}>Back</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.modalButton, styles.modalFinishButton]}
-              onPress={confirmFinish}
-            >
-              <Text style={styles.finishButtonText}>Complete</Text>
-            </TouchableOpacity>
+            <WorkoutDurationFooter
+              onBack={() => setShowFinishModal(false)}
+              onComplete={confirmFinish}
+            />
           </>
         }
       >
@@ -246,10 +230,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: {
-    // flex: 1, // Bu satırı kaldırın. flex:1 içeriğin sığmasını engelleyip uzatabilir.
-    // borderWidth: 1, // Debug borders kalsın mı? Gerek yoksa kaldırın.
-  },
+  modalContent: {},
   modalHeader: {
     fontSize: 20,
     fontWeight: "bold",
@@ -315,31 +296,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
   },
-  modalButton: {
-    flex: 1,
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginHorizontal: 5,
-  },
-  modalCancelButton: {
-    backgroundColor: "#f0f0f0",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  finishButton: {
-    backgroundColor: colors.brand.primary,
-  },
-  modalCancelButtonText: {
-    color: "#333",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  finishButtonText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-  },
+
   timerText: {
     color: colors.brand.primary,
     fontSize: 13,
@@ -350,20 +307,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  modalButtonText: {
-    fontSize: 16,
-    color: "#007AFF",
-  },
-  modalFinishButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.brand.primary,
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.s,
-    borderRadius: 10,
-    gap: 4,
   },
   listContent: {
     paddingBottom: 120,
