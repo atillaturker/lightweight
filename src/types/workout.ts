@@ -40,7 +40,7 @@ export interface Workout {
   exercises: WorkoutExercise[];
   status: "active" | "completed" | "discarded";
   duration?: number; // In seconds
-  volume?: number; // Total volume (kg)
+  totalVolume?: number; // Total volume (kg)
 }
 
 // For templates/routines
