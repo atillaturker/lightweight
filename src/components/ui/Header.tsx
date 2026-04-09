@@ -15,7 +15,7 @@ interface HeaderProps {
 
 export const Header = ({
   title,
-  leftIcon = "chevron-back",
+  leftIcon,
   onLeftPress,
   rightText,
   rightIcon,
@@ -24,9 +24,13 @@ export const Header = ({
 }: HeaderProps) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={onLeftPress} style={styles.button}>
-        <Ionicons name={leftIcon} size={20} color={colors.text.tertiary} />
-      </TouchableOpacity>
+      {onLeftPress && (
+        <TouchableOpacity onPress={onLeftPress} style={styles.button}>
+          {leftIcon && (
+            <Ionicons name={leftIcon} size={18} color={colors.text.primary} />
+          )}
+        </TouchableOpacity>
+      )}
 
       <View style={styles.center}>
         <Text style={styles.title} numberOfLines={1}>
@@ -52,7 +56,7 @@ export const Header = ({
           {rightText && <Text style={styles.actionText}>{rightText}</Text>}
         </TouchableOpacity>
       ) : (
-        <View style={styles.button} /> // Placeholder for alignment
+        <></>
       )}
     </View>
   );

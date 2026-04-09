@@ -6,10 +6,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActiveExerciseDetailScreen,
   ActiveWorkoutScreen,
+  CreateRoutineScreen,
   ExerciseSelectorScreen,
   HomeScreen,
+  WorkoutDetailScreen,
   WorkoutScreen,
 } from "../screens/app";
+import { RoutinesScreen } from "../screens/app/RoutinesScreen";
 import { SettingsScreen } from "../screens/app/SettingsScreen";
 import { colors } from "../theme";
 import { SCREENS } from "./screenNames";
@@ -36,11 +39,11 @@ const TabNavigator = () => {
           },
           tabBarIcon: ({ focused, color, size }) => {
             let iconName: keyof typeof Ionicons.glyphMap;
-            if (route.name === SCREENS.HOME) {
+            if (route.name === SCREENS.TAB_HOME) {
               iconName = focused ? "home" : "home-outline";
-            } else if (route.name === SCREENS.SETTINGS) {
+            } else if (route.name === SCREENS.TAB_SETTINGS) {
               iconName = focused ? "settings" : "settings-outline";
-            } else if (route.name === SCREENS.WORKOUT) {
+            } else if (route.name === SCREENS.TAB_WORKOUT) {
               iconName = focused ? "barbell" : "barbell-outline";
             } else {
               iconName = "alert";
@@ -50,9 +53,9 @@ const TabNavigator = () => {
         };
       }}
     >
-      <Tab.Screen name={SCREENS.HOME} component={HomeScreen} />
-      <Tab.Screen name={SCREENS.WORKOUT} component={WorkoutScreen} />
-      <Tab.Screen name={SCREENS.SETTINGS} component={SettingsScreen} />
+      <Tab.Screen name={SCREENS.TAB_HOME} component={HomeScreen} />
+      <Tab.Screen name={SCREENS.TAB_WORKOUT} component={WorkoutScreen} />
+      <Tab.Screen name={SCREENS.TAB_SETTINGS} component={SettingsScreen} />
     </Tab.Navigator>
   );
 };
@@ -72,9 +75,23 @@ export const AppNavigator = () => {
         options={{ presentation: "modal" }}
       />
       <Stack.Screen
+        name={SCREENS.WORKOUT_DETAIL}
+        component={WorkoutDetailScreen}
+      />
+      <Stack.Screen
         name={SCREENS.EXERCISE_SELECTOR}
         component={ExerciseSelectorScreen}
         options={{ presentation: "modal" }}
+      />
+      <Stack.Screen
+        name={SCREENS.ROUTINES}
+        component={RoutinesScreen}
+        options={{ presentation: "modal" }}
+      />
+      <Stack.Screen
+        name={SCREENS.CREATE_ROUTINE}
+        component={CreateRoutineScreen}
+        options={{ presentation: "fullScreenModal" }}
       />
     </Stack.Navigator>
   );

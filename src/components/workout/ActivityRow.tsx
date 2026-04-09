@@ -2,128 +2,141 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors, spacing } from "../../theme";
-import { DashboardCard } from "../ui/DashboardCard";
+import { Workout } from "../../types/workout";
+import { formatDuration } from "../../utils/dateUtils";
 
 interface ActivityRowProps {
-  day: string; // e.g., "MON"
-  date: string; // e.g., "14"
-  title: string;
-  duration: string;
-  volume: string;
+  workout: Workout;
   onPress?: () => void;
 }
 
-export const ActivityRow = ({
-  day,
-  date,
-  title,
-  duration,
-  volume,
-  onPress,
-}: ActivityRowProps) => {
+export const ActivityRow = ({ workout, onPress }: ActivityRowProps) => {
+  const dateObj = new Date(workout.date);
+  const formattedDate = `${dateObj.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  })} • ${dateObj.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+
+  const totalSets = workout.exercises.reduce(
+    (acc, ex) => acc + ex.sets.filter((s) => s.completed).length,
+    0,
+  );
+
   return (
     <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
-      <DashboardCard style={styles.container}>
-        {/* Date Box */}
-        <View style={styles.dateBox}>
-          <Text style={styles.dayText}>{day}</Text>
-          <Text style={styles.dateText}>{date}</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title} numberOfLines={1}>
+              {workout.name}
+            </Text>
+            <Text style={styles.date}>{formattedDate}</Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={colors.text.tertiary}
+            style={styles.chevron}
+          />
         </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Ionicons
-                name="time-outline"
-                size={14}
-                color={colors.text.tertiary}
-                style={styles.icon}
-              />
-              <Text style={styles.statText}>{duration}</Text>
-            </View>
-            <Text style={styles.dot}>•</Text>
-            <View style={styles.statItem}>
-              <Ionicons
-                name="barbell-outline"
-                size={14}
-                color={colors.text.tertiary}
-                style={styles.icon}
-              />
-              <Text style={styles.statText}>{volume}</Text>
-            </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statBadge}>
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color={colors.text.secondary}
+            />
+            <Text style={styles.statText}>
+              {formatDuration(workout.duration || 0)}
+            </Text>
+          </View>
+          <View style={styles.statBadge}>
+            <Ionicons
+              name="barbell-outline"
+              size={16}
+              color={colors.text.secondary}
+            />
+            <Text style={styles.statText}>
+              {(workout.totalVolume || 0).toLocaleString()} kg
+            </Text>
+          </View>
+          <View style={styles.statBadge}>
+            <Ionicons
+              name="list-outline"
+              size={16}
+              color={colors.text.secondary}
+            />
+            <Text style={styles.statText}>
+              {workout.exercises.length} Exercises
+            </Text>
+          </View>
+          <View style={styles.statBadge}>
+            <Ionicons
+              name="layers-outline"
+              size={16}
+              color={colors.text.secondary}
+            />
+            <Text style={styles.statText}>{totalSets} Sets</Text>
           </View>
         </View>
-
-        {/* Chevron */}
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={colors.text.tertiary}
-        />
-      </DashboardCard>
+      </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing.m,
-    marginBottom: spacing.m,
     backgroundColor: colors.background.secondary,
+    borderRadius: 16,
+    padding: spacing.l,
+    marginBottom: spacing.m,
   },
-  dateBox: {
-    backgroundColor: colors.background.tertiary,
-    borderRadius: 6,
-    padding: spacing.s,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing.m,
-    width: 50,
-    height: 50,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: spacing.l,
   },
-  dayText: {
-    color: colors.text.tertiary,
-    fontSize: 10,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    marginBottom: 2,
-  },
-  dateText: {
-    color: colors.text.primary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  content: {
+  headerTextContainer: {
     flex: 1,
+    marginRight: spacing.m,
   },
   title: {
     color: colors.text.primary,
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "800",
+    fontFamily: "Inter",
     marginBottom: 4,
   },
-  statsRow: {
+  date: {
+    color: colors.text.tertiary,
+    fontSize: 13,
+  },
+  chevron: {
+    marginTop: 2,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.s,
+  },
+  statBadge: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  statItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  icon: {
-    marginRight: 4,
+    backgroundColor: colors.background.tertiary,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderRadius: 8,
+    gap: 6,
   },
   statText: {
-    color: colors.text.tertiary,
-    fontSize: 12,
-  },
-  dot: {
-    color: colors.text.tertiary,
-    marginHorizontal: 8,
-    fontSize: 12,
+    color: colors.text.secondary,
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

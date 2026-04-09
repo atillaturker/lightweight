@@ -1,21 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-export interface UserData {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  emailVerified: boolean;
-  // Add other user-related fields as necessary
-}
-
-interface authState {
-  isAuthenticated: boolean;
-  isInitialized: boolean;
-  isLoading: boolean;
-  error: string | null;
-  user: UserData | null;
-}
+import { authState, UserData } from "../types";
 
 const initialState: authState = {
   isAuthenticated: false,

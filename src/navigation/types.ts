@@ -1,3 +1,4 @@
+import type { NavigatorScreenParams } from "@react-navigation/native";
 import { SCREENS } from "./screenNames";
 
 export type RootStackParamList = {
@@ -10,14 +11,21 @@ export type AuthStackParamList = {
 };
 
 export type AppStackParamList = {
-  Tabs: undefined;
+  Tabs: NavigatorScreenParams<BottomTabParamList>;
   [SCREENS.ACTIVE_WORKOUT]: undefined;
-  [SCREENS.EXERCISE_SELECTOR]: undefined;
-  [SCREENS.ACTIVE_EXERCISE_DETAIL]: { exerciseInstanceId: string };
+  [SCREENS.EXERCISE_SELECTOR]: { isRoutine?: boolean } | undefined;
+  [SCREENS.ACTIVE_EXERCISE_DETAIL]: {
+    exerciseInstanceId: string;
+    isRoutine?: boolean;
+  };
+  [SCREENS.CREATE_ROUTINE]: undefined;
+  [SCREENS.WORKOUT_DETAIL]: { workoutId: string };
+  [SCREENS.ROUTINES]: undefined;
+  [SCREENS.ROUTINE_DETAIL]: { routineId: string };
 };
 
 export type BottomTabParamList = {
-  [SCREENS.HOME]: undefined;
-  [SCREENS.WORKOUT]: undefined;
-  [SCREENS.SETTINGS]: undefined;
+  [SCREENS.TAB_HOME]: undefined;
+  [SCREENS.TAB_WORKOUT]: undefined;
+  [SCREENS.TAB_SETTINGS]: undefined;
 };

@@ -1,10 +1,10 @@
 import React from "react";
-import { StyleSheet, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { colors, spacing } from "../../theme";
 
 interface DashboardCardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const DashboardCard = ({ children, style }: DashboardCardProps) => {
