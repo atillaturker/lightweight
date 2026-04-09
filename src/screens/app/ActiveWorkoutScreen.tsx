@@ -20,7 +20,8 @@ import {
   completeAndSyncUserWorkout,
   removeExercise,
 } from "../../store/slices/workoutSlice";
-import { colors, spacing } from "../../theme";
+import { theme } from "../../theme";
+import { calculateWorkoutVolume } from "../../utils/workoutUtils";
 
 // --- Time Data ---
 const HOURS = Array.from({ length: 13 }, (_, i) => i);
@@ -48,24 +49,7 @@ export const ActiveWorkoutScreen = () => {
   const totalSets =
     activeWorkout?.exercises.reduce((acc, ex) => acc + ex.sets.length, 0) ?? 0;
 
-  const totalVolume =
-    activeWorkout?.exercises.reduce((acc, ex) => {
-      return (
-        acc +
-        ex.sets.reduce((setAcc, s) => {
-          if (s.completed) {
-            const w =
-              typeof s.weight === "string"
-                ? parseFloat(s.weight) || 0
-                : s.weight;
-            const r =
-              typeof s.reps === "string" ? parseFloat(s.reps) || 0 : s.reps;
-            return setAcc + w * r;
-          }
-          return setAcc;
-        }, 0)
-      );
-    }, 0) ?? 0;
+  const totalVolume = calculateWorkoutVolume(activeWorkout?.exercises ?? []);
 
   const handleFinishPress = () => {
     setShowFinishModal(true);
@@ -147,7 +131,7 @@ export const ActiveWorkoutScreen = () => {
             <Ionicons
               name="time-outline"
               size={20}
-              color={colors.brand.primary}
+              color={theme.colors.brand.primary}
             />
             <Text style={styles.selectedDurationText}>
               {selectedHour}h {selectedMinute.toString().padStart(2, "0")}m
@@ -211,16 +195,16 @@ export const ActiveWorkoutScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: theme.colors.background.primary,
   },
   // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: spacing.l,
-    paddingVertical: spacing.m,
+    paddingHorizontal: theme.spacing.l,
+    paddingVertical: theme.spacing.m,
     borderBottomWidth: 1,
-    borderBottomColor: colors.ui.border,
+    borderBottomColor: theme.colors.ui.border,
   },
 
   // Modal Styles
@@ -232,10 +216,10 @@ const styles = StyleSheet.create({
   },
   modalContent: {},
   modalHeader: {
-    fontSize: 20,
+    fontSize: theme.typography.sizes.xl,
     fontWeight: "bold",
     margin: 20,
-    color: colors.text.primary,
+    color: theme.colors.text.primary,
     borderWidth: 1,
   },
   pickersRow: {
@@ -243,9 +227,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 200,
     marginBottom: 5,
-    borderColor: colors.ui.border,
-    borderRadius: 12,
-    padding: spacing.m,
+    borderColor: theme.colors.ui.border,
+    borderRadius: theme.radii.l,
+    padding: theme.spacing.m,
   },
   selectorContainer: {
     flex: 1,
@@ -254,11 +238,11 @@ const styles = StyleSheet.create({
   },
 
   separator: {
-    fontSize: 30,
+    fontSize: theme.typography.sizes.xxxl,
     fontWeight: "bold",
     marginHorizontal: 10,
     marginTop: 20,
-    color: colors.text.primary,
+    color: theme.colors.text.primary,
   },
   timeOption: {
     paddingVertical: 10,
@@ -266,30 +250,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timeOptionSelected: {
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: theme.colors.background.tertiary,
   },
   timeText: {
-    fontSize: 18,
-    color: colors.text.secondary,
+    fontSize: theme.typography.sizes.l,
+    color: theme.colors.text.secondary,
   },
   timeTextSelected: {
     fontWeight: "bold",
-    color: colors.brand.primary,
+    color: theme.colors.brand.primary,
   },
   selectedDurationRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.m,
-    marginTop: spacing.s,
+    paddingVertical: theme.spacing.s,
+    paddingHorizontal: theme.spacing.m,
+    marginTop: theme.spacing.s,
   },
   selectedDurationText: {
     fontSize: 22,
     fontWeight: "700",
-    fontFamily: "Inter",
-    color: colors.brand.primary,
+    fontFamily: theme.typography.fonts.primary,
+    color: theme.colors.brand.primary,
   },
   modalActions: {
     flexDirection: "row",
@@ -298,18 +282,18 @@ const styles = StyleSheet.create({
   },
 
   timerText: {
-    color: colors.brand.primary,
-    fontSize: 13,
+    color: theme.colors.brand.primary,
+    fontSize: theme.typography.sizes.s,
     fontWeight: "600",
-    fontFamily: "Inter",
-    borderBottomColor: colors.ui.border,
+    fontFamily: theme.typography.fonts.primary,
+    borderBottomColor: theme.colors.ui.border,
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: theme.typography.sizes.m,
     fontWeight: "600",
   },
   listContent: {
     paddingBottom: 120,
-    paddingTop: spacing.s,
+    paddingTop: theme.spacing.s,
   },
 });

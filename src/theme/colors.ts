@@ -6,29 +6,35 @@
 export const colors = {
   // Background Colors
   background: {
-    primary: "#101922",
-    secondary: "#18212D",
-    tertiary: "#1F2937",
+    primary: "#14130f", // Based on design system
+    secondary: "#23211a", // Cards and modal backgrounds
+    tertiary: "#353228", // Inner cards or inputs
   },
 
   // Text Colors
   text: {
-    primary: "#FFFFFF",
-    secondary: "#6B7281",
-    tertiary: "#9CA3AF",
+    primary: "#fefefe", // High contrast text
+    secondary: "#d1cbb8", // Muted text
+    tertiary: "#a39f91", // Subtle labels/icons
   },
 
   // Brand/Action Colors
   brand: {
-    primary: "#137FEC",
-    secondary: "#1D5DB",
+    primary: "#f4d125", // Design system primary
+    secondary: "#867737", // Design system secondary
+    tertiary: "#778486", // Design system tertiary
+  },
+
+  // Neural Base
+  neutral: {
+    base: "#7c7768",
   },
 
   // UI Elements
   ui: {
-    border: "#374151",
-    divider: "#374151",
-    placeholder: "#1F2937",
+    border: "rgba(124, 119, 104, 0.2)",
+    divider: "rgba(124, 119, 104, 0.2)",
+    placeholder: "#353228",
   },
 
   semantic: {

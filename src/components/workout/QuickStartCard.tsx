@@ -1,25 +1,36 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 import { colors, spacing } from "../../theme";
 import { DashboardCard } from "../ui/DashboardCard";
 
 interface QuickStartCardProps {
   onStartPress?: () => void;
+  workoutStatus?: "active" | "completed" | "discarded";
   activeWorkoutName?: string;
   onResumePress?: () => void;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const QuickStartCard = ({
   onStartPress,
-  activeWorkoutName,
   onResumePress,
+  style,
+  workoutStatus,
+  activeWorkoutName,
 }: QuickStartCardProps) => {
-  const isResume = !!activeWorkoutName;
+  const isResume = workoutStatus === "active";
 
   return (
     <DashboardCard
-      style={[styles.container, isResume && styles.containerResume]}
+      style={[styles.container, isResume && styles.containerResume, style]}
     >
       <View style={styles.content}>
         <View
@@ -69,8 +80,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: spacing.l,
-    backgroundColor: colors.background.secondary,
   },
   containerResume: {
     borderWidth: 1,
@@ -129,5 +138,23 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(19, 127, 236, 0.1)",
     borderWidth: 1,
     borderColor: colors.brand.primary,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.xl,
+  },
+  sectionTitle: {
+    color: colors.text.primary,
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  seeAllText: {
+    color: "#FACC15",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
 });

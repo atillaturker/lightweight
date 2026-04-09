@@ -16,6 +16,12 @@ export const SCREENS = {
   ACTIVE_WORKOUT: "ActiveWorkout",
   EXERCISE_SELECTOR: "ExerciseSelector",
   ACTIVE_EXERCISE_DETAIL: "ActiveExerciseDetail",
+  CREATE_ROUTINE: "CreateRoutine",
+  WORKOUT_DETAIL: "WorkoutDetail",
+
+  // Routine Flow
+  ROUTINES: "Routines",
+  ROUTINE_DETAIL: "RoutineDetail",
 
   // Other screens
   POST_DETAIL: "PostDetail",
