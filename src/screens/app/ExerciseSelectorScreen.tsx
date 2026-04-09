@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useMemo, useState } from "react";
 import {
@@ -11,13 +11,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SearchBar } from "../../components/ui/SearchBar";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SearchBar } from "../../components/ui/SearchBar";
 import { SCREENS } from "../../navigation/screenNames";
 import { AppStackParamList } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { addExerciseToWorkout } from "../../store/slices/workoutSlice";
-import { colors, spacing } from "../../theme";
+import {
+  addExerciseToRoutineDraft,
+  addExerciseToWorkout,
+} from "../../store/slices/workoutSlice";
+import { theme } from "../../theme";
 import { Exercise, MuscleGroup } from "../../types/workout";
 import { MUSCLE_GROUP_CONFIG } from "../../utils/muscleGroupConfig";
 
@@ -37,6 +40,10 @@ const ALL_MUSCLE_GROUPS: Array<MuscleGroup | "all"> = [
 export const ExerciseSelectorScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const route =
+    useRoute<RouteProp<AppStackParamList, typeof SCREENS.EXERCISE_SELECTOR>>();
+  const isRoutine = route.params?.isRoutine;
+
   const dispatch = useAppDispatch();
   const availableExercises = useAppSelector(
     (state) => state.workout.availableExercises,
@@ -74,10 +81,15 @@ export const ExerciseSelectorScreen = () => {
 
   const handleSelectExercise = (exercise: Exercise) => {
     const instanceId = Date.now().toString();
-    dispatch(addExerciseToWorkout({ exercise, instanceId }));
-    navigation.replace(SCREENS.ACTIVE_EXERCISE_DETAIL, {
-      exerciseInstanceId: instanceId,
-    });
+    if (isRoutine) {
+      dispatch(addExerciseToRoutineDraft({ exercise, instanceId }));
+      navigation.goBack(); // Back to CreateRoutineScreen
+    } else {
+      dispatch(addExerciseToWorkout({ exercise, instanceId }));
+      navigation.replace(SCREENS.ACTIVE_EXERCISE_DETAIL, {
+        exerciseInstanceId: instanceId,
+      });
+    }
   };
 
   const renderExerciseItem = (item: Exercise) => {
@@ -113,7 +125,7 @@ export const ExerciseSelectorScreen = () => {
           </View>
         </View>
         <View style={styles.addIconWrapper}>
-          <Ionicons name="add" size={18} color={colors.brand.primary} />
+          <Ionicons name="add" size={18} color={theme.colors.brand.primary} />
         </View>
       </TouchableOpacity>
     );
@@ -134,7 +146,7 @@ export const ExerciseSelectorScreen = () => {
           onPress={() => navigation.goBack()}
           style={styles.closeButton}
         >
-          <Ionicons name="close" size={20} color={colors.text.tertiary} />
+          <Ionicons name="close" size={20} color={theme.colors.text.tertiary} />
         </TouchableOpacity>
       </View>
 
@@ -171,7 +183,7 @@ export const ExerciseSelectorScreen = () => {
                   isSelected &&
                     !config && {
                       backgroundColor: "rgba(19, 127, 236, 0.15)",
-                      borderColor: colors.brand.primary,
+                      borderColor: theme.colors.brand.primary,
                     },
                 ]}
                 onPress={() => setSelectedMuscleGroup(group)}
@@ -181,14 +193,17 @@ export const ExerciseSelectorScreen = () => {
                   <Ionicons
                     name={config.icon}
                     size={14}
-                    color={isSelected ? config.color : colors.text.tertiary}
+                    color={
+                      isSelected ? config.color : theme.colors.text.tertiary
+                    }
                   />
                 )}
                 <Text
                   style={[
                     styles.filterChipText,
                     isSelected && config && { color: config.color },
-                    isSelected && !config && { color: colors.brand.primary },
+                    isSelected &&
+                      !config && { color: theme.colors.brand.primary },
                   ]}
                 >
                   {group === "all" ? "All" : (config?.label ?? group)}
@@ -212,7 +227,7 @@ export const ExerciseSelectorScreen = () => {
                   {
                     backgroundColor:
                       MUSCLE_GROUP_CONFIG[group.muscleGroup]?.color ??
-                      colors.text.tertiary,
+                      theme.colors.text.tertiary,
                   },
                 ]}
               />
@@ -242,56 +257,56 @@ export const ExerciseSelectorScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: theme.colors.background.primary,
   },
   // Header
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingHorizontal: spacing.l,
-    paddingTop: spacing.m,
-    paddingBottom: spacing.s,
+    paddingHorizontal: theme.spacing.l,
+    paddingTop: theme.spacing.m,
+    paddingBottom: theme.spacing.s,
   },
   title: {
-    color: colors.text.primary,
-    fontSize: 22,
+    color: theme.colors.text.primary,
+    fontSize: theme.typography.sizes.xxl,
     fontWeight: "800",
-    fontFamily: "Inter",
+    fontFamily: theme.typography.fonts.primary,
   },
   subtitle: {
-    color: colors.text.tertiary,
-    fontSize: 13,
+    color: theme.colors.text.tertiary,
+    fontSize: theme.typography.sizes.s,
     marginTop: 2,
   },
   closeButton: {
     width: 36,
     height: 36,
-    borderRadius: 10,
-    backgroundColor: colors.background.secondary,
+    borderRadius: theme.radii.m,
+    backgroundColor: theme.colors.background.secondary,
     alignItems: "center",
     justifyContent: "center",
   },
   // Search
   searchContainer: {
-    paddingHorizontal: spacing.l,
-    paddingBottom: spacing.m,
+    paddingHorizontal: theme.spacing.l,
+    paddingBottom: theme.spacing.m,
   },
   // Filter chips
   filterContainer: {
-    paddingBottom: spacing.m,
+    paddingBottom: theme.spacing.m,
   },
   filterContent: {
-    paddingHorizontal: spacing.l,
-    gap: spacing.s,
+    paddingHorizontal: theme.spacing.l,
+    gap: theme.spacing.s,
   },
   filterChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.s,
-    borderRadius: 20,
-    backgroundColor: colors.background.secondary,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.radii.round,
+    backgroundColor: theme.colors.background.secondary,
     borderWidth: 1,
     borderColor: "transparent",
     gap: 4,
@@ -300,51 +315,51 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filterChipText: {
-    color: colors.text.tertiary,
-    fontSize: 13,
+    color: theme.colors.text.tertiary,
+    fontSize: theme.typography.sizes.s,
     fontWeight: "600",
   },
   // Sections
   sectionContainer: {
-    marginBottom: spacing.m,
+    marginBottom: theme.spacing.m,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: spacing.l,
-    paddingVertical: spacing.s,
-    gap: spacing.s,
+    paddingHorizontal: theme.spacing.l,
+    paddingVertical: theme.spacing.s,
+    gap: theme.spacing.s,
   },
   sectionDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: theme.radii.s,
   },
   sectionTitle: {
-    color: colors.text.secondary,
-    fontSize: 13,
+    color: theme.colors.text.secondary,
+    fontSize: theme.typography.sizes.s,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 1,
     flex: 1,
   },
   sectionCount: {
-    color: colors.text.tertiary,
-    fontSize: 12,
+    color: theme.colors.text.tertiary,
+    fontSize: theme.typography.sizes.xs,
     fontWeight: "600",
   },
   // Exercise item
   exerciseItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: spacing.l,
-    paddingVertical: spacing.m,
-    gap: spacing.m,
+    paddingHorizontal: theme.spacing.l,
+    paddingVertical: theme.spacing.m,
+    gap: theme.spacing.m,
   },
   exerciseIcon: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: theme.radii.l,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -353,10 +368,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   exerciseName: {
-    color: colors.text.primary,
-    fontSize: 15,
+    color: theme.colors.text.primary,
+    fontSize: theme.typography.sizes.m,
     fontWeight: "600",
-    fontFamily: "Inter",
+    fontFamily: theme.typography.fonts.primary,
   },
   exerciseMeta: {
     flexDirection: "row",
@@ -364,30 +379,29 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   categoryBadge: {
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: theme.colors.background.tertiary,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: theme.radii.m,
   },
   categoryText: {
-    color: colors.text.tertiary,
-    fontSize: 11,
+    color: theme.colors.text.tertiary,
+    fontSize: theme.typography.sizes.xs,
     fontWeight: "600",
   },
   muscleBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: theme.radii.m,
   },
   muscleText: {
-    fontSize: 11,
+    fontSize: theme.typography.sizes.xs,
     fontWeight: "600",
   },
   addIconWrapper: {
     width: 32,
     height: 32,
-    borderRadius: 10,
-    backgroundColor: "rgba(19, 127, 236, 0.12)",
+    borderRadius: theme.radii.m,
     alignItems: "center",
     justifyContent: "center",
   },

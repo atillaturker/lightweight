@@ -1,4 +1,4 @@
-import { Exercise, Workout } from "../types/workout";
+import { Exercise, Routine, Workout } from "../types/workout";
 
 export interface UserData {
   uid: string;
@@ -20,8 +20,9 @@ export interface authState {
 export interface WorkoutState {
   activeWorkout: Workout | null;
   history: Workout[];
-  routines: any[]; // define proper routine type later
+  routines: Routine[];
   availableExercises: Exercise[];
   isLoading: boolean;
   error: string | null;
+  draftRoutine: Partial<Routine> | null;
 }

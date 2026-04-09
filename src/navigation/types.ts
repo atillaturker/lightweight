@@ -13,8 +13,15 @@ export type AuthStackParamList = {
 export type AppStackParamList = {
   Tabs: NavigatorScreenParams<BottomTabParamList>;
   [SCREENS.ACTIVE_WORKOUT]: undefined;
-  [SCREENS.EXERCISE_SELECTOR]: undefined;
-  [SCREENS.ACTIVE_EXERCISE_DETAIL]: { exerciseInstanceId: string };
+  [SCREENS.EXERCISE_SELECTOR]: { isRoutine?: boolean } | undefined;
+  [SCREENS.ACTIVE_EXERCISE_DETAIL]: {
+    exerciseInstanceId: string;
+    isRoutine?: boolean;
+  };
+  [SCREENS.CREATE_ROUTINE]: undefined;
+  [SCREENS.WORKOUT_DETAIL]: { workoutId: string };
+  [SCREENS.ROUTINES]: undefined;
+  [SCREENS.ROUTINE_DETAIL]: { routineId: string };
 };
 
 export type BottomTabParamList = {

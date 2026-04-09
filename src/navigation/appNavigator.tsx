@@ -6,10 +6,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActiveExerciseDetailScreen,
   ActiveWorkoutScreen,
+  CreateRoutineScreen,
   ExerciseSelectorScreen,
   HomeScreen,
+  WorkoutDetailScreen,
   WorkoutScreen,
 } from "../screens/app";
+import { RoutinesScreen } from "../screens/app/RoutinesScreen";
 import { SettingsScreen } from "../screens/app/SettingsScreen";
 import { colors } from "../theme";
 import { SCREENS } from "./screenNames";
@@ -72,9 +75,23 @@ export const AppNavigator = () => {
         options={{ presentation: "modal" }}
       />
       <Stack.Screen
+        name={SCREENS.WORKOUT_DETAIL}
+        component={WorkoutDetailScreen}
+      />
+      <Stack.Screen
         name={SCREENS.EXERCISE_SELECTOR}
         component={ExerciseSelectorScreen}
         options={{ presentation: "modal" }}
+      />
+      <Stack.Screen
+        name={SCREENS.ROUTINES}
+        component={RoutinesScreen}
+        options={{ presentation: "modal" }}
+      />
+      <Stack.Screen
+        name={SCREENS.CREATE_ROUTINE}
+        component={CreateRoutineScreen}
+        options={{ presentation: "fullScreenModal" }}
       />
     </Stack.Navigator>
   );
