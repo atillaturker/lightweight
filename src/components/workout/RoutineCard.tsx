@@ -1,124 +1,149 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors, spacing } from "../../theme";
-import { DashboardCard } from "../ui/DashboardCard";
 
 interface RoutineCardProps {
   title: string;
-  lastPerformed?: string;
+  tags?: string[];
   exercisesCount: number;
   duration?: string;
   onStartPress?: () => void;
-  onOptionsPress?: () => void;
+  isActive?: boolean; // To show the yellow border focus like in the image
 }
 
 export const RoutineCard = ({
   title,
-  lastPerformed,
+  tags = [],
   exercisesCount,
   duration,
   onStartPress,
-  onOptionsPress,
+  isActive = false,
 }: RoutineCardProps) => {
   return (
-    <DashboardCard style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+    <View style={[styles.container, isActive && styles.containerActive]}>
+      {/* Left Content */}
+      <View style={styles.contentContainer}>
         <Text style={styles.title} numberOfLines={1}>
           {title}
         </Text>
-        <TouchableOpacity onPress={onOptionsPress}>
-          <Ionicons
-            name="ellipsis-horizontal"
-            size={20}
-            color={colors.text.tertiary}
-          />
-        </TouchableOpacity>
-      </View>
 
-      {/* Subtitle */}
-      <Text style={styles.subtitle}>
-        {lastPerformed
-          ? `Last performed: ${lastPerformed}`
-          : "Not performed yet"}
-      </Text>
-
-      {/* Badges */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statBadge}>
-          <Text style={styles.statText}>{exercisesCount} Exercises</Text>
+        {/* Tags */}
+        <View style={styles.tagsContainer}>
+          {tags.map((tag, index) => (
+            <View key={index} style={styles.tagBadge}>
+              <Text style={styles.tagText}>{tag.toUpperCase()}</Text>
+            </View>
+          ))}
         </View>
-        {duration && (
-          <View style={styles.statBadge}>
-            <Text style={styles.statText}>{duration}</Text>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <MaterialCommunityIcons
+              name="dumbbell"
+              size={14}
+              color={colors.text.tertiary}
+            />
+            <Text style={styles.statText}>{exercisesCount} Exercises</Text>
           </View>
-        )}
+          {duration && (
+            <View style={styles.statItem}>
+              <MaterialCommunityIcons
+                name="clock-time-four"
+                size={14}
+                color={colors.text.tertiary}
+              />
+              <Text style={styles.statText}>{duration}</Text>
+            </View>
+          )}
+        </View>
       </View>
 
-      {/* Button */}
+      {/* Play Button */}
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.playButton, isActive && styles.playButtonActive]}
         onPress={onStartPress}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
-        <Text style={styles.buttonText}>START ROUTINE</Text>
+        <Ionicons
+          name="play"
+          size={24}
+          color={isActive ? colors.background.primary : colors.text.secondary}
+          style={{ marginLeft: 4 }}
+        />
       </TouchableOpacity>
-    </DashboardCard>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: 280,
-    marginRight: spacing.m,
-    padding: spacing.l,
-    backgroundColor: colors.background.secondary,
-  },
-  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: spacing.xs,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    padding: spacing.l,
+    marginBottom: spacing.m,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  containerActive: {
+    borderLeftWidth: 4,
+    borderLeftColor: "#FACC15",
+  },
+  contentContainer: {
+    flex: 1,
   },
   title: {
     color: colors.text.primary,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "700",
-    flex: 1,
-    marginRight: spacing.m,
+    marginBottom: spacing.xs,
   },
-  subtitle: {
-    color: colors.text.tertiary,
-    fontSize: 12,
+  tagsContainer: {
+    flexDirection: "row",
     marginBottom: spacing.m,
+    flexWrap: "wrap",
+    gap: spacing.xs,
+  },
+  tagBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    paddingHorizontal: spacing.s,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  tagText: {
+    color: colors.text.secondary,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   statsContainer: {
     flexDirection: "row",
-    marginBottom: spacing.l,
-    gap: spacing.s,
+    alignItems: "center",
+    gap: spacing.l,
   },
-  statBadge: {
-    backgroundColor: colors.background.tertiary,
-    borderRadius: 4,
-    paddingHorizontal: spacing.s,
-    paddingVertical: 4,
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   statText: {
-    color: colors.text.primary,
-    fontSize: 12,
-    fontWeight: "600",
+    color: colors.text.tertiary,
+    fontSize: 13,
   },
-  button: {
-    backgroundColor: "#FACC15",
-    borderRadius: 8,
-    height: 40,
-    alignItems: "center",
+  playButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     justifyContent: "center",
+    alignItems: "center",
+    marginLeft: spacing.m,
   },
-  buttonText: {
-    color: colors.background.primary,
-    fontSize: 14,
-    fontWeight: "700",
+  playButtonActive: {
+    backgroundColor: "#FACC15",
   },
 });

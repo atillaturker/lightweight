@@ -31,22 +31,27 @@ export interface WorkoutExercise {
   category?: string; // e.g., "Barbell", "Dumbbell"
   sets: WorkoutSet[];
   notes?: string;
+  totalVolume?: number; // Calculated as sum of weight * reps for completed sets
 }
 
 export interface Workout {
   id: string;
+  routineId?: string; // If this Workout has routine
   name: string;
   date: string; // ISO date string
   exercises: WorkoutExercise[];
   status: "active" | "completed" | "discarded";
   duration?: number; // In seconds
-  volume?: number; // Total volume (kg)
+  totalVolume?: number; // Total volume (kg)
 }
 
-// For templates/routines
 export interface Routine {
   id: string;
+  userId: string;
   name: string;
-  exercises: { exerciseId: string; setsCount: number }[];
+  description?: string;
+  exercises: WorkoutExercise[];
+  createdAt: string;
   lastPerformed?: string;
+  duration?: number; // Estimated duration in seconds
 }

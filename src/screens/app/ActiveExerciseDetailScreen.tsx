@@ -1,19 +1,12 @@
-import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useEffect } from "react";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ActiveExerciseCard } from "../../components/workout/ActiveExerciseCard";
 import { Header } from "../../components/ui/Header";
 import { StatsBar } from "../../components/ui/StatsBar";
+import { ActiveExerciseCard } from "../../components/workout/ActiveExerciseCard";
+import { ExerciseInfoCard } from "../../components/workout/ExerciseInfoCard";
 import { SCREENS } from "../../navigation/screenNames";
 import { AppStackParamList } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../store";
@@ -23,8 +16,9 @@ import {
   removeSet,
   updateSet,
 } from "../../store/slices/workoutSlice";
-import { colors, spacing } from "../../theme";
-import { MUSCLE_GROUP_CONFIG } from "../../utils/muscleGroupConfig";
+import { theme } from "../../theme";
+import { WorkoutExercise } from "../../types/workout";
+import { calculateExerciseVolume } from "../../utils/workoutUtils";
 
 type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
 type RouteProps = RouteProp<
@@ -50,11 +44,11 @@ export const ActiveExerciseDetailScreen = () => {
     }
   }, [exercise, navigation]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     navigation.goBack();
-  };
+  }, [navigation]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     Alert.alert(
       "Remove Exercise",
       "Are you sure you want to remove this exercise from your workout?",
@@ -70,29 +64,73 @@ export const ActiveExerciseDetailScreen = () => {
         },
       ],
     );
-  };
+  }, [dispatch, exerciseInstanceId, navigation]);
+
+  const handleAddSet = useCallback(() => {
+    dispatch(addSet({ exerciseInstanceId }));
+  }, [dispatch, exerciseInstanceId]);
+
+  const handleRemoveSet = useCallback(
+    (setId: string) => {
+      dispatch(removeSet({ exerciseInstanceId, setId }));
+    },
+    [dispatch, exerciseInstanceId],
+  );
+
+  const handleUpdateSet = useCallback(
+    (
+      setId: string,
+      field: "weight" | "reps" | "completed",
+      value: string | boolean | number,
+    ) => {
+      dispatch(updateSet({ exerciseInstanceId, setId, field, value }));
+    },
+    [dispatch, exerciseInstanceId],
+  );
+
+  const stats = useMemo(() => {
+    if (!exercise) return [];
+
+    const completedSets = exercise.sets.filter((s) => s.completed).length;
+    const totalSets = exercise.sets.length;
+    const totalVolume = exercise.sets.reduce((acc, s) => {
+      if (s.completed) {
+        const w =
+          typeof s.weight === "string" ? parseFloat(s.weight) || 0 : s.weight;
+        const r = typeof s.reps === "string" ? parseFloat(s.reps) || 0 : s.reps;
+        return acc + w * r;
+      }
+      return acc;
+    }, 0);
+    const totalVolume2 = calculateExerciseVolume(exercise as WorkoutExercise);
+
+    return [
+      {
+        label: "Total Sets",
+        value: totalSets,
+        icon: "layers-outline" as const,
+      },
+      {
+        label: "Completed",
+        value: `${completedSets}/${totalSets}`,
+        icon: "checkmark-circle-outline" as const,
+      },
+      {
+        label: "Volume",
+        value: totalVolume2 > 0 ? `${totalVolume2}kg` : "0kg",
+        icon: "barbell-outline" as const,
+      },
+    ];
+  }, [exercise]);
 
   if (!exercise) return null;
-
-  const config =
-    MUSCLE_GROUP_CONFIG[exercise.muscleGroup] ?? MUSCLE_GROUP_CONFIG.other;
-  const completedSets = exercise.sets.filter((s) => s.completed).length;
-  const totalSets = exercise.sets.length;
-  const totalVolume = exercise.sets.reduce((acc, s) => {
-    if (s.completed) {
-      const w =
-        typeof s.weight === "string" ? parseFloat(s.weight) || 0 : s.weight;
-      const r = typeof s.reps === "string" ? parseFloat(s.reps) || 0 : s.reps;
-      return acc + w * r;
-    }
-    return acc;
-  }, 0);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <Header
         title="Edit Exercise"
         onLeftPress={() => navigation.goBack()}
+        leftIcon="chevron-back"
         rightText="SAVE"
         onRightPress={handleSave}
       />
@@ -101,86 +139,21 @@ export const ActiveExerciseDetailScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Exercise Info Card */}
-        <View style={styles.infoCard}>
-          <View
-            style={[
-              styles.infoIconWrapper,
-              { backgroundColor: config.bgColor },
-            ]}
-          >
-            <Ionicons name={config.icon} size={28} color={config.color} />
-          </View>
-          <View style={styles.infoContent}>
-            <Text style={styles.exerciseName}>{exercise.name}</Text>
-            <View style={styles.infoMeta}>
-              {exercise.category && (
-                <View style={styles.infoBadge}>
-                  <Text style={styles.infoBadgeText}>{exercise.category}</Text>
-                </View>
-              )}
-              <View
-                style={[styles.infoBadge, { backgroundColor: config.bgColor }]}
-              >
-                <Text style={[styles.infoBadgeText, { color: config.color }]}>
-                  {config.label}
-                </Text>
-              </View>
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={handleDelete}
-            style={styles.deleteButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons
-              name="trash-outline"
-              size={18}
-              color={colors.semantic.error}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Quick Stats */}
-        <StatsBar
-          stats={[
-            {
-              label: "Total Sets",
-              value: totalSets,
-              icon: "layers-outline",
-            },
-            {
-              label: "Completed",
-              value: `${completedSets}/${totalSets}`,
-              icon: "checkmark-circle-outline",
-            },
-            {
-              label: "Volume",
-              value: totalVolume > 0 ? `${totalVolume}kg` : "0kg",
-              icon: "barbell-outline",
-            },
-          ]}
-          style={{ marginHorizontal: 0 }}
+        <ExerciseInfoCard
+          name={exercise.name}
+          category={exercise.category}
+          muscleGroup={exercise.muscleGroup}
+          onDelete={handleDelete}
         />
 
-        {/* Active Exercise Card (for editing sets) */}
+        <StatsBar stats={stats} style={{ marginHorizontal: 0 }} />
+
         <View style={styles.cardContainer}>
           <ActiveExerciseCard
             exercise={exercise}
-            onAddSet={() => dispatch(addSet({ exerciseInstanceId }))}
-            onRemoveSet={(setId) =>
-              dispatch(removeSet({ exerciseInstanceId, setId }))
-            }
-            onUpdateSet={(setId, field, value) =>
-              dispatch(
-                updateSet({
-                  exerciseInstanceId,
-                  setId,
-                  field,
-                  value,
-                }),
-              )
-            }
+            onAddSet={handleAddSet}
+            onRemoveSet={handleRemoveSet}
+            onUpdateSet={handleUpdateSet}
             onRemoveExercise={handleDelete}
           />
         </View>
@@ -192,65 +165,13 @@ export const ActiveExerciseDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: theme.colors.background.primary,
   },
-  // Scroll
   scrollContent: {
-    padding: spacing.l,
+    padding: theme.spacing.l,
     paddingBottom: 120,
   },
-  // Info card
-  infoCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.background.secondary,
-    padding: spacing.l,
-    borderRadius: 16,
-    gap: spacing.m,
-  },
-  infoIconWrapper: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  infoContent: {
-    flex: 1,
-    gap: 6,
-  },
-  exerciseName: {
-    color: colors.text.primary,
-    fontSize: 17,
-    fontWeight: "700",
-    fontFamily: "Inter",
-  },
-  infoMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  infoBadge: {
-    backgroundColor: colors.background.tertiary,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  infoBadgeText: {
-    color: colors.text.tertiary,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  deleteButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // Card container
   cardContainer: {
-    marginTop: spacing.m,
+    marginTop: theme.spacing.m,
   },
 });

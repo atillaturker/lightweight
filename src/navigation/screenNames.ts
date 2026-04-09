@@ -6,16 +6,22 @@ export const SCREENS = {
   // Auth screens
   AUTH: "Auth",
 
-  // App screens
-  HOME: "Home",
-  WORKOUT: "Workout",
-  PROFILE: "Profile",
-  SETTINGS: "Settings",
+  //  TabBar screens
+  TAB_HOME: "Home",
+  TAB_WORKOUT: "Workout",
+  TAB_PROFILE: "Profile",
+  TAB_SETTINGS: "Settings",
 
   // Workout Flow
   ACTIVE_WORKOUT: "ActiveWorkout",
   EXERCISE_SELECTOR: "ExerciseSelector",
   ACTIVE_EXERCISE_DETAIL: "ActiveExerciseDetail",
+  CREATE_ROUTINE: "CreateRoutine",
+  WORKOUT_DETAIL: "WorkoutDetail",
+
+  // Routine Flow
+  ROUTINES: "Routines",
+  ROUTINE_DETAIL: "RoutineDetail",
 
   // Other screens
   POST_DETAIL: "PostDetail",
