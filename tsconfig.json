@@ -2,6 +2,44 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "moduleResolution": "bundler"
-  }
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@theme": [
+        "./src/theme/index.ts"
+      ],
+      "@theme/*": [
+        "./src/theme/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@domain/*": [
+        "./src/domain/*"
+      ],
+      "@features/*": [
+        "./src/features/*"
+      ],
+      "@infrastructure/*": [
+        "./src/infrastructure/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
+      ],
+      "@types/*": [
+        "./src/types/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "_legacy",
+    "src/_legacy/**/*"
+  ]
 }

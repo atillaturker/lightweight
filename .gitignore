@@ -39,3 +39,13 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+# Backups
+*.backup
+*.bak
+
+# Local AI tool config
+.mcp.json
+.pi/
+
+# Personal notes
+auth-flow-research.md

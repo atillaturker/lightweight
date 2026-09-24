@@ -1,55 +1,35 @@
 /**
- * Application Color Palette
- * Centralized color definitions for consistent theming
+ * Color tokens. Single source of truth for all colors in the app.
+ * Never hard-code a hex value anywhere else.
  */
-
 export const colors = {
-  // Background Colors
-  background: {
-    primary: "#14130f", // Based on design system
-    secondary: "#23211a", // Cards and modal backgrounds
-    tertiary: "#353228", // Inner cards or inputs
-  },
+  // Surfaces
+  canvas: "#FFFFFF",
+  surface: "#F5F5F5",
+  hairline: "#E5E7EB",
 
-  // Text Colors
-  text: {
-    primary: "#fefefe", // High contrast text
-    secondary: "#d1cbb8", // Muted text
-    tertiary: "#a39f91", // Subtle labels/icons
-  },
+  // Brand
+  primary: "#111111",
+  primaryHover: "#262626",
+  accent: "#3B82F6",
 
-  // Brand/Action Colors
-  brand: {
-    primary: "#f4d125", // Design system primary
-    secondary: "#867737", // Design system secondary
-    tertiary: "#778486", // Design system tertiary
-  },
+  // Text
+  textPrimary: "#111111",
+  textBody: "#374151",
+  textMuted: "#6B7280",
+  textInverse: "#FFFFFF",
+  textDivider: "#D1D5DB",
 
-  // Neural Base
-  neutral: {
-    base: "#7c7768",
-  },
+  // State
+  success: "#10B981",
+  error: "#EF4444",
 
-  // UI Elements
-  ui: {
-    border: "rgba(124, 119, 104, 0.2)",
-    divider: "rgba(124, 119, 104, 0.2)",
-    placeholder: "#353228",
-  },
-
-  semantic: {
-    success: "#10B981",
-    error: "#EF4444",
-    warning: "#F59E0B",
-    info: "#3B82F6",
-  },
-
-  // Social Login (Optional)
-  social: {
-    google: "#FFFFFF",
-    apple: "#000000",
-    facebook: "#1877F2",
-  },
+  // Chart
+  chartLine: "#111111",
+  chartBarCurrent: "#111111",
+  chartBarPrevious: "#E5E7EB",
+  chartGrid: "#E5E7EB",
+  chartHighlight: "#3B82F6",
 } as const;
 
-export type ColorPalette = typeof colors;
+export type ColorToken = keyof typeof colors;

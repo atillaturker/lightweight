@@ -1,34 +1,18 @@
-import { useFonts } from "expo-font";
-
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider } from "react-redux";
-import { RootNavigation } from "./src/navigation/rootNavigator";
-import { store } from "./src/store";
+import { Playground } from "@/_dev";
 
-SplashScreen.preventAutoHideAsync();
-
+/**
+ * Temporary app shell. The old navigation and auth flow have been
+ * moved to src/_legacy/auth for reference. New features will be
+ * wired in as they are built.
+ */
 export default function App() {
-  const [loaded, error] = useFonts({
-    Inter: require("./assets/fonts/Inter_24pt-Regular.ttf"),
-  });
-
-  useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
-
-  if (!loaded && !error) {
-    return null;
-  }
-
   return (
     <SafeAreaProvider>
-      <Provider store={store}>
-        <RootNavigation />
-      </Provider>
+      {/* TODO: replace with real navigation once features are wired up. */}
+      <Playground />
+      <StatusBar style="auto" />
     </SafeAreaProvider>
   );
 }

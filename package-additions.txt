@@ -1,0 +1,67 @@
+# ─── Runtime dependencies ──────────────────────────────────
+
+# State
+zustand
+
+# Server state + caching + offline
+@tanstack/react-query
+@tanstack/react-query-persist-client
+@tanstack/query-async-storage-persister
+
+# Navigation
+@react-navigation/native
+@react-navigation/native-stack
+@react-navigation/bottom-tabs
+react-native-screens
+react-native-safe-area-context
+
+# Persistence (Zustand + TanStack Query)
+react-native-mmkv
+
+# Icons (custom SVG only — no vector-icons)
+react-native-svg
+
+# Offline detection
+@react-native-community/netinfo
+
+# Gestures (drag-and-drop in RoutineEditor, swipe in History)
+react-native-gesture-handler
+react-native-reanimated
+
+# Form validation (used sparingly — only Auth + custom exercise modal)
+react-hook-form
+zod
+@hookform/resolvers
+
+# Date formatting
+date-fns
+
+# Unique IDs (for local-first records)
+nanoid
+
+# ─── Dev dependencies ──────────────────────────────────────
+
+# Testing
+@testing-library/react-native
+@testing-library/jest-native
+jest
+@types/jest
+
+# Linting / formatting
+eslint
+@react-native-community/eslint-config
+prettier
+
+# Types
+@types/react
+@types/react-native
+
+# ─── Do NOT install ───────────────────────────────────────
+# @expo/vector-icons       → use react-native-svg with inline paths
+# react-native-paper       → all UI is hand-built
+# native-base              → all UI is hand-built
+# redux / @reduxjs/toolkit → Zustand is the choice
+# mobx / jotai / recoil    → Zustand is the choice
+# expo-router              → React Navigation 8 is the choice
+# axios                    → use fetch wrapper in infrastructure/network
+# async-storage            → MMKV replaces it entirely
