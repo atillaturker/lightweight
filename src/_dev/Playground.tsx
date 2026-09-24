@@ -3,8 +3,15 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Badge } from "@components/Badge";
 import { Button } from "@components/Button";
+import { EmptyState } from "@components/EmptyState";
 import { Input } from "@components/Input";
+import { Pill } from "@components/Pill";
+import { Radio } from "@components/Radio";
+import { ScreenHeader } from "@components/ScreenHeader";
+import { SectionHeader } from "@components/SectionHeader";
 import { SegmentedControl } from "@components/SegmentedControl";
+import { SettingsRow } from "@components/SettingsRow";
+import { TabBar, type TabBarItem } from "@components/TabBar";
 import { TextTabs } from "@components/TextTabs";
 import { Toggle } from "@components/Toggle";
 import { colors, gutter, spacing, type } from "@theme";
@@ -25,6 +32,13 @@ const SECTION_TITLES = [
   "Toggle",
   "SegmentedControl",
   "TextTabs",
+  "TabBar",
+  "ScreenHeader",
+  "SectionHeader",
+  "SettingsRow",
+  "Pill",
+  "Radio",
+  "EmptyState",
   "Typography",
 ] as const;
 
@@ -48,6 +62,25 @@ const TYPE_TOKENS: TypeToken[] = [
 ];
 
 const TYPE_SAMPLE = "The quick brown fox 0123456789";
+
+/** Destinations wired into the fixed demo TabBar. */
+const TAB_ITEMS: TabBarItem[] = [
+  { key: "today", label: "Today", icon: "today" },
+  { key: "progress", label: "Progress", icon: "progress" },
+  { key: "history", label: "History", icon: "history" },
+  { key: "profile", label: "Profile", icon: "profile" },
+];
+
+/** Filter labels for the Pill section. */
+const PILL_LABELS = ["All", "Chest", "Back", "Legs", "Arms"];
+
+/** Unit options for the Radio section. */
+const RADIO_OPTIONS = [
+  "Kilograms (kg)",
+  "Pounds (lb)",
+  "Stone (st)",
+  "Custom",
+];
 
 /**
  * A 16px plus sign. `react-native-svg` is not installed and new
@@ -252,7 +285,177 @@ function TextTabsSection(): React.ReactElement {
   );
 }
 
-/** Section 7 — every type token rendered at its real size. */
+/**
+ * Section 7 — the fixed TabBar lives at the root of the screen (see
+ * `Playground`); this section only carries its label.
+ */
+function TabBarSection(): React.ReactElement {
+  return (
+    <Text style={styles.note}>
+      Fixed to the bottom of the screen — selection is color-only.
+    </Text>
+  );
+}
+
+/**
+ * A 13px Inter Medium text action with no handler. Used for the right
+ * slots of ScreenHeader and SectionHeader demos.
+ */
+function TextAction({
+  label,
+  tone,
+}: {
+  label: string;
+  tone: "primary" | "muted";
+}): React.ReactElement {
+  return (
+    <Pressable accessibilityRole="button" onPress={noop}>
+      <Text
+        style={[
+          styles.textAction,
+          tone === "muted" ? styles.textActionMuted : null,
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/** Section 8 — ScreenHeader with each slot combination. */
+function ScreenHeaderSection(): React.ReactElement {
+  return (
+    <View style={styles.stackXxl}>
+      <View style={styles.demoBox}>
+        <ScreenHeader title="History" showBack={false} />
+      </View>
+      <View style={styles.demoBox}>
+        <ScreenHeader showBack title="Bench Press" />
+      </View>
+      <View style={styles.demoBox}>
+        <ScreenHeader
+          rightAction={<TextAction label="Edit" tone="primary" />}
+          showBack
+          title="Progress"
+        />
+      </View>
+    </View>
+  );
+}
+
+/** Section 9 — SectionHeader with and without an action. */
+function SectionHeaderSection(): React.ReactElement {
+  return (
+    <View style={styles.stackXxl}>
+      <SectionHeader label="TRAINING" />
+      <SectionHeader
+        action={<TextAction label="See all" tone="muted" />}
+        label="DATA"
+      />
+      <SectionHeader
+        action={<TextAction label="Sort" tone="muted" />}
+        label="APP"
+      />
+    </View>
+  );
+}
+
+/** Section 10 — SettingsRow, one demo per variant. */
+function SettingsRowSection(): React.ReactElement {
+  const [rpe, setRpe] = useState(false);
+  const [notifications, setNotifications] = useState(false);
+
+  return (
+    <View>
+      <SettingsRow label="Units" value="Kilograms" variant="value" />
+      <Divider />
+      <SettingsRow label="Week starts on" value="Monday" variant="value" />
+      <Divider />
+      <SettingsRow
+        label="RPE field"
+        onToggleChange={setRpe}
+        toggleValue={rpe}
+        variant="toggle"
+      />
+      <Divider />
+      <SettingsRow
+        label="Notifications"
+        onToggleChange={setNotifications}
+        toggleValue={notifications}
+        variant="toggle"
+      />
+      <Divider />
+      <SettingsRow label="Export data" variant="chevron" />
+      <Divider />
+      <SettingsRow label="Import data" variant="chevron" />
+      <Divider />
+      <SettingsRow label="Delete all workouts" variant="destructive" />
+      <Divider />
+      <SettingsRow label="Sign out" onPress={noop} variant="plain" />
+    </View>
+  );
+}
+
+/** Section 11 — Pill, an interactive filter chip row. */
+function PillSection(): React.ReactElement {
+  const [selected, setSelected] = useState("All");
+
+  return (
+    <View style={styles.row}>
+      {PILL_LABELS.map((label) => (
+        <Pill
+          key={label}
+          label={label}
+          onPress={() => setSelected(label)}
+          selected={selected === label}
+        />
+      ))}
+    </View>
+  );
+}
+
+/** Section 12 — Radio options in isolation with hairline separators. */
+function RadioSection(): React.ReactElement {
+  const [selected, setSelected] = useState("Kilograms (kg)");
+
+  return (
+    <View>
+      {RADIO_OPTIONS.map((label, index) => (
+        <View
+          key={label}
+          style={index < RADIO_OPTIONS.length - 1 ? styles.rowDivider : null}
+        >
+          <Radio
+            label={label}
+            onPress={() => setSelected(label)}
+            selected={selected === label}
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** Section 13 — EmptyState with and without an action. */
+function EmptyStateSection(): React.ReactElement {
+  return (
+    <View style={styles.stackHuge}>
+      <EmptyState
+        message="Your history will appear here."
+        title="No sessions yet"
+      />
+      <EmptyState
+        action={
+          <Button label="Clear filter" onPress={noop} variant="text" />
+        }
+        message="Try clearing the filter to see more."
+        title="No data for this filter"
+      />
+    </View>
+  );
+}
+
+/** Section 14 — every type token rendered at its real size. */
 function TypographySection(): React.ReactElement {
   return (
     <View style={styles.stackMd}>
@@ -268,6 +471,11 @@ function TypographySection(): React.ReactElement {
 
 /** Placeholder callback for the non-functional demo rows. */
 function noop(): void {}
+
+/** 1px hairline used to separate stacked demo rows. */
+function Divider(): React.ReactElement {
+  return <View style={styles.divider} />;
+}
 
 const RANGE_OPTIONS = [
   { value: "4W", label: "4W" },
@@ -313,36 +521,67 @@ function Section({
 
 /**
  * The playground screen. A single vertical `ScrollView` on the canvas
- * background, one primitive per section, in `SECTION_TITLES` order.
+ * background, one primitive per section, in `SECTION_TITLES` order, with
+ * the interactive `TabBar` fixed to the bottom of the screen.
  */
 export default function Playground(): React.ReactElement {
+  const [activeTab, setActiveTab] = useState("today");
+
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      style={styles.screen}
-    >
-      <Section title={SECTION_TITLES[0]}>
-        <ButtonSection />
-      </Section>
-      <Section title={SECTION_TITLES[1]}>
-        <InputSection />
-      </Section>
-      <Section title={SECTION_TITLES[2]}>
-        <BadgeSection />
-      </Section>
-      <Section title={SECTION_TITLES[3]}>
-        <ToggleSection />
-      </Section>
-      <Section title={SECTION_TITLES[4]}>
-        <SegmentedSection />
-      </Section>
-      <Section title={SECTION_TITLES[5]}>
-        <TextTabsSection />
-      </Section>
-      <Section title={SECTION_TITLES[6]}>
-        <TypographySection />
-      </Section>
-    </ScrollView>
+    <View style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+        <Section title={SECTION_TITLES[0]}>
+          <ButtonSection />
+        </Section>
+        <Section title={SECTION_TITLES[1]}>
+          <InputSection />
+        </Section>
+        <Section title={SECTION_TITLES[2]}>
+          <BadgeSection />
+        </Section>
+        <Section title={SECTION_TITLES[3]}>
+          <ToggleSection />
+        </Section>
+        <Section title={SECTION_TITLES[4]}>
+          <SegmentedSection />
+        </Section>
+        <Section title={SECTION_TITLES[5]}>
+          <TextTabsSection />
+        </Section>
+        <Section title={SECTION_TITLES[6]}>
+          <TabBarSection />
+        </Section>
+        <Section title={SECTION_TITLES[7]}>
+          <ScreenHeaderSection />
+        </Section>
+        <Section title={SECTION_TITLES[8]}>
+          <SectionHeaderSection />
+        </Section>
+        <Section title={SECTION_TITLES[9]}>
+          <SettingsRowSection />
+        </Section>
+        <Section title={SECTION_TITLES[10]}>
+          <PillSection />
+        </Section>
+        <Section title={SECTION_TITLES[11]}>
+          <RadioSection />
+        </Section>
+        <Section title={SECTION_TITLES[12]}>
+          <EmptyStateSection />
+        </Section>
+        <Section title={SECTION_TITLES[13]}>
+          <TypographySection />
+        </Section>
+      </ScrollView>
+
+      <View style={styles.tabBarHost}>
+        <TabBar
+          activeKey={activeTab}
+          items={TAB_ITEMS}
+          onSelect={setActiveTab}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -351,10 +590,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.canvas,
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
     paddingHorizontal: gutter,
     paddingTop: spacing.giant,
-    paddingBottom: spacing.giant,
+    // 80px = giant + xxl, keeping the last section clear of the fixed TabBar.
+    paddingBottom: spacing.giant + spacing.xxl,
+  },
+  tabBarHost: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 
   // ─── Section rhythm ───────────────────────────────────
@@ -379,9 +628,38 @@ const styles = StyleSheet.create({
   stackXxxl: {
     gap: spacing.xxxl,
   },
+  stackHuge: {
+    gap: spacing.huge,
+  },
   row: {
     flexDirection: "row",
     gap: spacing.sm,
+  },
+
+  // ─── Demo chrome ──────────────────────────────────────
+  demoBox: {
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.surface,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.hairline,
+  },
+  rowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hairline,
+  },
+  note: {
+    ...type.caption,
+    color: colors.textMuted,
+  },
+  textAction: {
+    ...type.label,
+    color: colors.textPrimary,
+  },
+  textActionMuted: {
+    color: colors.textMuted,
   },
 
   // ─── Inline plus icon ─────────────────────────────────

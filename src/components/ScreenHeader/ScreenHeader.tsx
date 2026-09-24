@@ -1,7 +1,13 @@
 import React from "react";
-import { Pressable, Text, View, type PressableProps } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import {
+  Image,
+  Pressable,
+  Text,
+  View,
+  type PressableProps,
+} from "react-native";
 
+import { svgIcon, svgToDataUri } from "@lib/svg";
 import { colors } from "@theme";
 
 import {
@@ -23,27 +29,27 @@ export interface ScreenHeaderProps
   testID?: string;
 }
 
+/** Fixed rendered box for the back glyph — the size is not dynamic. */
+const CHEVRON_STYLE = {
+  width: HEADER_CHEVRON_SIZE,
+  height: HEADER_CHEVRON_SIZE,
+} as const;
+
 /**
- * The 20px monoline chevron used by the back target. The `color` prop on
- * `Svg` establishes the `currentColor` the path strokes with.
+ * The 20px monoline chevron used by the back target, drawn as an SVG
+ * data URI so no native SVG view is required.
  */
 function BackChevron(): React.ReactElement {
+  const uri = svgToDataUri(
+    svgIcon(
+      HEADER_CHEVRON_SIZE,
+      `<path d="M15 18l-6-6 6-6" fill="none" stroke="${colors.textPrimary}" ` +
+        'stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>',
+    ),
+  );
+
   return (
-    <Svg
-      color={colors.textPrimary}
-      height={HEADER_CHEVRON_SIZE}
-      viewBox="0 0 24 24"
-      width={HEADER_CHEVRON_SIZE}
-    >
-      <Path
-        d="M15 18l-6-6 6-6"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-      />
-    </Svg>
+    <Image accessibilityIgnoresInvertColors source={{ uri }} style={CHEVRON_STYLE} />
   );
 }
 

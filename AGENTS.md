@@ -298,3 +298,14 @@ describe behavior: `it('excludes warmup sets from volume')`.
   parameter when time matters.
 - Do not throw on nullable data. Return `null` explicitly.
 ````
+
+## Verification rule
+
+Before reporting "tests passed" or "tsc clean", run the command
+yourself in the current environment AND paste the actual output
+(trimmed). Do not report a result you did not observe.
+
+If a command cannot run in the current environment (missing
+dependency, wrong node version, etc.), report it as FAILED, not as
+PASSED-with-workaround. Never silently work around a broken
+environment.

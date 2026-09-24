@@ -1,18 +1,28 @@
-import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Playground } from "@/_dev";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { StatusBar } from "expo-status-bar";
 
-/**
- * Temporary app shell. The old navigation and auth flow have been
- * moved to src/_legacy/auth for reference. New features will be
- * wired in as they are built.
- */
+import { NavigationRoot } from "@/app/navigation";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      retry: 1,
+    },
+  },
+});
+
 export default function App() {
   return (
-    <SafeAreaProvider>
-      {/* TODO: replace with real navigation once features are wired up. */}
-      <Playground />
-      <StatusBar style="auto" />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <NavigationRoot />
+          <StatusBar style="auto" />
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

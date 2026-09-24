@@ -29,7 +29,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font", "@react-native-google-signin/google-signin"],
+    "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      "expo-apple-authentication",
+      "@react-native-google-signin/google-signin"
+    ],
     "extra": {
       "eas": {
         "projectId": "e41ab591-17da-48b1-95cd-cfa0e033fa68"

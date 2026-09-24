@@ -1,0 +1,385 @@
+TASK 09 — NAVIGATION LAYER
+
+Build the navigation shell: root navigator, tab navigator, and the
+stack navigators for each tab. This wires the app together and replaces
+the temporary Playground entry point.
+
+Read first:
+- /AGENTS.md
+- /src/components/AGENTS.md
+- /src/components/TabBar/TabBar.tsx (public API)
+- /src/components/ScreenHeader/ScreenHeader.tsx (public API)
+- /src/theme/index.ts
+- /src/features/auth/AGENTS.md
+
+Do NOT read _legacy.
+
+==================================================
+SCOPE
+==================================================
+
+The navigation must:
+
+1. Switch between three root states based on auth + onboarding:
+   - Not authenticated      -> AuthStack
+   - Authenticated, not onboarded -> OnboardingStack
+   - Authenticated, onboarded     -> MainTabs
+
+2. MainTabs has four tabs: Today / Progress / History / Profile.
+   Each tab owns its own native stack.
+
+3. Auth screens (SignUp, LogIn) come from features/auth/screens/.
+   These do NOT exist yet. Create minimal placeholder screens for now
+   that render a title and a single button labeled "Continue". The real
+   screens are built in Task 10.
+
+4. Onboarding screens do NOT exist yet. Create minimal placeholder
+   screens for all 5 steps. The real screens are built later.
+
+5. All other screens (HomeToday, ActiveWorkout, etc.) do NOT exist yet.
+   Create minimal placeholder screens so navigation compiles and runs.
+
+The goal: after this task, the app boots, shows a tab bar, and can
+navigate between placeholder screens. Real screen content comes in
+subsequent tasks.
+
+==================================================
+FILE STRUCTURE
+==================================================
+
+src/app/navigation/
+  types.ts                    — all ParamList types
+  RootNavigator.tsx           — top-level conditional
+  AuthStack.tsx
+  OnboardingStack.tsx
+  MainTabs.tsx                — bottom tabs
+  TodayStack.tsx
+  ProgressStack.tsx
+  HistoryStack.tsx
+  ProfileStack.tsx
+  NavigationRoot.tsx          — NavigationContainer + theme
+  index.ts
+
+src/features/auth/screens/
+  SignUpScreen.tsx            — placeholder
+  LogInScreen.tsx             — placeholder
+  index.ts
+
+src/features/onboarding/screens/
+  Intro1Screen.tsx            — placeholder
+  Intro2Screen.tsx            — placeholder
+  SetupUnitsScreen.tsx        — placeholder
+  SetupFrequencyScreen.tsx    — placeholder
+  SetupRoutineScreen.tsx      — placeholder
+  index.ts
+
+src/features/workout/screens/
+  HomeTodayScreen.tsx         — placeholder
+  ActiveWorkoutScreen.tsx     — placeholder
+  WorkoutSummaryScreen.tsx    — placeholder
+  index.ts
+
+src/features/analytics/screens/
+  ProgressScreen.tsx          — placeholder
+  ExerciseDetailScreen.tsx    — placeholder
+  SessionDetailScreen.tsx     — placeholder
+  index.ts
+
+src/features/history/screens/
+  HistoryScreen.tsx           — placeholder
+  index.ts
+
+src/features/routines/screens/
+  RoutinesScreen.tsx          — placeholder
+  RoutineEditorScreen.tsx     — placeholder
+  ExercisePickerScreen.tsx    — placeholder
+  index.ts
+
+src/features/profile/screens/
+  ProfileScreen.tsx           — placeholder
+  index.ts
+
+==================================================
+TYPE DEFINITIONS (src/app/navigation/types.ts)
+==================================================
+
+export type RootStackParamList = {
+  Auth: undefined;
+  Onboarding: undefined;
+  Main: undefined;
+};
+
+export type AuthStackParamList = {
+  SignUp: undefined;
+  LogIn: undefined;
+};
+
+export type OnboardingStackParamList = {
+  Intro1: undefined;
+  Intro2: undefined;
+  SetupUnits: undefined;
+  SetupFrequency: undefined;
+  SetupRoutine: undefined;
+};
+
+export type MainTabParamList = {
+  TodayTab: undefined;
+  ProgressTab: undefined;
+  HistoryTab: undefined;
+  ProfileTab: undefined;
+};
+
+export type TodayStackParamList = {
+  HomeToday: undefined;
+  ActiveWorkout: { routineId: string };
+  WorkoutSummary: { sessionId: string };
+};
+
+export type ProgressStackParamList = {
+  Progress: undefined;
+  ExerciseDetail: { exerciseId: string };
+};
+
+export type HistoryStackParamList = {
+  History: undefined;
+  SessionDetail: { sessionId: string };
+  ExerciseDetailFromHistory: { exerciseId: string };
+};
+
+export type ProfileStackParamList = {
+  Profile: undefined;
+  Routines: undefined;
+  RoutineEditor: { routineId?: string };
+  ExercisePicker: { mode: 'picker' | 'library' };
+};
+
+==================================================
+AUTH STATE
+==================================================
+
+Create a temporary auth stub since features/auth/store does not exist:
+
+src/app/navigation/useAuthState.ts
+
+Content:
+
+  /**
+   * Temporary auth state stub. Replaced in Task 10 when the auth
+   * feature lands. Returns hardcoded values so navigation can switch
+   * between stacks during development.
+   *
+   * To test the Onboarding flow: set hasOnboarded to false.
+   * To test the Main flow: set isAuthenticated to true.
+   */
+  export function useAuthState() {
+    return {
+      isAuthenticated: true,
+      hasOnboarded: true,
+      isLoading: false,
+    };
+  }
+
+Document clearly that this is temporary.
+
+==================================================
+ROOT NAVIGATOR
+==================================================
+
+Use NativeStackNavigator. headerShown false for all stacks — every
+screen draws its own header via ScreenHeader component.
+
+RootNavigator:
+
+  const { isAuthenticated, hasOnboarded } = useAuthState();
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {!isAuthenticated ? (
+        <Stack.Screen name="Auth" component={AuthStack} />
+      ) : !hasOnboarded ? (
+        <Stack.Screen name="Onboarding" component={OnboardingStack} />
+      ) : (
+        <Stack.Screen name="Main" component={MainTabs} />
+      )}
+    </Stack.Navigator>
+  );
+
+==================================================
+TAB NAVIGATOR
+==================================================
+
+Use createBottomTabNavigator. Do NOT use the default tab bar UI.
+Use the custom TabBar component from @components/TabBar.
+
+Options:
+
+  tabBar={(props) => <CustomTabBarWrapper {...props} />}
+
+where CustomTabBarWrapper adapts React Navigation's tabBar props to
+our TabBar component's props.
+
+  const items = [
+    { key: 'TodayTab', label: 'Today', icon: 'today' },
+    { key: 'ProgressTab', label: 'Progress', icon: 'progress' },
+    { key: 'HistoryTab', label: 'History', icon: 'history' },
+    { key: 'ProfileTab', label: 'Profile', icon: 'profile' },
+  ];
+
+  const activeKey = route.name;  // from React Navigation
+  const onSelect = (key) => navigation.navigate(key);
+
+==================================================
+STACKS
+==================================================
+
+Each tab owns a NativeStackNavigator. Example for TodayStack:
+
+  const Stack = createNativeStackNavigator<TodayStackParamList>();
+
+  export function TodayStack() {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="HomeToday" component={HomeTodayScreen} />
+        <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
+        <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} />
+      </Stack.Navigator>
+    );
+  }
+
+Same pattern for the other three stacks.
+
+==================================================
+NAVIGATION ROOT
+==================================================
+
+NavigationRoot.tsx:
+
+  import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colors.canvas,
+      card: colors.canvas,
+      text: colors.textPrimary,
+      border: colors.hairline,
+      primary: colors.primary,
+    },
+  };
+
+  export function NavigationRoot() {
+    return (
+      <NavigationContainer theme={navTheme}>
+        <RootNavigator />
+      </NavigationContainer>
+    );
+  }
+
+==================================================
+PLACEHOLDER SCREENS
+==================================================
+
+Each placeholder screen must:
+
+- Render a SafeAreaView (edges: top)
+- Show a ScreenHeader with the screen title (showBack if it is a push screen)
+- Render an EmptyState component with:
+    title: "<Screen Name>"
+    message: "Placeholder — implemented in a later task."
+
+Use existing components from @components/EmptyState and
+@components/ScreenHeader.
+
+Example for HomeTodayScreen:
+
+  import { SafeAreaView } from 'react-native-safe-area-context';
+  import { View, StyleSheet } from 'react-native';
+  import { ScreenHeader } from '@components/ScreenHeader';
+  import { EmptyState } from '@components/EmptyState';
+  import { colors } from '@theme';
+
+  export function HomeTodayScreen() {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScreenHeader title="Today" />
+        <View style={styles.body}>
+          <EmptyState
+            title="Home"
+            message="Placeholder — implemented in a later task."
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.canvas },
+    body: { flex: 1, justifyContent: 'center' },
+  });
+
+Apply this pattern to every placeholder screen.
+
+==================================================
+APP.TSX UPDATE
+==================================================
+
+Replace the Playground entry with the real navigation:
+
+  import { GestureHandlerRootView } from 'react-native-gesture-handler';
+  import { SafeAreaProvider } from 'react-native-safe-area-context';
+  import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+  import { NavigationRoot } from '@/app/navigation';
+  import { StatusBar } from 'expo-status-bar';
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60_000,
+        retry: 1,
+      },
+    },
+  });
+
+  export default function App() {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <NavigationRoot />
+            <StatusBar style="auto" />
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
+Do NOT delete src/_dev/Playground.tsx — keep it for reference.
+
+==================================================
+CONSTRAINTS
+==================================================
+
+- Path aliases: @, @theme, @components, @domain, @features, @infrastructure, @lib.
+- No `any`.
+- Named exports only.
+- Every screen file starts with a JSDoc block.
+- Do NOT modify any file under /src/components/.
+- Do NOT modify any file under /src/_dev/.
+- Do NOT modify any file under /src/domain/ or /src/infrastructure/.
+- Do NOT modify /src/services/firebase/.
+
+==================================================
+DELIVERABLES
+==================================================
+
+Report ONLY:
+- Files created: N
+- Files modified: list
+- tsc: clean / error count
+- jest: X passed, Y failed
+- Judgment calls: max 3 bullets
+
+Run all commands yourself. Paste trimmed output. Do not report
+results you did not observe.
+
+Then stop.

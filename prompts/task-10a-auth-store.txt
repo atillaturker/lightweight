@@ -1,0 +1,250 @@
+TASK 10A — AUTH STORE AND SERVICE LAYER
+
+Build the auth feature's state store and service wrappers. No UI in
+this task. Screens are built in Task 10b.
+
+Read first:
+- /AGENTS.md
+- /src/features/auth/AGENTS.md
+- /src/domain/entities/User.ts
+- /src/infrastructure/storage/mmkv.ts
+- /src/infrastructure/storage/secureStorage.ts
+- /src/services/firebase/config.ts (existing — do NOT modify)
+- /src/services/firebase/auth.ts (existing — do NOT modify)
+
+Do NOT read _legacy, components, or _dev.
+
+==================================================
+CONTEXT
+==================================================
+
+The app uses Firebase Auth as the identity provider. Three sign-in
+methods must be supported:
+1. Email + password
+2. Google Sign-In (via @react-native-google-signin/google-signin)
+3. Apple Sign-In (via expo-apple-authentication)
+
+After successful sign-in, the user's profile is written to a Zustand
+store persisted in MMKV. Firebase Auth session itself uses Firebase's
+own persistence (already configured in services/firebase/config.ts).
+
+==================================================
+FILES TO CREATE
+==================================================
+
+src/features/auth/types.ts
+src/features/auth/services/authService.ts
+src/features/auth/services/googleSignIn.ts
+src/features/auth/services/appleSignIn.ts
+src/features/auth/services/index.ts
+src/features/auth/store/authStore.ts
+src/features/auth/store/index.ts
+src/features/auth/hooks/useAuth.ts
+src/features/auth/hooks/useSignInActions.ts
+src/features/auth/hooks/index.ts
+src/features/auth/index.ts
+
+src/features/auth/__tests__/authStore.test.ts
+
+==================================================
+types.ts
+==================================================
+
+export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'error';
+
+export interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  provider: 'password' | 'google.com' | 'apple.com';
+}
+
+export interface AuthState {
+  status: AuthStatus;
+  user: AuthUser | null;
+  error: string | null;
+}
+
+export interface SignUpCredentials {
+  email: string;
+  password: string;
+  displayName: string;
+}
+
+export interface SignInCredentials {
+  email: string;
+  password: string;
+}
+
+==================================================
+services/authService.ts
+==================================================
+
+Wraps Firebase Auth. All functions are async and return AuthUser or
+throw a normalized Error with a clear message.
+
+Exports:
+
+  signUpWithEmail(credentials: SignUpCredentials): Promise<AuthUser>
+  signInWithEmail(credentials: SignInCredentials): Promise<AuthUser>
+  signOut(): Promise<void>
+  getCurrentUser(): AuthUser | null
+  subscribeToAuthChanges(cb: (user: AuthUser | null) => void): () => void
+
+On error, translate common Firebase error codes to human-readable
+strings:
+- auth/invalid-email        -> "That email doesn't look right."
+- auth/user-not-found       -> "No account found with that email."
+- auth/wrong-password       -> "Incorrect password."
+- auth/email-already-in-use -> "An account with this email already exists."
+- auth/weak-password        -> "Password must be at least 8 characters."
+- auth/network-request-failed -> "Check your connection and try again."
+- anything else             -> "Something went wrong. Please try again."
+
+==================================================
+services/googleSignIn.ts
+==================================================
+
+Wraps @react-native-google-signin/google-signin.
+
+Exports:
+
+  configureGoogleSignIn(): void
+  signInWithGoogle(): Promise<AuthUser>
+  signOutGoogle(): Promise<void>
+
+configureGoogleSignIn reads the web client ID from
+process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID. If missing, log a warning
+and skip configuration.
+
+signInWithGoogle:
+1. Checks Play Services availability (Android only)
+2. Gets the user's ID token
+3. Signs into Firebase with GoogleAuthProvider.credential(idToken)
+4. Returns AuthUser
+
+==================================================
+services/appleSignIn.ts
+==================================================
+
+Wraps expo-apple-authentication.
+
+Exports:
+
+  isAppleSignInAvailable(): Promise<boolean>
+  signInWithApple(): Promise<AuthUser>
+
+On iOS only — on Android the function throws an Error with message
+"Apple Sign-In is not available on this platform."
+
+signInWithApple:
+1. Requests an Apple credential with full name and email scope
+2. Extracts identityToken
+3. Signs into Firebase with OAuthProvider('apple.com').credential()
+4. Returns AuthUser
+
+==================================================
+store/authStore.ts
+==================================================
+
+Zustand store with persist to MMKV. Only `user` is persisted — status
+and error reset to idle/null on app start.
+
+State shape (from types.ts AuthState).
+
+Actions:
+  setStatus(status: AuthStatus): void
+  setUser(user: AuthUser | null): void
+  setError(error: string | null): void
+  reset(): void
+
+Export:
+  export const useAuthStore = create<...>()(persist(...))
+
+persist config:
+  name: 'auth'
+  storage: createJSONStorage(() => zustandStorage)
+  partialize: (state) => ({ user: state.user })
+  onRehydrateStorage: () => (state) => { if (state) state.status = 'idle'; }
+
+==================================================
+hooks/useAuth.ts
+==================================================
+
+  export function useAuth(): {
+    user: AuthUser | null;
+    status: AuthStatus;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+  }
+
+  Uses useShallow on selectors.
+
+  Also: on mount, subscribes to Firebase auth changes via
+  subscribeToAuthChanges. On change, updates the store. Returns an
+  unsubscribe cleanup.
+
+  Also: on mount, calls configureGoogleSignIn() once.
+
+==================================================
+hooks/useSignInActions.ts
+==================================================
+
+  export function useSignInActions(): {
+    signInEmail: (c: SignInCredentials) => Promise<void>;
+    signUpEmail: (c: SignUpCredentials) => Promise<void>;
+    signInGoogle: () => Promise<void>;
+    signInApple: () => Promise<void>;
+    signOut: () => Promise<void>;
+  }
+
+Each action:
+1. Sets status to 'loading'
+2. Calls the corresponding service
+3. On success: setUser(user), setStatus('authenticated'), clear error
+4. On error: setError(message), setStatus('error')
+5. Never throws to the caller
+
+signOut clears both Firebase session and the local store.
+
+==================================================
+TESTS
+==================================================
+
+src/features/auth/__tests__/authStore.test.ts
+
+Mock Firebase Auth modules. Test:
+- initial state has status 'idle' and user null
+- setUser updates the user
+- setError updates the error and status
+- reset clears user, error, and status
+- persist only writes user (not status or error) — inspect MMKV mock
+
+==================================================
+CONSTRAINTS
+==================================================
+
+- Do NOT modify /src/services/firebase/.
+- Do NOT modify /src/app/navigation/useAuthState.ts (it stays as a
+  stub until Task 10c).
+- Path aliases: @features, @infrastructure, @domain, @lib, @theme.
+- No `any`. Use `unknown` + type guards.
+- JSDoc on every exported function.
+- Zustand selectors must use useShallow.
+- Use zustandStorage from @infrastructure/storage.
+
+==================================================
+DELIVERABLES
+==================================================
+
+Report ONLY:
+- Files created: N
+- tsc: clean / error count
+- jest src/features/auth: X passed, Y failed
+- Judgment calls: max 3 bullets
+
+Run all commands. Paste trimmed output. Do not report results you
+did not observe.
+
+Then stop.
