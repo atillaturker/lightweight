@@ -94,15 +94,18 @@ Never use `useEffect` for data fetching.
 ## Navigation
 
 Root (conditional)
+├── Intro (stack, 2 screens — pre-auth)
 ├── Auth (stack)
-├── Onboarding (stack, 5 screens)
+├── Onboarding (stack, 3 setup screens — post-auth)
 └── Main (tabs, 4 items)
 ├── TodayTab (stack: Home → ActiveWorkout → Summary)
 ├── ProgressTab (stack: Progress → ExerciseDetail)
 ├── HistoryTab (stack: History → SessionDetail → ExerciseDetail)
 └── ProfileTab (stack: Profile → Routines → RoutineEditor → ExercisePicker)
 
-- Root switches on `authStatus` and `hasOnboarded`.
+- Root switches on `hasSeenIntro`, `authStatus`, and `hasOnboarded`, in
+  that order. Intro is shown before auth and is never repeated on the
+  same install.
 - Push screens use `navigation.replace` to avoid stack growth.
 - Tab bar is custom: `src/components/TabBar/`. Do NOT use the default
   React Navigation tab bar.
@@ -116,8 +119,9 @@ Root (conditional)
 Full reference: `/DESIGN.md`.
 
 - Canvas `#FFFFFF`, primary `#111111`, accent `#3B82F6`.
-  Accent appears at most twice per screen and only to mark a selection,
-  a live state, or a single data point. Never as a fill.
+  Accent appears at most three times per screen and only to mark a
+  selection, a live state, or a single data point. Never as a fill.
+  See "Design enrichment rules (v2)" for the priority order.
 - Surface `#F5F5F5`, hairline `#E5E7EB`, body text `#374151`, muted `#6B7280`.
 - Success `#10B981` and error `#EF4444` are state colors only.
   Never use `#EF4444` for a negative delta in a training context —
@@ -128,6 +132,105 @@ Full reference: `/DESIGN.md`.
 - Radii: 8px controls, 12px cards, 16px stages, pill for badges.
 - No shadows. No blur. No gradients. No neumorphism.
 - Exactly ONE primary action per screen.
+
+---
+
+## Design enrichment rules (v2)
+
+Seven targeted relaxations so the app reads clearly on a 390px
+mobile screen. They override only the items below; everything else in
+"Design system summary" and `/DESIGN.md` remains in force.
+
+1. Section headers carry more presence.
+   Render them Inter 12px / 600, `colors.textMuted`, uppercase, 0.06em
+   tracking. Keep the color; 11px / 500 disappears on a bright screen,
+   12px / 600 stays legible without turning loud.
+
+2. Accent may appear up to three times per screen, in this priority
+   order:
+   1. A live or active state (active routine dot, active session
+      indicator, focused tab underline).
+   2. A single data highlight (fastest-improving lift, latest chart
+      data point).
+   3. A focus ring or selection border on a form control.
+   Never a background fill. Never more than three.
+
+3. Flat cards are permitted for grouping related data.
+   Use `colors.canvas` (#FFFFFF) fill, a 1px `colors.hairline` border,
+   12px radius, and 16px inner padding. No shadow. Never nested. Use
+   at most 2–3 per screen, and only when the border answers "these
+   items belong together" — if proximity and hairlines already group
+   them, do not add a card.
+
+4. One soft background block per screen is permitted.
+   A `colors.surface` (#F5F5F5) fill on a 12px-radius container may
+   group rows of the same type (e.g. "This week" metrics). No border,
+   16px inner padding, never nested. At most one per screen.
+
+5. Icons are encouraged when they add meaning.
+   Monoline 1.5px SVG icons may be added before a list row's label
+   when they convey the item's category (muscle group, exercise
+   equipment, workout type), in section headers, and in empty states.
+   Every icon must communicate something the text does not. No icon
+   without a job.
+
+6. One exception to the no-shadow rule.
+   A single, very subtle shadow `0 1px 2px rgba(0,0,0,0.04)` is
+   permitted on the pinned bottom CTA bar when it sits above
+   scrollable content, and on bottom sheets against the modal
+   backdrop. No other element receives a shadow. Never a colored
+   shadow, never diffuse, never blur-heavy.
+
+7. Hero metrics may repeat within a screen.
+   A screen may have one hero metric per section, provided only one
+   section carries the largest size on the screen. Keep the rule: one
+   dominant number per screen.
+
+---
+
+## Ring charts
+
+Ring charts (also called donut charts or progress rings) are
+permitted on a limited set of screens for a single-purpose metric:
+"how close is the user to a goal?"
+
+ALLOWED screens:
+- Welcome (marketing preview)
+- Home / Today (weekly frequency goal)
+- Profile (monthly summary)
+- Post-workout Summary (session completion, optional)
+
+FORBIDDEN on:
+- Progress
+- Exercise Detail
+- Session Detail
+- Active Workout
+- History
+- Any analytics screen where precise comparison is the point
+
+A ring chart must follow these rules:
+
+1. One ring per section. Never stack 2+ rings in the same visual
+   group unless explicitly designed together.
+2. The ring is ALWAYS accompanied by a number — either centered
+   inside the ring or placed directly beside it. The ring never
+   replaces the number.
+3. Track stroke: colors.surface (#F5F5F5).
+   Fill stroke: colors.primary (#111111) OR colors.accent
+   (#3B82F6) when the ring represents a live/active state.
+   Never use success (#10B981) or error (#EF4444) as a ring fill.
+4. Stroke width: 4px on hero rings (>= 80px diameter), 3px on
+   smaller rings (<= 60px diameter).
+5. Stroke caps: round.
+6. Start angle: 12 o'clock (top). Direction: clockwise.
+7. The empty portion of the track must remain visible — never fill
+   the ring completely, even at 100%. Cap the visual fill at 96%
+   so the track is always perceptible.
+8. No gradient on the ring stroke. No shadow on the ring.
+9. Do not use a multi-segment donut (pie chart with slices).
+   Rings show a single ratio only.
+10. Do not animate the ring unless the design specifically calls
+    for an entrance animation.
 
 ---
 
@@ -156,7 +259,11 @@ Never create a screen before its types, service, and hook exist.
 
 ## Prohibitions
 
-- No hard-coded colors or spacings. Use `@theme` tokens.
+- No hard-coded colors or spacings. Use `@theme` tokens, EXCEPT for the two
+  third-party sign-in brand marks (Google "G", Apple logo) in
+  `src/features/auth/components/AuthIcons.tsx`. Those are brand assets and
+  must keep their official colors. They are the only legal exception. All
+  other colors come from @theme.
 - No `any` type.
 - No `AsyncStorage`. MMKV only.
 - No `useEffect` for data fetching.
@@ -165,6 +272,9 @@ Never create a screen before its types, service, and hook exist.
 - No new UI libraries (React Native Paper, NativeBase, Tamagui).
 - No screen file over 200 lines of JSX.
 - No two primary buttons on one screen.
+- No KPI card grids or heatmaps on any screen.
+- Donut and ring charts are allowed ONLY as specified in the
+  "Ring charts" section below. Follow those rules exactly.
 - No shadows, gradients, or blur anywhere.
 - No `console.log` in committed code.
 - No touching `/src/_legacy/` — it exists only for reference.

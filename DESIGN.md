@@ -145,15 +145,59 @@ Statistics:
   Value Inter 22-28px/600 #111111, tabular-nums.
   Label Inter 11-12px/500 #6B7280, uppercase, 0.04-0.06em tracking.
 
+Ring charts:
+  Permitted on Welcome, Home / Today, Profile, and post-workout Summary
+  only — never on Progress, Exercise Detail, Session Detail, Active
+  Workout, History, or any screen where precise comparison is the point.
+  One ring per section. A single ratio only — never a multi-segment
+  donut. The ring NEVER replaces the number: it is always paired with
+  a value centered inside it or placed directly beside it.
+  Track stroke 1px-width #F5F5F5; fill #111111, or #3B82F6 only when
+  the ring marks a live/active state. Never #10B981 or #EF4444.
+  Stroke width 4px at >= 80px diameter, 3px at <= 60px. Round caps.
+  Starts at 12 o'clock, runs clockwise. Cap the visual fill at 96% so
+  the track is always perceptible. No gradient, no shadow, no
+  animation unless the design calls for an entrance.
+  Full spec: see /AGENTS.md → "Ring charts".
+
 ## Color discipline
 
-#3B82F6 appears at most twice per screen and only to mark
+#3B82F6 appears at most three times per screen and only to mark
 a selection, a live state, or a single data point.
-Never as a background fill.
+Never as a background fill. See "Design enrichment rules (v2)"
+for the priority order.
 
 #10B981 and #EF4444 are state colors only — never decoration.
 Never use #EF4444 for negative deltas in a training context.
 Use #6B7280 instead — a dip can mean a deload, not a failure.
+
+One documented exception to the token rule: the third-party sign-in
+brand marks (Google "G", Apple logo) in
+`src/features/auth/components/AuthIcons.tsx` keep their official
+colors, because users identify those marks by color. They are the only
+hard-coded colors allowed outside @theme. No other icon may do this.
+
+## Design enrichment rules (v2)
+
+Seven targeted relaxations so the app reads clearly on a 390px
+screen. Everything else in this document stands. Full text:
+`/AGENTS.md` → "Design enrichment rules (v2)".
+
+- Section headers: Inter 12px / 600, uppercase, #6B7280, 0.06em.
+- Accent (#3B82F6) may appear up to three times per screen, in
+  priority order: live/active state, single data highlight, focus or
+  selection border. Never a fill.
+- Flat cards allowed for grouping: #FFFFFF fill, 1px #E5E7EB border,
+  12px radius, 16px padding, no shadow, never nested, 2–3 maximum.
+- One soft #F5F5F5 block per screen may group same-type rows: 12px
+  radius, 16px padding, no border, never nested.
+- Monoline 1.5px icons encouraged where they add meaning: list-row
+  categories, section headers, empty states. No icon without a job.
+- One subtle shadow exception: `0 1px 2px rgba(0,0,0,0.04)` on the
+  pinned bottom CTA bar over scrollable content and on bottom sheets.
+  Nowhere else.
+- One hero metric per section allowed; only one section may carry the
+  largest size. Keep one dominant number per screen.
 
 ## Settings components
 

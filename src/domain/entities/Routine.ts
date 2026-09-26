@@ -20,4 +20,9 @@ export interface Routine {
   createdAt: number;
   updatedAt: number;
   isArchived: boolean;
+  /**
+   * User-set duration override in minutes. When undefined, the editor
+   * uses the calculated estimate.
+   */
+  estimatedMinutes?: number;
 }

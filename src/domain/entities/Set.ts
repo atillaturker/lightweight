@@ -22,4 +22,14 @@ export interface Set {
   completedAt: number | null;
   /** Position within its exercise. */
   order: number;
+  /**
+   * Whether this set achieved a personal record when it was logged.
+   *
+   * Computed against the user's full session history at finish time and
+   * persisted, so read-only views never have to replay detection (which,
+   * against a session alone, marks the first working set of every exercise
+   * as a record). Optional because sessions recorded before this flag
+   * existed carry no value.
+   */
+  isPR?: boolean;
 }

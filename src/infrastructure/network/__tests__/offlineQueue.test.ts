@@ -8,8 +8,8 @@ jest.mock('../../network/apiClient', () => {
   };
 });
 
-jest.mock('nanoid', () => ({
-  nanoid: () => `id-${Math.random().toString(36).slice(2)}`,
+jest.mock('@lib/id', () => ({
+  createId: () => `id-${Math.random().toString(36).slice(2)}`,
 }));
 
 type NetInfoListener = (state: { isConnected: boolean | null }) => void;

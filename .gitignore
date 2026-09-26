@@ -49,3 +49,7 @@ yarn-error.*
 
 # Personal notes
 auth-flow-research.md
+lightweight-3bc46-firebase-adminsdk-fbsvc-a21ab872a5.json
+# Firebase admin credentials — NEVER commit
+serviceAccountKey.json
+*firebase-adminsdk*.json

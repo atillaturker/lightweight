@@ -87,11 +87,9 @@ export function TabBar({
 
   const handleSelect = useCallback(
     (key: string) => {
-      if (key === activeKey) return;
-
       onSelect(key);
     },
-    [activeKey, onSelect],
+    [onSelect],
   );
 
   return (

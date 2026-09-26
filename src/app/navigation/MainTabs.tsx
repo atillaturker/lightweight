@@ -8,6 +8,7 @@ import {
   createBottomTabNavigator,
   type BottomTabBarProps,
 } from "@react-navigation/bottom-tabs";
+import { StackActions } from "@react-navigation/native";
 
 import { TabBar, type TabBarItem } from "@components/TabBar";
 
@@ -30,8 +31,13 @@ const TAB_ITEMS: TabBarItem[] = [
 /**
  * Adapts React Navigation's tab bar props to {@link TabBar}. Emits the
  * standard `tabPress` event so listeners can still prevent a switch.
+ *
+ * Selecting a tab always lands on that tab's root screen: if its nested
+ * stack was left deeper (e.g. Profile → Routines), it is popped to the top
+ * before the tab is focused. Without this, the custom bar bypasses the
+ * reset the default React Navigation tab bar performs on re-selection.
  */
-function MainTabBar({ state, navigation }: BottomTabBarProps) {
+export function MainTabBar({ state, navigation }: BottomTabBarProps) {
   const activeKey = state.routes[state.index]?.name ?? "";
 
   const handleSelect = useCallback(
@@ -45,9 +51,18 @@ function MainTabBar({ state, navigation }: BottomTabBarProps) {
         canPreventDefault: true,
       });
 
-      if (!event.defaultPrevented) navigation.navigate(route.name);
+      if (event.defaultPrevented) return;
+
+      const nestedKey = route.state?.key;
+      if (nestedKey) {
+        navigation.dispatch({ ...StackActions.popToTop(), target: nestedKey });
+      }
+
+      if (state.routes[state.index]?.key !== route.key) {
+        navigation.navigate(route.name);
+      }
     },
-    [navigation, state.routes],
+    [navigation, state.index, state.routes],
   );
 
   return (

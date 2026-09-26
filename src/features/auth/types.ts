@@ -19,6 +19,8 @@ export interface AuthUser {
   displayName: string | null;
   photoURL: string | null;
   provider: AuthProvider;
+  /** Whether the first-run onboarding flow has been completed. */
+  hasOnboarded: boolean;
 }
 
 /** Store/selector shape for the auth state. */

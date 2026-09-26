@@ -1,11 +1,14 @@
 import NetInfo from '@react-native-community/netinfo';
-import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { createMMKVJSONStorage } from '@infrastructure/storage/mmkv';
+import { createId } from '@lib/id';
 
 import { apiRequest, isApiError } from './apiClient';
+
+/** How a queued mutation is delivered once connectivity returns. */
+export type QueueTransport = 'http' | 'firestore';
 
 /** A single queued mutation awaiting delivery to the backend. */
 export interface QueuedMutation {
@@ -16,10 +19,18 @@ export interface QueuedMutation {
   createdAt: number;
   attempts: number;
   lastError?: string;
+  /**
+   * Delivery mechanism. Defaults to `'http'` when omitted, so existing
+   * callers keep posting through {@link apiRequest}.
+   */
+  transport?: QueueTransport;
 }
 
 /** Payload accepted by {@link OfflineQueueState.enqueue}. */
 export type NewQueuedMutation = Omit<QueuedMutation, 'id' | 'createdAt' | 'attempts'>;
+
+/** Delivers one queued mutation. Rejects to trigger a retry. */
+export type QueueTransportHandler = (mutation: QueuedMutation) => Promise<void>;
 
 /** Client state for the offline mutation queue. */
 export interface OfflineQueueState {
@@ -35,6 +46,40 @@ const MAX_ATTEMPTS = 5;
 
 let listenerActive = false;
 let unsubscribeListener: (() => void) | null = null;
+
+/**
+ * Handler for `'firestore'` mutations, registered by the app layer (which
+ * is the only place that may know about Firestore). Unset by default so
+ * this module carries no Firebase dependency.
+ */
+let firestoreTransport: QueueTransportHandler | null = null;
+
+/** Register (or clear) the Firestore delivery handler. */
+export function setFirestoreQueueTransport(
+  handler: QueueTransportHandler | null,
+): void {
+  firestoreTransport = handler;
+}
+
+/** Deliver one HTTP mutation through the API client. */
+function deliverHttp(mutation: QueuedMutation): Promise<void> {
+  return apiRequest(mutation.endpoint, {
+    method: mutation.method,
+    body: mutation.body,
+    requiresAuth: true,
+  }).then(() => undefined);
+}
+
+/** Pick the handler for a mutation, or throw when its transport is unset. */
+function resolveTransport(mutation: QueuedMutation): QueueTransportHandler {
+  if (mutation.transport === 'firestore') {
+    if (firestoreTransport === null) {
+      throw new Error('Firestore queue transport is not configured');
+    }
+    return firestoreTransport;
+  }
+  return deliverHttp;
+}
 
 /** Normalize an unknown failure into a display string for `lastError`. */
 function toErrorMessage(err: unknown): string {
@@ -58,7 +103,7 @@ export const useOfflineQueue = create<OfflineQueueState>()(
         set((state) => ({
           queue: [
             ...state.queue,
-            { ...m, id: nanoid(), createdAt: Date.now(), attempts: 0 },
+            { ...m, id: createId(), createdAt: Date.now(), attempts: 0 },
           ],
         })),
 
@@ -73,11 +118,7 @@ export const useOfflineQueue = create<OfflineQueueState>()(
 
         for (const item of pending) {
           try {
-            await apiRequest(item.endpoint, {
-              method: item.method,
-              body: item.body,
-              requiresAuth: true,
-            });
+            await resolveTransport(item)(item);
             get().remove(item.id);
           } catch (err) {
             const attempts = item.attempts + 1;

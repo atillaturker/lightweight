@@ -1,0 +1,1 @@
+export { registerDataProviders } from './registerDataProviders';

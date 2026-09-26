@@ -16,7 +16,10 @@ import {
 } from 'firebase/auth';
 
 import { auth } from '@/services/firebase/config';
+import { useAuthStore } from '../store/authStore';
 import type { AuthProvider, AuthUser, SignInCredentials, SignUpCredentials } from '../types';
+import { isOnboarded } from '../utils/onboardedUids';
+
 
 /** Firebase error codes we translate into user-facing copy. */
 const ERROR_MESSAGES: Record<string, string> = {
@@ -72,6 +75,26 @@ function resolveProvider(user: User): AuthProvider {
 }
 
 /**
+ * Resolve the onboarding flag for a Firebase user.
+ *
+ * `hasOnboarded` is a local preference persisted in MMKV, not a Firebase
+ * claim, so a raw projection of the Firebase user must not invent a value
+ * for it — hardcoding `false` here regressed a completed user back into
+ * onboarding on every cold start. The auth store's persisted
+ * `onboardedUids` record is the authority: it is written on completion and
+ * survives sign-out, so an already-onboarded account is recognised again
+ * after signing back in on the same device. A uid with no record (a new
+ * account, or one that never finished setup) starts unonboarded.
+ *
+ * TODO: once the profile document exists, read the flag from Firestore and
+ * treat Firestore as the authority, falling back to the local record.
+ */
+function resolveHasOnboarded(uid: string): boolean {
+  return isOnboarded(useAuthStore.getState().onboardedUids, uid);
+}
+
+
+/**
  * Project a Firebase `User` onto the feature's `AuthUser` shape.
  *
  * Exported so the Google and Apple services can reuse it without
@@ -84,6 +107,7 @@ export function toAuthUser(user: User): AuthUser {
     displayName: user.displayName,
     photoURL: user.photoURL,
     provider: resolveProvider(user),
+    hasOnboarded: resolveHasOnboarded(user.uid),
   };
 }
 

@@ -1,12 +1,14 @@
 /**
- * Coarse muscle grouping used for filtering and analytics roll-ups.
+ * Coarse muscle grouping used for filtering, analytics roll-ups, and the
+ * shared `MuscleIcon` pictogram set.
  */
 export type MuscleGroup =
   | 'chest'
   | 'back'
   | 'legs'
   | 'shoulders'
-  | 'arms';
+  | 'arms'
+  | 'core';
 
 /**
  * Equipment required to perform an exercise.
