@@ -9,9 +9,15 @@ if (!USER_UID) {
   process.exit(1);
 }
 
-const keyPath = path.join(__dirname, "..", "serviceAccountKey.json");
+// Prefer a key kept outside the repo; fall back to the project root.
+const keyPath =
+  process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+  path.join(__dirname, "..", "serviceAccountKey.json");
 if (!fs.existsSync(keyPath)) {
-  console.error("Missing serviceAccountKey.json in project root.");
+  console.error(`Missing service account key at ${keyPath}.`);
+  console.error(
+    "Set GOOGLE_APPLICATION_CREDENTIALS to its path, or place serviceAccountKey.json in the project root.",
+  );
   console.error(
     "Get it: Firebase Console → Project Settings → Service accounts → Generate new private key",
   );

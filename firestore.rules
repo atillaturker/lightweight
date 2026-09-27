@@ -1,0 +1,72 @@
+rules_version = '2';
+
+// Firestore security rules for Lightweight.
+//
+// Data model (see src/features/profile/services/firestoreProfile.ts and
+// src/features/history/services/workoutDocument.ts):
+//
+//   users/{uid}                      profile: hasOnboarded, preferences,
+//                                    createdAt, updatedAt
+//   users/{uid}/workouts/{workoutId} one finished workout
+//
+// A signed-in user may read and write only their own documents. Every
+// write is checked against the shape the app produces. Anything not
+// matched below is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function isValidPreferences(p) {
+      return p is map
+        && p.keys().hasAll(['unit', 'weekStart', 'rpeEnabled', 'restTimerSeconds', 'notificationsEnabled'])
+        && p.keys().hasOnly(['unit', 'weekStart', 'rpeEnabled', 'restTimerSeconds', 'notificationsEnabled'])
+        && p.unit in ['kg', 'lb']
+        && p.weekStart in ['monday', 'sunday']
+        && p.rpeEnabled is bool
+        && p.restTimerSeconds is number
+        && p.restTimerSeconds >= 0
+        && p.restTimerSeconds <= 3600
+        && p.notificationsEnabled is bool;
+    }
+
+    // Fields are optional because preference and onboarding pushes use
+    // merge writes; each field present must still have the right type.
+    function isValidProfile(d) {
+      return d.keys().hasOnly(['hasOnboarded', 'preferences', 'createdAt', 'updatedAt'])
+        && (!('hasOnboarded' in d) || d.hasOnboarded is bool)
+        && (!('preferences' in d) || isValidPreferences(d.preferences))
+        && (!('createdAt' in d) || d.createdAt is number)
+        && (!('updatedAt' in d) || d.updatedAt is number);
+    }
+
+    // Rules cannot loop over list items, so `sets` is bounded rather than
+    // validated per entry; the client validates each set on read.
+    function isValidWorkout(d, workoutId) {
+      return d.keys().hasAll(['id', 'routineId', 'routineName', 'startedAt', 'finishedAt', 'sets'])
+        && d.keys().hasOnly(['id', 'routineId', 'routineName', 'startedAt', 'finishedAt', 'note', 'sets'])
+        && d.id == workoutId
+        && (d.routineId == null || d.routineId is string)
+        && d.routineName is string
+        && d.routineName.size() <= 200
+        && d.startedAt is number
+        && (d.finishedAt == null || d.finishedAt is number)
+        && (!('note' in d) || (d.note is string && d.note.size() <= 2000))
+        && d.sets is list
+        && d.sets.size() <= 500;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidProfile(request.resource.data);
+
+      match /workouts/{workoutId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isValidWorkout(request.resource.data, workoutId);
+      }
+    }
+  }
+}
