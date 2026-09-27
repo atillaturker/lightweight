@@ -5,10 +5,8 @@ import { persist } from 'zustand/middleware';
 import { createMMKVJSONStorage } from '@infrastructure/storage/mmkv';
 import { createId } from '@lib/id';
 
-import { apiRequest, isApiError } from './apiClient';
-
 /** How a queued mutation is delivered once connectivity returns. */
-export type QueueTransport = 'http' | 'firestore';
+export type QueueTransport = 'firestore';
 
 /** A single queued mutation awaiting delivery to the backend. */
 export interface QueuedMutation {
@@ -19,10 +17,7 @@ export interface QueuedMutation {
   createdAt: number;
   attempts: number;
   lastError?: string;
-  /**
-   * Delivery mechanism. Defaults to `'http'` when omitted, so existing
-   * callers keep posting through {@link apiRequest}.
-   */
+  /** Delivery mechanism. Every mutation goes through the registered handler. */
   transport?: QueueTransport;
   /**
    * Owner of the mutation (usually a uid). A scoped mutation is delivered
@@ -96,29 +91,16 @@ export function setFirestoreQueueTransport(
   firestoreTransport = handler;
 }
 
-/** Deliver one HTTP mutation through the API client. */
-function deliverHttp(mutation: QueuedMutation): Promise<void> {
-  return apiRequest(mutation.endpoint, {
-    method: mutation.method,
-    body: mutation.body,
-    requiresAuth: true,
-  }).then(() => undefined);
-}
-
-/** Pick the handler for a mutation, or throw when its transport is unset. */
-function resolveTransport(mutation: QueuedMutation): QueueTransportHandler {
-  if (mutation.transport === 'firestore') {
-    if (firestoreTransport === null) {
-      throw new Error('Firestore queue transport is not configured');
-    }
-    return firestoreTransport;
+/** The registered delivery handler, or throw when none is set. */
+function resolveTransport(): QueueTransportHandler {
+  if (firestoreTransport === null) {
+    throw new Error('Firestore queue transport is not configured');
   }
-  return deliverHttp;
+  return firestoreTransport;
 }
 
 /** Normalize an unknown failure into a display string for `lastError`. */
 function toErrorMessage(err: unknown): string {
-  if (isApiError(err)) return err.message;
   if (err instanceof Error) return err.message;
   return 'Unknown error';
 }
@@ -164,7 +146,7 @@ async function deliverPass(get: () => OfflineQueueState, set: QueueSet): Promise
       continue;
     }
     try {
-      await resolveTransport(item)(item);
+      await resolveTransport()(item);
       get().remove(item.id);
     } catch (err) {
       if (!recordFailure(set, item, err)) return;

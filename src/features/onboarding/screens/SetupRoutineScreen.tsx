@@ -27,11 +27,11 @@ import { styles } from "./onboardingScreen.styles";
 type Props = NativeStackScreenProps<OnboardingStackParamList, "SetupRoutine">;
 
 /** The offered first-routine choices, in display order. */
-const ROUTINE_OPTIONS: ReadonlyArray<{
+const ROUTINE_OPTIONS: readonly {
   value: RoutineChoice;
   title: string;
   subtitle: string;
-}> = [
+}[] = [
   {
     value: "ppl",
     title: "Push / Pull / Legs",

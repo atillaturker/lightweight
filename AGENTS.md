@@ -12,7 +12,7 @@ local-first persistence strategy.
 
 - Expo (managed workflow, SDK 54, dev client)
 - TypeScript (strict mode, `moduleResolution: bundler`)
-- Zustand (client state) + TanStack Query (server state)
+- Zustand for all state, persisted to MMKV; Firestore is a synced mirror
 - React Navigation 7 (native-stack + bottom-tabs)
 - react-native-mmkv (fast KV persistence)
 - Firebase Auth + Firestore (JS SDK)
@@ -91,14 +91,10 @@ Before writing any code:
 | Client state   | Zustand                | `useShallow` MANDATORY on object selectors                            |
 | Active workout | Zustand + MMKV persist | Writes on every set log. No "save" button.                            |
 | Local UI       | `useState`             | Modals, inputs, transient state                                       |
-| Server data    | TanStack Query         | Provider is mounted but no queries exist yet. Cache keys when added: `['sessions']`, `['progress', range]`, `['exercise', id]` |
 
-If TanStack Query mutations are added, follow:
-
-1. Optimistic update via `queryClient.setQueryData`.
-2. Fire the mutation.
-3. On success: `invalidateQueries` for related keys.
-4. On failure: rollback and surface an inline error.
+There is no request/response server data: every user-owned record is
+local-first and synced (see "Sync"). Add a server-state library only
+together with a backend that needs one.
 
 Never use `useEffect` for data fetching. The one exception is the sync
 loop in `src/app/providers/useCloudSync.ts`, which reacts to sign-in and
@@ -294,6 +290,9 @@ A ring chart must follow these rules:
   `Date.UTC`.
 - `npm run test:rules` runs `firestore/rules.emulator.ts` against the
   Firestore emulator. Requires Java 21.
+- Before reporting work as done, run `npm run typecheck`, `npm run lint`
+  and `npm test`. Lint uses `eslint-config-expo`; tests may declare
+  `jest.mock` before imports (see `eslint.config.js`).
 
 ---
 

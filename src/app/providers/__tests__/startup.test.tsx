@@ -10,10 +10,6 @@ jest.mock('@/app/providers/userScope', () => ({ registerUserScope: jest.fn() }))
 jest.mock('@/app/navigation', () => ({ NavigationRoot: () => null }));
 jest.mock('react-native-gesture-handler', () => ({ GestureHandlerRootView: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ SafeAreaProvider: () => null }));
-jest.mock('@tanstack/react-query', () => ({
-  QueryClient: jest.fn(),
-  QueryClientProvider: () => null,
-}));
 jest.mock('expo-status-bar', () => ({ StatusBar: () => null }));
 
 import { registerDataProviders } from '@/app/providers';

@@ -61,7 +61,7 @@ function makeSession(
 function sessionOf(
   id: string,
   daysAgo: number,
-  lifts: Array<{ exerciseId: string; weightKg: number; reps: number }>,
+  lifts: { exerciseId: string; weightKg: number; reps: number }[],
 ): Workout {
   const startedAt = NOW - daysAgo * DAY_MS;
   const sets = lifts.map((lift) =>

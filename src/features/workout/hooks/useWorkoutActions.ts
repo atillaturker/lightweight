@@ -12,7 +12,6 @@
  * stays unaware of auth or Firestore.
  */
 import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 
 import type { Exercise, Routine, Workout } from '@domain/entities';
 import { useRoutineStore } from '@features/routines';
@@ -42,9 +41,6 @@ export interface WorkoutActions {
   discard: () => void;
 }
 
-/** Query keys invalidated once a session ends. */
-const SESSIONS_QUERY_KEY = ['sessions'] as const;
-
 /**
  * Apply PR flags, falling back to the unflagged workout if detection
  * throws. The active store is already cleared when this runs, so a throw
@@ -69,7 +65,6 @@ export function useWorkoutActions(): WorkoutActions {
   const setLastSession = useLastSessionStore((state) => state.setLastSession);
   const routines = useRoutineStore((state) => state.routines);
   const activeRoutineId = useRoutineStore((state) => state.activeRoutineId);
-  const queryClient = useQueryClient();
 
   const start = useCallback(
     (routine?: Routine): void => {
@@ -96,9 +91,8 @@ export function useWorkoutActions(): WorkoutActions {
     // by now, so this is the only copy the screen can render.
     setLastSession(annotated);
 
-    void queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
     return annotated;
-  }, [finishWorkout, queryClient, setLastSession]);
+  }, [finishWorkout, setLastSession]);
 
   const discard = useCallback((): void => {
     discardWorkout();

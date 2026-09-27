@@ -81,7 +81,7 @@ export function weeksBetween(fromWeekStartMs: number, toWeekStartMs: number): nu
 export function weeklyVolume(
   sessions: Workout[],
   weekStart: WeekStart,
-): Array<{ weekStartMs: number; volume: number }> {
+): { weekStartMs: number; volume: number }[] {
   const byWeek = new Map<number, number>();
   for (const session of sessions) {
     const weekStartMs = startOfWeek(session.startedAt, weekStart);

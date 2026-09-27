@@ -1,5 +1,3 @@
-export { apiRequest, isApiError } from './apiClient';
-export type { ApiError, RequestOptions } from './apiClient';
 export {
   MAX_ATTEMPTS,
   useOfflineQueue,

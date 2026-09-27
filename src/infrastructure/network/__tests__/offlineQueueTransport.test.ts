@@ -1,20 +1,8 @@
 /**
- * Tests for the queued-mutation transport switch.
- *
- * HTTP stays the default so existing callers are unaffected. Firestore
- * mutations are dispatched to the handler registered by the app layer, and
- * the queue never delivers a Firestore mutation through `apiRequest`.
+ * Tests for queued-mutation delivery: every mutation goes to the handler
+ * the app layer registers, and nothing is lost while none is registered.
  */
-const mockApiRequest = jest.fn();
 const mockFirestoreHandler = jest.fn();
-
-jest.mock('../../network/apiClient', () => {
-  const actual = jest.requireActual('../../network/apiClient');
-  return {
-    ...actual,
-    apiRequest: (...args: unknown[]) => mockApiRequest(...args),
-  };
-});
 
 jest.mock('@lib/id', () => ({
   createId: () => 'id-1',
@@ -35,7 +23,6 @@ import {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockApiRequest.mockResolvedValue(undefined);
   mockFirestoreHandler.mockResolvedValue(undefined);
   useOfflineQueue.setState({ queue: [] });
   setFirestoreQueueTransport(null);
@@ -58,21 +45,7 @@ describe('useOfflineQueue.flush transport dispatch', () => {
     await useOfflineQueue.getState().flush();
 
     expect(mockFirestoreHandler).toHaveBeenCalledTimes(1);
-    expect(mockApiRequest).not.toHaveBeenCalled();
     expect(useOfflineQueue.getState().queue).toHaveLength(0);
-  });
-
-  it('keeps HTTP as the default transport', async () => {
-    useOfflineQueue.getState().enqueue({
-      endpoint: '/workouts',
-      method: 'POST',
-      body: null,
-    });
-
-    await useOfflineQueue.getState().flush();
-
-    expect(mockApiRequest).toHaveBeenCalledTimes(1);
-    expect(mockFirestoreHandler).not.toHaveBeenCalled();
   });
 
   it('retains a Firestore mutation when no handler is registered', async () => {

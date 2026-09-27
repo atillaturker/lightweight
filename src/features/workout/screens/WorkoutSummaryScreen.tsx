@@ -19,7 +19,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQueryClient } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Button } from '@components/Button';
@@ -47,9 +46,6 @@ const SECTION_GAP = spacing.xxxl;
 /** Gap between the safe area and the top block. */
 const CONTENT_TOP = spacing.xxl;
 
-/** Query keys refetched once the session is acknowledged. */
-const SESSIONS_QUERY_KEY = ['sessions'] as const;
-
 /**
  * Session recap. Its single primary action acknowledges the workout and
  * returns to Today; the empty variant's action discards it instead.
@@ -62,18 +58,12 @@ export function WorkoutSummaryScreen({
   const { session, minutes, volumeKg, sets, reps, volumeDeltaPercent, personalRecords, isEmpty } =
     useSessionSummary(sessionId);
   const { discard } = useWorkoutActions();
-  const queryClient = useQueryClient();
   const clearLastSession = useLastSessionStore((state) => state.clearLastSession);
 
   const leaveSummary = useCallback((): void => {
     clearLastSession();
     navigation.popToTop();
   }, [clearLastSession, navigation]);
-
-  const handleDone = useCallback((): void => {
-    void queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
-    leaveSummary();
-  }, [leaveSummary, queryClient]);
 
   const handleDiscard = useCallback((): void => {
     discard();
@@ -189,7 +179,7 @@ export function WorkoutSummaryScreen({
         <Button
           fullWidth
           label="Done"
-          onPress={handleDone}
+          onPress={leaveSummary}
           testID="summary-done"
         />
       </View>

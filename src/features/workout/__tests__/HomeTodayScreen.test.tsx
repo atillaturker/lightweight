@@ -67,20 +67,20 @@ interface MockSummary {
     volumeDeltaPercent: number | null;
     streakWeeks: number;
   };
-  recent: Array<{
+  recent: {
     id: string;
     routineId: null;
     routineName: string;
     startedAt: number;
     finishedAt: number;
     sets: never[];
-  }>;
+  }[];
 }
 
 interface MockRoutine {
   id: string;
   name: string;
-  exercises: Array<{ exerciseId: string; targetSets: number; targetReps: number; order: number }>;
+  exercises: { exerciseId: string; targetSets: number; targetReps: number; order: number }[];
   createdAt: number;
   updatedAt: number;
   isArchived: boolean;

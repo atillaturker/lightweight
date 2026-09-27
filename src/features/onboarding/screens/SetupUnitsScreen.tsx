@@ -22,7 +22,7 @@ import { styles } from "./onboardingScreen.styles";
 type Props = NativeStackScreenProps<OnboardingStackParamList, "SetupUnits">;
 
 /** The two offered unit systems, in display order. */
-const UNIT_OPTIONS: ReadonlyArray<{ value: WeightUnit; label: string }> = [
+const UNIT_OPTIONS: readonly { value: WeightUnit; label: string }[] = [
   { value: "kg", label: "Kilograms (kg)" },
   { value: "lb", label: "Pounds (lb)" },
 ];

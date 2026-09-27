@@ -38,7 +38,7 @@ import type { TodayStackParamList } from "@/app/navigation/types";
 type Props = NativeStackScreenProps<TodayStackParamList, "ExercisePicker">;
 
 /** Filter chips, in display order. `null` is the "All" chip. */
-const FILTERS: ReadonlyArray<{ label: string; group: DomainMuscleGroup | null }> = [
+const FILTERS: readonly { label: string; group: DomainMuscleGroup | null }[] = [
   { label: "All", group: null },
   { label: "Chest", group: "chest" },
   { label: "Back", group: "back" },

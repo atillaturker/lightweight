@@ -2,24 +2,22 @@ export {
   storage,
   zustandStorage,
   createMMKVJSONStorage,
-  AUTH_TOKEN_KEY,
-  saveAuthToken,
-  getAuthToken,
-  clearAuthToken,
+  switchPersistScope,
+  toScopedKey,
 } from './storage';
+export type { ScopablePersistStore } from './storage';
 export {
-  apiRequest,
-  isApiError,
+  MAX_ATTEMPTS,
   useOfflineQueue,
   startOfflineQueueListener,
   setFirestoreQueueTransport,
+  setQueueScopeProvider,
 } from './network';
 export type {
-  ApiError,
-  RequestOptions,
   QueuedMutation,
   NewQueuedMutation,
   OfflineQueueState,
+  QueueScopeProvider,
   QueueTransport,
   QueueTransportHandler,
 } from './network';

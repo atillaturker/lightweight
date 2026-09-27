@@ -37,10 +37,6 @@ jest.mock('@react-native-community/netinfo', () => ({
   fetch: async () => ({ isConnected: true }),
 }));
 
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: () => ({ invalidateQueries: jest.fn() }),
-}));
-
 import type { Routine } from '@domain/entities';
 import { registerDataProviders } from '@/app/providers';
 import { useHistoryStore } from '@features/history/store';
@@ -168,3 +164,4 @@ describe('useWorkoutActions.finish', () => {
     ]);
   });
 });
+

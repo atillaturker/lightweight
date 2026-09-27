@@ -1,12 +1,5 @@
-const mockApiRequest = jest.fn();
-
-jest.mock('../../network/apiClient', () => {
-  const actual = jest.requireActual('../../network/apiClient');
-  return {
-    ...actual,
-    apiRequest: (...args: unknown[]) => mockApiRequest(...args),
-  };
-});
+/** Stands in for the delivery handler the app layer registers. */
+const mockDeliver = jest.fn();
 
 jest.mock('@lib/id', () => ({
   createId: () => `id-${Math.random().toString(36).slice(2)}`,
@@ -43,6 +36,7 @@ jest.mock('@infrastructure/storage/mmkv', () => {
 });
 
 import {
+  setFirestoreQueueTransport,
   setQueueScopeProvider,
   startOfflineQueueListener,
   useOfflineQueue,
@@ -71,7 +65,8 @@ const flush = () => useOfflineQueue.getState().flush();
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockApiRequest.mockResolvedValue(undefined);
+  mockDeliver.mockResolvedValue(undefined);
+  setFirestoreQueueTransport(mockDeliver);
   setQueueScopeProvider(null);
   resetQueue();
 });
@@ -120,7 +115,7 @@ describe('useOfflineQueue.flush', () => {
 
     await flush();
 
-    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual([
+    expect(mockDeliver.mock.calls.map((call) => call[0].endpoint)).toEqual([
       '/first',
       '/second',
       '/third',
@@ -129,9 +124,9 @@ describe('useOfflineQueue.flush', () => {
   });
 
   it('stops on the first failure and retains the remaining queue', async () => {
-    mockApiRequest
+    mockDeliver
       .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce({ message: 'boom', status: 500 });
+      .mockRejectedValueOnce(new Error('boom'));
 
     const { enqueue } = useOfflineQueue.getState();
     enqueue({ endpoint: '/first', method: 'POST', body: 1 });
@@ -140,7 +135,7 @@ describe('useOfflineQueue.flush', () => {
 
     await flush();
 
-    expect(mockApiRequest).toHaveBeenCalledTimes(2);
+    expect(mockDeliver).toHaveBeenCalledTimes(2);
     const queue = useOfflineQueue.getState().queue;
     expect(queue.map((item) => item.endpoint)).toEqual(['/second', '/third']);
     expect(queue[0].attempts).toBe(1);
@@ -171,13 +166,13 @@ describe('useOfflineQueue.flush', () => {
     });
 
     // Attempt 5 fails and parks 'stuck'; 'next' then succeeds.
-    mockApiRequest
-      .mockRejectedValueOnce({ message: 'still down', status: 503 })
+    mockDeliver
+      .mockRejectedValueOnce(new Error('still down'))
       .mockResolvedValueOnce(undefined);
 
     await flush();
 
-    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/stuck', '/next']);
+    expect(mockDeliver.mock.calls.map((call) => call[0].endpoint)).toEqual(['/stuck', '/next']);
     const queue = useOfflineQueue.getState().queue;
     expect(queue.map((item) => item.id)).toEqual(['stuck']);
     expect(queue[0]).toMatchObject({ failed: true, attempts: 5, lastError: 'still down' });
@@ -190,7 +185,7 @@ describe('useOfflineQueue.flush', () => {
 
     await flush();
 
-    expect(mockApiRequest).not.toHaveBeenCalled();
+    expect(mockDeliver).not.toHaveBeenCalled();
     expect(useOfflineQueue.getState().queue).toHaveLength(1);
   });
 
@@ -205,7 +200,7 @@ describe('useOfflineQueue.flush', () => {
 
     await flush();
 
-    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/other']);
+    expect(mockDeliver.mock.calls.map((call) => call[0].endpoint)).toEqual(['/other']);
     expect(useOfflineQueue.getState().queue.map((item) => item.id)).toEqual([
       'save',
       'delete',
@@ -213,7 +208,7 @@ describe('useOfflineQueue.flush', () => {
   });
 
   it('never throws when the API rejects', async () => {
-    mockApiRequest.mockRejectedValue({ message: 'nope', status: 500 });
+    mockDeliver.mockRejectedValue(new Error('nope'));
     useOfflineQueue.getState().enqueue({ endpoint: '/x', method: 'POST', body: null });
 
     await expect(flush()).resolves.toBeUndefined();
@@ -229,7 +224,7 @@ describe('useOfflineQueue.retryFailed', () => {
     useOfflineQueue.getState().retryFailed();
     await flush();
 
-    expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    expect(mockDeliver).toHaveBeenCalledTimes(1);
     expect(useOfflineQueue.getState().queue).toHaveLength(0);
   });
 });
@@ -240,7 +235,7 @@ describe('useOfflineQueue.flush scope', () => {
 
     await flush();
 
-    expect(mockApiRequest).not.toHaveBeenCalled();
+    expect(mockDeliver).not.toHaveBeenCalled();
   });
 
   it('skips another scope without spending an attempt', async () => {
@@ -254,7 +249,7 @@ describe('useOfflineQueue.flush scope', () => {
 
     await flush();
 
-    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/b']);
+    expect(mockDeliver.mock.calls.map((call) => call[0].endpoint)).toEqual(['/b']);
     expect(useOfflineQueue.getState().queue).toEqual([
       expect.objectContaining({ id: 'a', attempts: 0 }),
     ]);
@@ -269,7 +264,7 @@ describe('useOfflineQueue.flush scope', () => {
     scope = 'uid-a';
     await flush();
 
-    expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    expect(mockDeliver).toHaveBeenCalledTimes(1);
     expect(useOfflineQueue.getState().queue).toHaveLength(0);
   });
 });
@@ -277,7 +272,7 @@ describe('useOfflineQueue.flush scope', () => {
 describe('useOfflineQueue.flush concurrency', () => {
   it('never delivers an item twice when flushes overlap', async () => {
     let release: () => void = () => undefined;
-    mockApiRequest.mockImplementationOnce(
+    mockDeliver.mockImplementationOnce(
       () => new Promise<void>((resolve) => {
         release = resolve;
       }),
@@ -289,13 +284,13 @@ describe('useOfflineQueue.flush concurrency', () => {
     release();
     await Promise.all([first, second]);
 
-    expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    expect(mockDeliver).toHaveBeenCalledTimes(1);
     expect(useOfflineQueue.getState().queue).toHaveLength(0);
   });
 
   it('delivers an item enqueued during a running flush', async () => {
     let release: () => void = () => undefined;
-    mockApiRequest.mockImplementationOnce(
+    mockDeliver.mockImplementationOnce(
       () => new Promise<void>((resolve) => {
         release = resolve;
       }),
@@ -309,7 +304,7 @@ describe('useOfflineQueue.flush concurrency', () => {
     release();
     await Promise.all([running, joined]);
 
-    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/first', '/late']);
+    expect(mockDeliver.mock.calls.map((call) => call[0].endpoint)).toEqual(['/first', '/late']);
     expect(useOfflineQueue.getState().queue).toHaveLength(0);
   });
 });
@@ -325,7 +320,7 @@ describe('useOfflineQueue.clear', () => {
 
 describe('startOfflineQueueListener', () => {
   it('flushes when connectivity is restored', async () => {
-    mockApiRequest.mockResolvedValue(undefined);
+    mockDeliver.mockResolvedValue(undefined);
     useOfflineQueue.getState().enqueue({ endpoint: '/a', method: 'POST', body: null });
 
     const unsubscribe = startOfflineQueueListener();
@@ -334,7 +329,7 @@ describe('startOfflineQueueListener', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    expect(mockDeliver).toHaveBeenCalledTimes(1);
 
     unsubscribe();
   });
