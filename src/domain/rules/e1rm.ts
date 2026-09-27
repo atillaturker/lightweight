@@ -20,10 +20,12 @@ export function calculateE1RM(weightKg: number, reps: number): number {
 }
 
 /**
- * A set counts as a working set when it is completed and not a warmup.
+ * A set counts as a working set when it is completed, not a warmup, and
+ * has at least one rep. A zero-rep set carries no work and has no e1RM,
+ * so letting it through would make every e1RM caller throw.
  */
 export function isWorkingSet(set: Set): boolean {
-  return set.completed && set.type !== 'warmup';
+  return set.completed && set.type !== 'warmup' && set.reps >= 1;
 }
 
 /**

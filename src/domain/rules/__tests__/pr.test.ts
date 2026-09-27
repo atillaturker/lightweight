@@ -76,6 +76,13 @@ describe('detectPRs', () => {
 
     expect(records).toEqual([]);
   });
+
+  it('does not throw when history holds a completed zero-rep set', () => {
+    const history = [makeSet({ id: 'a', weightKg: 80, reps: 0 })];
+
+    expect(() => detectPRs(history, makeSet({ id: 'b' }))).not.toThrow();
+    expect(types(detectPRs(history, makeSet({ id: 'b' })))).toContain('best_1rm');
+  });
 });
 
 describe('bestRecordsForExercise', () => {

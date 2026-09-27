@@ -46,6 +46,19 @@ export interface WorkoutActions {
 const SESSIONS_QUERY_KEY = ['sessions'] as const;
 
 /**
+ * Apply PR flags, falling back to the unflagged workout if detection
+ * throws. The active store is already cleared when this runs, so a throw
+ * here would lose the session; missing PR badges are the lesser failure.
+ */
+function annotateOrKeep(workout: Workout): Workout {
+  try {
+    return applyPRFlags(workout, getSessionHistory());
+  } catch {
+    return workout;
+  }
+}
+
+/**
  * Session lifecycle bound to the active workout store and the routine
  * store. This is the only place a session is opened or closed.
  */
@@ -74,7 +87,7 @@ export function useWorkoutActions(): WorkoutActions {
     // PR detection must see every prior session: a session compared only
     // against itself marks the first working set of each exercise as a
     // record. Flags are persisted on the sets so read-only views agree.
-    const annotated = applyPRFlags(workout, getSessionHistory());
+    const annotated = annotateOrKeep(workout);
     // Persist to local history first — the returned `Workout` is the only
     // copy once the active store is cleared, so this must never be skipped.
     // The registered recorder also mirrors the session to the cloud.

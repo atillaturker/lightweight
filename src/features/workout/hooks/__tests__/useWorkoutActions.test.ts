@@ -135,4 +135,36 @@ describe('useWorkoutActions.finish', () => {
     expect(sessions).toHaveLength(1);
     expect(sessions[0].routineName).toBe('Upper / Lower');
   });
+
+  it('records a session holding a zero-rep set without losing it', () => {
+    const { result } = renderHook(() => useWorkoutActions());
+    act(() => {
+      result.current.start(ROUTINE);
+    });
+    const [bench] = useActiveWorkoutStore.getState().exercises;
+    const base = { type: 'normal' as const, completed: true, isPR: false };
+    useActiveWorkoutStore.setState({
+      exercises: [
+        {
+          ...bench,
+          sets: [
+            { ...base, id: 'zero', weightKg: 60, reps: 0, completedAt: 1 },
+            { ...base, id: 'real', weightKg: 60, reps: 5, completedAt: 2 },
+          ],
+        },
+      ],
+    });
+
+    act(() => {
+      result.current.finish();
+    });
+
+    const { sessions } = useHistoryStore.getState();
+    expect(sessions).toHaveLength(1);
+    const flags = sessions[0].sets.map((set) => [set.id, set.isPR]);
+    expect(flags).toEqual([
+      ['zero', false],
+      ['real', true],
+    ]);
+  });
 });
