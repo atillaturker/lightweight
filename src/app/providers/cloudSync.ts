@@ -25,6 +25,7 @@ import {
 } from '@features/history/services/firestoreWorkouts';
 import {
   setFirestoreQueueTransport,
+  setQueueScopeProvider,
   startOfflineQueueListener,
   useOfflineQueue,
 } from '@infrastructure/network';
@@ -53,6 +54,16 @@ function flushQueue(): void {
   void useOfflineQueue.getState().flush().catch((error: unknown) => {
     console.warn('[firestore] queue flush failed', error);
   });
+}
+
+/**
+ * Give parked mutations a fresh set of attempts and deliver what the
+ * signed-in account owns. Called after each sign-in sync, so a workout
+ * that failed repeatedly is retried rather than lost.
+ */
+export function resumeQueue(): void {
+  useOfflineQueue.getState().retryFailed();
+  flushQueue();
 }
 
 /**
@@ -127,6 +138,7 @@ export function registerCloudSync(): void {
       console.warn('[firestore] workout delete failed', error);
     });
   });
+  setQueueScopeProvider(currentUid);
   setFirestoreQueueTransport(deliverQueuedMutation);
   startOfflineQueueListener();
 }

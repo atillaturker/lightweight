@@ -76,6 +76,7 @@ export function enqueueWorkoutSave(uid: string, workout: Workout): void {
     endpoint: `firestore/users/${uid}/workouts/${workout.id}`,
     method: 'PUT',
     transport: 'firestore',
+    scope: uid,
     body: { kind: 'saveWorkout', uid, workout },
   });
 }
@@ -86,6 +87,7 @@ export function enqueueWorkoutDelete(uid: string, workoutId: string): void {
     endpoint: `firestore/users/${uid}/workouts/${workoutId}`,
     method: 'DELETE',
     transport: 'firestore',
+    scope: uid,
     body: { kind: 'deleteWorkout', uid, workoutId },
   });
 }

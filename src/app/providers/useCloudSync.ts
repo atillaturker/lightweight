@@ -31,6 +31,8 @@ import {
   saveUserPreferences,
 } from '@features/profile/services/firestoreProfile';
 
+import { resumeQueue } from './cloudSync';
+
 /** Preferences still to be pushed, debounced by this much. */
 const PREFERENCES_DEBOUNCE_MS = 500;
 
@@ -122,6 +124,8 @@ async function syncOnSignIn(uid: string): Promise<void> {
   const merged = mergeSessions(useHistoryStore.getState().sessions, remote);
   useHistoryStore.setState({ sessions: merged });
   lastSyncedAt = Date.now();
+  // Deliver anything this account left queued, including parked writes.
+  resumeQueue();
 }
 
 /**

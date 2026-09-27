@@ -42,7 +42,25 @@ jest.mock('@infrastructure/storage/mmkv', () => {
   };
 });
 
-import { startOfflineQueueListener, useOfflineQueue } from '../offlineQueue';
+import {
+  setQueueScopeProvider,
+  startOfflineQueueListener,
+  useOfflineQueue,
+  type QueuedMutation,
+} from '../offlineQueue';
+
+/** Build a queued item with defaults for the fields under test. */
+function makeItem(overrides: Partial<QueuedMutation> = {}): QueuedMutation {
+  return {
+    id: 'item',
+    endpoint: '/item',
+    method: 'POST',
+    body: null,
+    createdAt: 1,
+    attempts: 0,
+    ...overrides,
+  };
+}
 
 /** Reset the persisted store between tests. */
 function resetQueue(): void {
@@ -54,6 +72,7 @@ const flush = () => useOfflineQueue.getState().flush();
 beforeEach(() => {
   jest.clearAllMocks();
   mockApiRequest.mockResolvedValue(undefined);
+  setQueueScopeProvider(null);
   resetQueue();
 });
 
@@ -129,8 +148,7 @@ describe('useOfflineQueue.flush', () => {
     expect(queue[1].attempts).toBe(0);
   });
 
-  it('drops an item after 5 failed attempts and continues', async () => {
-
+  it('parks an item after 5 failed attempts, keeps it, and continues', async () => {
     useOfflineQueue.setState({
       queue: [
         {
@@ -152,16 +170,46 @@ describe('useOfflineQueue.flush', () => {
       ],
     });
 
-    // First call (attempt 5) fails and drops 'stuck'; 'next' then succeeds.
+    // Attempt 5 fails and parks 'stuck'; 'next' then succeeds.
     mockApiRequest
       .mockRejectedValueOnce({ message: 'still down', status: 503 })
       .mockResolvedValueOnce(undefined);
 
     await flush();
 
-    // 'stuck' hits the 5-attempt cap and is dropped; 'next' still processes.
     expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/stuck', '/next']);
-    expect(useOfflineQueue.getState().queue).toHaveLength(0);
+    const queue = useOfflineQueue.getState().queue;
+    expect(queue.map((item) => item.id)).toEqual(['stuck']);
+    expect(queue[0]).toMatchObject({ failed: true, attempts: 5, lastError: 'still down' });
+  });
+
+  it('skips a parked item on later flushes', async () => {
+    useOfflineQueue.setState({
+      queue: [makeItem({ id: 'parked', endpoint: '/parked', failed: true, attempts: 5 })],
+    });
+
+    await flush();
+
+    expect(mockApiRequest).not.toHaveBeenCalled();
+    expect(useOfflineQueue.getState().queue).toHaveLength(1);
+  });
+
+  it('holds later items for the same endpoint behind a parked item', async () => {
+    useOfflineQueue.setState({
+      queue: [
+        makeItem({ id: 'save', endpoint: '/doc', failed: true, attempts: 5 }),
+        makeItem({ id: 'delete', endpoint: '/doc', method: 'DELETE' }),
+        makeItem({ id: 'other', endpoint: '/other' }),
+      ],
+    });
+
+    await flush();
+
+    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/other']);
+    expect(useOfflineQueue.getState().queue.map((item) => item.id)).toEqual([
+      'save',
+      'delete',
+    ]);
   });
 
   it('never throws when the API rejects', async () => {
@@ -169,6 +217,100 @@ describe('useOfflineQueue.flush', () => {
     useOfflineQueue.getState().enqueue({ endpoint: '/x', method: 'POST', body: null });
 
     await expect(flush()).resolves.toBeUndefined();
+  });
+});
+
+describe('useOfflineQueue.retryFailed', () => {
+  it('gives parked items a fresh set of attempts', async () => {
+    useOfflineQueue.setState({
+      queue: [makeItem({ id: 'parked', failed: true, attempts: 5 })],
+    });
+
+    useOfflineQueue.getState().retryFailed();
+    await flush();
+
+    expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    expect(useOfflineQueue.getState().queue).toHaveLength(0);
+  });
+});
+
+describe('useOfflineQueue.flush scope', () => {
+  it('holds scoped items while no scope provider is registered', async () => {
+    useOfflineQueue.setState({ queue: [makeItem({ scope: 'uid-a' })] });
+
+    await flush();
+
+    expect(mockApiRequest).not.toHaveBeenCalled();
+  });
+
+  it('skips another scope without spending an attempt', async () => {
+    setQueueScopeProvider(() => 'uid-b');
+    useOfflineQueue.setState({
+      queue: [
+        makeItem({ id: 'a', endpoint: '/a', scope: 'uid-a' }),
+        makeItem({ id: 'b', endpoint: '/b', scope: 'uid-b' }),
+      ],
+    });
+
+    await flush();
+
+    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/b']);
+    expect(useOfflineQueue.getState().queue).toEqual([
+      expect.objectContaining({ id: 'a', attempts: 0 }),
+    ]);
+  });
+
+  it('delivers the held items once their scope is current', async () => {
+    let scope = 'uid-b';
+    setQueueScopeProvider(() => scope);
+    useOfflineQueue.setState({ queue: [makeItem({ scope: 'uid-a' })] });
+
+    await flush();
+    scope = 'uid-a';
+    await flush();
+
+    expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    expect(useOfflineQueue.getState().queue).toHaveLength(0);
+  });
+});
+
+describe('useOfflineQueue.flush concurrency', () => {
+  it('never delivers an item twice when flushes overlap', async () => {
+    let release: () => void = () => undefined;
+    mockApiRequest.mockImplementationOnce(
+      () => new Promise<void>((resolve) => {
+        release = resolve;
+      }),
+    );
+    useOfflineQueue.getState().enqueue({ endpoint: '/once', method: 'POST', body: null });
+
+    const first = flush();
+    const second = flush();
+    release();
+    await Promise.all([first, second]);
+
+    expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    expect(useOfflineQueue.getState().queue).toHaveLength(0);
+  });
+
+  it('delivers an item enqueued during a running flush', async () => {
+    let release: () => void = () => undefined;
+    mockApiRequest.mockImplementationOnce(
+      () => new Promise<void>((resolve) => {
+        release = resolve;
+      }),
+    );
+    const { enqueue } = useOfflineQueue.getState();
+    enqueue({ endpoint: '/first', method: 'POST', body: null });
+
+    const running = flush();
+    enqueue({ endpoint: '/late', method: 'POST', body: null });
+    const joined = flush();
+    release();
+    await Promise.all([running, joined]);
+
+    expect(mockApiRequest.mock.calls.map((call) => call[0])).toEqual(['/first', '/late']);
+    expect(useOfflineQueue.getState().queue).toHaveLength(0);
   });
 });
 
