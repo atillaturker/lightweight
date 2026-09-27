@@ -145,6 +145,9 @@ function buildTemplateRoutine(template: RoutineTemplateId): Routine {
   };
 }
 
+/** Base MMKV key; the app layer scopes it per signed-in user. */
+export const ROUTINES_STORE_KEY = 'routines';
+
 /**
  * Persisted routine store. Subscribe with a selector, e.g.
  * `useRoutineStore((s) => s.routines)`.
@@ -299,7 +302,7 @@ export const useRoutineStore = create<RoutineStore>()(
         }),
     }),
     {
-      name: 'routines',
+      name: ROUTINES_STORE_KEY,
       storage: createJSONStorage(() => zustandStorage),
     },
   ),

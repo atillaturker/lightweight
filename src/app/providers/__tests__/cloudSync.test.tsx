@@ -33,10 +33,11 @@ jest.mock('@features/history/services/firestoreWorkouts', () => ({
   deleteWorkoutFromFirestore: jest.fn(),
 }));
 
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 import { useAuthStore } from '@features/auth/store';
+import { useHistoryStore } from '@features/history/store';
 
 import { CloudSync } from '../useCloudSync';
 
@@ -106,5 +107,34 @@ describe('useCloudSync sign-in', () => {
       ),
     );
     warn.mockRestore();
+  });
+
+  it('does not merge a read that resolves after the account changed', async () => {
+    let resolveWorkouts: (workouts: unknown[]) => void = () => undefined;
+    mockFetchWorkouts.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveWorkouts = resolve;
+      }),
+    );
+    useHistoryStore.setState({ sessions: [] });
+
+    render(<CloudSync />);
+    await waitFor(() => expect(mockFetchWorkouts).toHaveBeenCalledWith('uid-1'));
+
+    useAuthStore.setState({ user: { ...USER, uid: 'uid-2' } });
+    await act(async () => {
+      resolveWorkouts([
+        {
+          id: 'w-1',
+          routineId: null,
+          routineName: 'Push',
+          startedAt: 1,
+          finishedAt: 2,
+          sets: [],
+        },
+      ]);
+    });
+
+    expect(useHistoryStore.getState().sessions).toEqual([]);
   });
 });

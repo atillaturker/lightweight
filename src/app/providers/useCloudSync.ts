@@ -51,6 +51,15 @@ function pickPreferences(store: UserPreferences): UserPreferences {
   };
 }
 
+/**
+ * Whether `uid` is still the signed-in account. A read that resolves after
+ * a sign-out or account switch must not write into the new account's
+ * stores, which are already scoped to someone else.
+ */
+function isStillSignedIn(uid: string): boolean {
+  return useAuthStore.getState().user?.uid === uid;
+}
+
 /** Read the profile document, tolerating a missing or unreadable one. */
 async function readProfile(uid: string): Promise<UserProfileDocument | null> {
   try {
@@ -73,6 +82,7 @@ async function syncOnSignIn(uid: string): Promise<void> {
   const localPreferences = pickPreferences(usePreferencesStore.getState());
   const localOnboarded = useAuthStore.getState().user?.hasOnboarded ?? false;
   const profile = await readProfile(uid);
+  if (!isStillSignedIn(uid)) return;
 
   if (profile === null) {
     try {
@@ -108,6 +118,7 @@ async function syncOnSignIn(uid: string): Promise<void> {
   } catch (error: unknown) {
     console.warn('[firestore] failed to read workouts', error);
   }
+  if (!isStillSignedIn(uid)) return;
   const merged = mergeSessions(useHistoryStore.getState().sessions, remote);
   useHistoryStore.setState({ sessions: merged });
   lastSyncedAt = Date.now();
