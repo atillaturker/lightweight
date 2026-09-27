@@ -7,7 +7,9 @@ rules_version = '2';
 //
 //   users/{uid}                      profile: hasOnboarded, preferences,
 //                                    createdAt, updatedAt
-//   users/{uid}/workouts/{workoutId} one finished workout
+//   users/{uid}/workouts/{workoutId} one finished workout, or a tombstone
+//                                    { id, startedAt, deletedAt } once
+//                                    the workout is deleted
 //
 // A signed-in user may read and write only their own documents. Every
 // write is checked against the shape the app produces. Anything not
@@ -58,14 +60,30 @@ service cloud.firestore {
         && d.sets.size() <= 500;
     }
 
+    // A deleted workout. Carries no training data; it tells other devices
+    // the session was deleted rather than never uploaded.
+    function isValidTombstone(d, workoutId) {
+      return d.keys().hasAll(['id', 'startedAt', 'deletedAt'])
+        && d.keys().hasOnly(['id', 'startedAt', 'deletedAt'])
+        && d.id == workoutId
+        && d.startedAt is number
+        && d.deletedAt is number;
+    }
+
     match /users/{uid} {
       allow read: if isOwner(uid);
       allow create, update: if isOwner(uid) && isValidProfile(request.resource.data);
 
       match /workouts/{workoutId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
-          && isValidWorkout(request.resource.data, workoutId);
+        allow create: if isOwner(uid)
+          && (isValidWorkout(request.resource.data, workoutId)
+            || isValidTombstone(request.resource.data, workoutId));
+        // A tombstone is final: a workout can become one, never the reverse.
+        allow update: if isOwner(uid)
+          && (isValidTombstone(request.resource.data, workoutId)
+            || (!('deletedAt' in resource.data)
+              && isValidWorkout(request.resource.data, workoutId)));
       }
     }
   }

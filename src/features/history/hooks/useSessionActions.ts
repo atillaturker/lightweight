@@ -23,8 +23,12 @@ export function useSessionActions(): SessionActions {
 
   const removeSession = useCallback(
     (sessionId: string): void => {
+      // Read before removing: the cloud tombstone needs the start time.
+      const session = useHistoryStore
+        .getState()
+        .sessions.find((entry) => entry.id === sessionId);
       removeSessionLocal(sessionId);
-      deleteWorkoutFromCloud(sessionId);
+      if (session !== undefined) deleteWorkoutFromCloud(sessionId, session.startedAt);
     },
     [removeSessionLocal],
   );

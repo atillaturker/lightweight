@@ -34,8 +34,17 @@ describe('enqueueWorkoutSave', () => {
 
 describe('enqueueWorkoutDelete', () => {
   it('scopes the queued delete to the owning uid', () => {
-    enqueueWorkoutDelete('uid-a', 'w-1');
+    enqueueWorkoutDelete('uid-a', 'w-1', 1);
 
     expect(useOfflineQueue.getState().queue[0].scope).toBe('uid-a');
+  });
+
+  it('carries the start time the tombstone needs', () => {
+    enqueueWorkoutDelete('uid-a', 'w-1', 1_700_000_000_000);
+
+    expect(useOfflineQueue.getState().queue[0].body).toMatchObject({
+      kind: 'deleteWorkout',
+      startedAt: 1_700_000_000_000,
+    });
   });
 });

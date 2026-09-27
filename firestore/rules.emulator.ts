@@ -156,6 +156,33 @@ describe('users/{uid}/workouts/{workoutId}', () => {
   });
 });
 
+describe('workout tombstones', () => {
+  const TOMBSTONE = { id: 'w-1', startedAt: 1, deletedAt: 3 };
+
+  it('lets the owner replace a workout with a tombstone', async () => {
+    await seed('users/alice/workouts/w-1', WORKOUT);
+    await assertSucceeds(setDoc(doc(dbAs('alice'), 'users/alice/workouts/w-1'), TOMBSTONE));
+  });
+
+  it('denies another user writing a tombstone', async () => {
+    await seed('users/alice/workouts/w-1', WORKOUT);
+    await assertFails(setDoc(doc(dbAs('bob'), 'users/alice/workouts/w-1'), TOMBSTONE));
+  });
+
+  it('rejects a tombstone that keeps training data', async () => {
+    await seed('users/alice/workouts/w-1', WORKOUT);
+    const ref = doc(dbAs('alice'), 'users/alice/workouts/w-1');
+    await assertFails(setDoc(ref, { deletedAt: 3 }, { merge: true }));
+  });
+
+  it('never turns a tombstone back into a workout', async () => {
+    await seed('users/alice/workouts/w-1', TOMBSTONE);
+    const ref = doc(dbAs('alice'), 'users/alice/workouts/w-1');
+    await assertFails(setDoc(ref, WORKOUT));
+    await assertFails(setDoc(ref, WORKOUT, { merge: true }));
+  });
+});
+
 describe('other paths', () => {
   it('denies collections the app does not use', async () => {
     const db = dbAs('alice');
