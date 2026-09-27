@@ -4,6 +4,8 @@ export {
   summarizeVolume,
   weeklyVolume,
   startOfWeek,
+  addWeeks,
+  weeksBetween,
 } from './volume';
 export { detectPRs, bestRecordsForExercise } from './pr';
 export type { PRType, PRRecord } from './pr';
