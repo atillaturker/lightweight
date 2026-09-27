@@ -33,6 +33,10 @@ writes).
 ## Do not
 
 - Do not add thumbnails, day badges, or circular date icons.
+  The one permitted leading visual is the 40px letter tile from
+  "Design enrichment v3" rule 10 (`IconTile variant="letter"`, surface
+  fill, routine's first letter). It is not a thumbnail: never an image,
+  never colored, never a date.
 - Do not add a calendar view.
 - Do not add "Load more" — infinite scroll is the pattern.
 - Do not show a PR badge on every PR row. It appears only when the

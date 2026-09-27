@@ -3,9 +3,8 @@ import { StyleSheet } from "react-native";
 import { colors, radii, spacing, type } from "@theme";
 
 /**
- * Static styles for Badge. Both variants share the same surface — the
- * label text itself is the only signal, so no variant-specific colors
- * are defined here beyond the neutral look.
+ * Static styles for Badge. Both variants share the same surface; the `pr`
+ * variant only recolors its label.
  */
 export const styles = StyleSheet.create({
   base: {
@@ -24,5 +23,8 @@ export const styles = StyleSheet.create({
     ...type.labelSmall,
     textTransform: "uppercase",
     color: colors.textPrimary,
+  },
+  labelPR: {
+    color: colors.success,
   },
 });

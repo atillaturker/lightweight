@@ -2,15 +2,16 @@
  * One exercise block of the active session: title, "last time" line, the
  * set table, and the "add set" action.
  *
- * Blocks sit directly on the canvas and are separated by spacing alone —
- * there is no card, no border, and no alternating surface. The column
- * heading row is the only structure above the table, and the hairline
- * under it is the only rule in the block.
+ * Each block is one Card ("Design enrichment v3", rule 9) — the same
+ * component in the live table and the read-only Session Detail table. The
+ * column heading row is the only structure above the set table, and the
+ * set rows keep their internal hairlines.
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
+import { Card } from '@components/Card';
 import { colors, spacing, type } from '@theme';
 
 import { MoreGlyph } from './Glyphs';
@@ -124,7 +125,7 @@ export function ExerciseBlock({
   );
 
   return (
-    <View testID={testID}>
+    <Card testID={testID}>
       {onPressHeader === undefined ? (
         <View style={styles.titleRow}>{titleRow}</View>
       ) : (
@@ -198,7 +199,7 @@ export function ExerciseBlock({
           <Text style={styles.addSetLabel}>＋ Add set</Text>
         </Pressable>
       )}
-    </View>
+    </Card>
   );
 }
 

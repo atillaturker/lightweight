@@ -21,6 +21,9 @@ import Svg, { Path } from "react-native-svg";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import { Card } from "@components/Card";
+import { LineIcon } from "@components/LineIcon";
+import { SectionHeader } from "@components/SectionHeader";
 import { SegmentedControl } from "@components/SegmentedControl";
 import { TextTabs } from "@components/TextTabs";
 import type { MuscleGroup } from "@domain/entities";
@@ -59,6 +62,9 @@ const FILTER_GLYPH_SIZE = 20;
 
 /** Sort action glyph. */
 const SORT_GLYPH_SIZE = 12;
+
+/** Empty-state glyph, per v3 rule 6. */
+const EMPTY_GLYPH_SIZE = 32;
 
 /** Border width of the hero + chart card. */
 const CARD_BORDER = 1;
@@ -141,6 +147,7 @@ function ProgressHeader({ onFilter }: { onFilter: () => void }): React.ReactElem
 function ProgressEmptyState(): React.ReactElement {
   return (
     <View style={styles.empty} testID="progress-empty">
+      <LineIcon name="trend" size={EMPTY_GLYPH_SIZE} />
       <Text style={styles.emptyTitle}>No data yet</Text>
       <Text style={styles.emptyMessage}>
         Complete a workout to see your progress here.
@@ -261,31 +268,39 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
           {data.exerciseRows.length > 0 ? (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>By exercise</Text>
-                <Pressable
-                  accessibilityLabel="Sort exercises"
-                  accessibilityRole="button"
-                  onPress={noop}
-                  style={styles.sortAction}
-                  testID="progress-sort"
-                >
-                  <SortGlyph />
-                  <Text style={styles.sortLabel}>Sort</Text>
-                </Pressable>
+                <SectionHeader
+                  action={
+                    <Pressable
+                      accessibilityLabel="Sort exercises"
+                      accessibilityRole="button"
+                      onPress={noop}
+                      style={styles.sortAction}
+                      testID="progress-sort"
+                    >
+                      <SortGlyph />
+                      <Text style={styles.sortLabel}>Sort</Text>
+                    </Pressable>
+                  }
+                  icon="trend"
+                  label="By exercise"
+                />
               </View>
 
               <View style={styles.rows}>
-                {data.exerciseRows.map((row, index) => (
-                  <ExerciseDeltaRow
-                    accent={index === 0 && (row.deltaPercent ?? 0) > 0}
-                    dividerTop={index > 0}
-                    key={row.exerciseId}
-                    muscleGroup={muscleByExercise.get(row.exerciseId)}
-                    onPress={() => openExercise(row.exerciseId)}
-                    row={row}
-                    testID={`progress-exercise-${row.exerciseId}`}
-                  />
-                ))}
+                <Card testID="progress-exercise-card">
+                  {data.exerciseRows.map((row, index) => (
+                    <ExerciseDeltaRow
+                      accent={index === 0 && (row.deltaPercent ?? 0) > 0}
+                      dividerTop={index > 0}
+                      key={row.exerciseId}
+                      muscleGroup={muscleByExercise.get(row.exerciseId)}
+                      onPress={() => openExercise(row.exerciseId)}
+                      row={row}
+                      testID={`progress-exercise-${row.exerciseId}`}
+                      variant="inset"
+                    />
+                  ))}
+                </Card>
               </View>
             </View>
           ) : null}
@@ -369,14 +384,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     height: 44,
     paddingHorizontal: gutter,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
-  sectionTitle: { ...type.sectionTitle, color: colors.textPrimary },
   sortAction: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   sortLabel: { ...type.label, color: colors.textMuted },
-  rows: { marginTop: spacing.md },
+  rows: { marginTop: spacing.sm, marginHorizontal: gutter },
 
   empty: {
     flex: 1,
@@ -384,7 +396,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingBottom: spacing.giant,
   },
-  emptyTitle: { ...type.sectionTitle, color: colors.textPrimary },
+  emptyTitle: {
+    ...type.sectionTitle,
+    marginTop: spacing.lg,
+    color: colors.textPrimary,
+  },
   emptyMessage: {
     ...type.body,
     marginTop: spacing.sm,

@@ -24,8 +24,10 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { WeightUnit } from "@domain/entities";
 import { Weight } from "@domain/value-objects";
 import { Button } from "@components/Button";
+import { Card } from "@components/Card";
 import { EmptyState } from "@components/EmptyState";
 import { ScreenHeader } from "@components/ScreenHeader";
+import { SectionHeader } from "@components/SectionHeader";
 import { TextTabs } from "@components/TextTabs";
 import { colors, gutter, spacing, type } from "@theme";
 import {
@@ -130,15 +132,6 @@ function badgeRecordType(
     if (latest === null || record.achievedAt > latest.achievedAt) latest = record;
   }
   return latest?.type ?? null;
-}
-
-/** Centered section title, left-aligned, with nothing on the right. */
-function SectionHeader({ title }: { title: string }): React.ReactElement {
-  return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-  );
 }
 
 /** Pushed per-exercise analytics screen, shared by the Progress and History tabs. */
@@ -269,46 +262,50 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
         }`}</Text>
 
         <View style={styles.section}>
-          <SectionHeader title="Personal records" />
+          <SectionHeader icon="trophy" label="Personal records" />
           {data.records.length === 0 ? (
             <Text style={styles.recordsEmpty} testID="exercise-detail-no-records">
               No records yet
             </Text>
           ) : (
             <View style={styles.rows}>
-              {data.records.map((row, index) => (
-                <RecordRow
-                  dateText={formatShortDate(row.achievedAt)}
-                  dividerTop={index > 0}
-                  key={row.type}
-                  label={row.label}
-                  showBadge={row.type === badgeType}
-                  testID={`exercise-detail-record-${row.type}`}
-                  valueText={recordValueText(row, unit)}
-                />
-              ))}
+              <Card testID="exercise-detail-records-card">
+                {data.records.map((row, index) => (
+                  <RecordRow
+                    dateText={formatShortDate(row.achievedAt)}
+                    dividerTop={index > 0}
+                    key={row.type}
+                    label={row.label}
+                    showBadge={row.type === badgeType}
+                    testID={`exercise-detail-record-${row.type}`}
+                    valueText={recordValueText(row, unit)}
+                  />
+                ))}
+              </Card>
             </View>
           )}
         </View>
 
         {data.recentSets.length > 0 ? (
           <View style={styles.section}>
-            <SectionHeader title="Recent sets" />
+            <SectionHeader icon="clock" label="Recent sets" />
             <View style={styles.rows}>
-              {data.recentSets.map((row, index) => (
-                <RecentSetRow
-                  dateText={formatShortDate(row.startedAt)}
-                  dividerTop={index > 0}
-                  key={row.sessionId}
-                  summaryText={recentSummaryText(
-                    row.weightKg,
-                    row.reps,
-                    row.sets,
-                    unit,
-                  )}
-                  testID={`exercise-detail-recent-${row.sessionId}`}
-                />
-              ))}
+              <Card testID="exercise-detail-recent-card">
+                {data.recentSets.map((row, index) => (
+                  <RecentSetRow
+                    dateText={formatShortDate(row.startedAt)}
+                    dividerTop={index > 0}
+                    key={row.sessionId}
+                    summaryText={recentSummaryText(
+                      row.weightKg,
+                      row.reps,
+                      row.sets,
+                      unit,
+                    )}
+                    testID={`exercise-detail-recent-${row.sessionId}`}
+                  />
+                ))}
+              </Card>
             </View>
           </View>
         ) : null}
@@ -379,13 +376,6 @@ const styles = StyleSheet.create({
   },
 
   section: { marginTop: SECTION_GAP },
-  sectionHeader: {
-    height: 44,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sectionTitle: { ...type.sectionTitle, color: colors.textPrimary },
   rows: { marginTop: SECTION_HEADER_GAP },
   recordsEmpty: {
     ...type.body,

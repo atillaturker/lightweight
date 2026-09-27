@@ -9,12 +9,18 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, type } from '@theme';
+import { LineIcon, type LineIconName } from '@components/LineIcon';
+import { colors, fineSpacing, spacing, type } from '@theme';
 
 /** Props for {@link StatColumn}. */
 export interface StatColumnProps {
   /** Uppercase label above the value. */
   label: string;
+  /**
+   * Optional 16px glyph before the label, only where a natural symbol
+   * exists (e.g. a flame for streak) — v3 rule 6.
+   */
+  icon?: LineIconName;
   /** The value itself, already formatted. */
   value: string;
   /** Optional caption under the value. */
@@ -30,6 +36,7 @@ export interface StatColumnProps {
  */
 export function StatColumn({
   label,
+  icon,
   value,
   caption,
   captionColor,
@@ -37,9 +44,14 @@ export function StatColumn({
 }: StatColumnProps): React.ReactElement {
   return (
     <View style={styles.column} testID={testID}>
-      <Text numberOfLines={1} style={styles.label}>
-        {label}
-      </Text>
+      <View style={styles.labelRow}>
+        {icon !== undefined ? (
+          <LineIcon name={icon} testID={testID ? `${testID}-icon` : undefined} />
+        ) : null}
+        <Text numberOfLines={1} style={styles.label}>
+          {label}
+        </Text>
+      </View>
       <Text numberOfLines={1} style={styles.value}>
         {value}
       </Text>
@@ -82,8 +94,14 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: colors.hairline,
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: fineSpacing.tight,
+  },
   label: {
     ...type.labelSmall,
+    flexShrink: 1,
     textTransform: 'uppercase',
     color: colors.textMuted,
   },

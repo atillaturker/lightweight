@@ -162,10 +162,8 @@ Ring charts:
 
 ## Color discipline
 
-#3B82F6 appears at most three times per screen and only to mark
-a selection, a live state, or a single data point.
-Never as a background fill. See "Design enrichment rules (v2)"
-for the priority order.
+#3B82F6 is never a background fill. Its per-screen cap and
+priority order: see "Design enrichment v3" (up to five).
 
 #10B981 and #EF4444 are state colors only — never decoration.
 Never use #EF4444 for negative deltas in a training context.
@@ -198,6 +196,43 @@ screen. Everything else in this document stands. Full text:
   Nowhere else.
 - One hero metric per section allowed; only one section may carry the
   largest size. Keep one dominant number per screen.
+
+## Design enrichment v3 — fitness surface
+
+Moves the UI from "documentation-clean" to "premium fitness analytics".
+v1 and v2 stand except for the limits named here. Full text and
+precedence: `/AGENTS.md` → "Design enrichment v3 — fitness surface".
+
+- Cards are the default grouping unit: #FFFFFF fill, 1px #E5E7EB
+  border, 12px radius, 16px padding, no shadow. No per-screen cap. Never
+  nested, never inside a soft block.
+- Metric wells: up to 3 #F5F5F5 regions per screen (12px radius, no
+  border, 16px padding), each a distinct group of small metrics. Never
+  inside a card, never a page background.
+- Shadow `0 1px 2px rgba(0,0,0,0.04)` also allowed on bottom sheets,
+  popovers, dropdowns, and anything floating above scrolling content.
+  Never on inline cards.
+- Accent (#3B82F6) up to five times per screen: live state, selection,
+  data highlight, badge on a data point, progress fill. Never a fill.
+- #10B981 for positive deltas, completed sets, PR badges, achieved
+  states. #EF4444 for destructive, error and failed states. #F59E0B
+  (`colors.warning`) for "close to limit", once per screen. Never large
+  fills. A negative training delta is still #6B7280.
+- Icons expected in section headers (16px), list rows (20px), metric
+  labels (16px), empty states (32px). Monoline 1.5px, muted or primary,
+  never filled, duotone or emoji — and never repeating the label.
+- A hero metric may add ONE decoration: 30px sparkline, a 60–88px ring
+  (ring-permitted screens only), or an 80px 10%-opacity watermark icon.
+- Section headers may add a 16px glyph 6px before the label OR a
+  hairline rule to the right edge (no right action). Never both.
+- Exercise blocks on Active Workout, Session Detail and Exercise Detail
+  are cards; set rows keep their internal hairlines.
+- History, exercise picker and routine rows may lead with a 40px #F5F5F5
+  rounded square (8px radius) holding the muscle icon or first letter.
+
+Still in force over v3: the ring-chart rules, charts without a card of
+their own, Profile without cards, plain History rows, the onboarding
+rules, one primary action and one dominant number per screen.
 
 ## Settings components
 

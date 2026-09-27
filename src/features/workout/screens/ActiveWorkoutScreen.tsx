@@ -72,7 +72,7 @@ export interface ActiveWorkoutScreenProps extends Props {
 }
 
 /** Vertical distance between two exercise blocks. */
-const BLOCK_GAP = spacing.xxxl;
+const BLOCK_GAP = spacing.lg;
 
 /** Gap between the header and the first block. */
 const CONTENT_TOP = spacing.xxl;

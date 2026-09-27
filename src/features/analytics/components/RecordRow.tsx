@@ -1,13 +1,14 @@
 /**
  * One row of the Exercise Detail "Personal records" list: label (with an
- * optional PR pill) over the date achieved, value right-aligned. Plain row —
- * hairline separators are the caller's, drawn as the row's top edge.
+ * optional PR pill) over the date achieved, value right-aligned. Sits
+ * inside the screen's Card, which owns the horizontal padding; hairline
+ * separators are drawn as the row's top edge.
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
-import { colors, fineSpacing, gutter, spacing, type } from '@theme';
+import { colors, fineSpacing, spacing, type } from '@theme';
 
 /** Minimum row height. */
 const ROW_HEIGHT = 56;
@@ -64,7 +65,6 @@ const styles = StyleSheet.create({
   wrap: {
     minHeight: ROW_HEIGHT,
     justifyContent: 'center',
-    paddingHorizontal: gutter,
   },
   divider: {
     height: 1,

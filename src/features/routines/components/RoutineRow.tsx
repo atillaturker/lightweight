@@ -8,11 +8,15 @@
  *
  * The active routine is marked with a 6px accent dot immediately before the
  * "⋯", matching the routines design. At most one row carries it.
+ *
+ * Per "Design enrichment v3" rule 10 the row leads with a 40px letter tile.
+ * The `inset` variant drops the gutter padding for rows grouped in a Card.
  */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { IconTile } from "@components/IconTile";
 import { colors, fineSpacing, gutter, spacing, type } from "@theme";
 
 /** Rendered edge length of the overflow glyph. */
@@ -36,6 +40,11 @@ export interface RoutineRowProps {
   onPress: () => void;
   /** Called when the "⋯" action is pressed. */
   onPressMore: () => void;
+  /**
+   * `list` (default) pads the row to the screen gutter; `inset` has no
+   * horizontal padding, for rows inside a Card that already pads them.
+   */
+  variant?: "list" | "inset";
   testID?: string;
 }
 
@@ -72,6 +81,7 @@ export function RoutineRow({
   isActive,
   onPress,
   onPressMore,
+  variant = "list",
   testID,
 }: RoutineRowProps): React.ReactElement {
   return (
@@ -79,9 +89,11 @@ export function RoutineRow({
       accessibilityLabel={name}
       accessibilityRole="button"
       onPress={onPress}
-      style={styles.row}
+      style={[styles.row, variant === "list" ? styles.rowList : null]}
       testID={testID}
     >
+      <IconTile text={name} variant="letter" />
+
       <View style={styles.textColumn}>
         <Text numberOfLines={1} style={styles.name}>
           {name}
@@ -109,11 +121,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     minHeight: 72,
+  },
+  rowList: {
     paddingHorizontal: gutter,
   },
 
   textColumn: {
     flex: 1,
+    marginLeft: spacing.md,
     justifyContent: "center",
   },
   name: {

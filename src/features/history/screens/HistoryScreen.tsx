@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import { LineIcon } from "@components/LineIcon";
 import { Pill } from "@components/Pill";
 import type { Workout } from "@domain/entities";
 import { colors, gutter, spacing, type } from "@theme";
@@ -43,6 +44,9 @@ const SEARCH_BUTTON_SIZE = 36;
 
 /** Rendered edge length of the search glyph. */
 const SEARCH_GLYPH_SIZE = 20;
+
+/** Empty-state glyph, per v3 rule 6. */
+const EMPTY_GLYPH_SIZE = 32;
 
 /** No-op for the search affordance, which ships in a later batch. */
 function noop(): void {
@@ -125,6 +129,7 @@ function FilterRow({
 function HistoryEmptyState(): React.ReactElement {
   return (
     <View style={styles.empty}>
+      <LineIcon name="clock" size={EMPTY_GLYPH_SIZE} />
       <Text style={styles.emptyTitle}>No sessions yet</Text>
       <Text style={styles.emptyMessage}>
         Complete a workout to see it here.
@@ -256,6 +261,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...type.sectionTitle,
+    marginTop: spacing.lg,
     color: colors.textPrimary,
   },
   emptyMessage: {

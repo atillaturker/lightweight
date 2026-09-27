@@ -108,7 +108,7 @@ export function ProfileScreen(): React.ReactElement {
           testID="profile-identity"
         />
 
-        <SettingsSection label="Training" testID="profile-training">
+        <SettingsSection icon="sliders" label="Training" testID="profile-training">
           <SettingsRow
             label="Units"
             onPress={() => setOpenSheet("units")}
@@ -139,7 +139,7 @@ export function ProfileScreen(): React.ReactElement {
           />
         </SettingsSection>
 
-        <SettingsSection label="Data" testID="profile-data">
+        <SettingsSection icon="database" label="Data" testID="profile-data">
           <SettingsRow label="Export data" testID="profile-export" variant="chevron" />
           <SettingsRow label="Import data" testID="profile-import" variant="chevron" />
           <SettingsRow
@@ -150,7 +150,7 @@ export function ProfileScreen(): React.ReactElement {
           />
         </SettingsSection>
 
-        <SettingsSection label="App" testID="profile-app">
+        <SettingsSection icon="device" label="App" testID="profile-app">
           <SettingsRow
             label="Notifications"
             onToggleChange={setNotificationsEnabled}

@@ -161,9 +161,8 @@ Root (conditional)
 Full reference: `/DESIGN.md`.
 
 - Canvas `#FFFFFF`, primary `#111111`, accent `#3B82F6`.
-  Accent appears at most three times per screen and only to mark a
-  selection, a live state, or a single data point. Never as a fill.
-  See "Design enrichment rules (v2)" for the priority order.
+  Accent is never a fill. Its per-screen cap and priority order are
+  set by "Design enrichment v3" (up to five; v2 allowed three).
 - Surface `#F5F5F5`, hairline `#E5E7EB`, body text `#374151`, muted `#6B7280`.
 - Success `#10B981` and error `#EF4444` are state colors only.
   Never use `#EF4444` for a negative delta in a training context —
@@ -227,6 +226,109 @@ mobile screen. They override only the items below; everything else in
    A screen may have one hero metric per section, provided only one
    section carries the largest size on the screen. Keep the rule: one
    dominant number per screen.
+
+---
+
+## Design enrichment v3 — fitness surface
+
+Ten rules that move the UI from "documentation-clean" to "premium
+fitness analytics" without losing its calm, data-first character. v3
+extends v1 (`/DESIGN.md`) and v2 (above); it replaces only the v2 limits
+it names. Shared primitives: `Card`, `IconTile`, `LineIcon`,
+`TrendSparkline`, and `SectionHeader` (icon / rule variants) in
+`src/components/`.
+
+1. Cards are the default grouping unit.
+   Use a card wherever items belong together conceptually (metrics,
+   tables, previews, short list groups). Spec unchanged from v2:
+   `colors.canvas` fill, 1px `colors.hairline` border, 12px radius, 16px
+   inner padding, no shadow. No per-screen cap. Never nest cards. Never
+   put a card inside a soft block.
+
+2. Soft blocks become "metric wells".
+   A `colors.surface` fill (12px radius, no border, 16px padding) may be
+   used for up to 3 regions per screen, each a distinct group of small
+   metrics (a 3-column stat strip, a summary row). Never nested inside a
+   card. Never a page background.
+
+3. Subtle elevation on floating elements.
+   The v2 shadow `0 1px 2px rgba(0,0,0,0.04)` is also permitted on bottom
+   sheets (against the backdrop), popovers and dropdown menus, and any
+   element that visibly floats above scrollable content. Never colored,
+   never diffuse, never on cards that sit inline in the page flow.
+
+4. Accent cap raised to 5, with tiered roles.
+   Up to five `colors.accent` instances per screen, in priority order:
+   1. Live/active state (active tab, active session).
+   2. Interactive selection (selected chip, focused control, active
+      filter).
+   3. Data highlight (fastest-improving lift, latest chart point,
+      current data series).
+   4. Informational badge on a data point.
+   5. Progress indicator fill (ring, bar).
+   Never a background fill. Never more than five.
+
+5. Semantic colors gain visual weight.
+   - `colors.success` (#10B981): positive deltas, completed sets, PR
+     badges, "achieved" states.
+   - `colors.error` (#EF4444): destructive actions, error borders and
+     text, failed/overreaching states.
+   - `colors.warning` (#F59E0B): "close to limit" states (e.g. RPE 9–10).
+     At most once per screen.
+   Never as background fills for large regions. Never on text that is
+   not semantic. A negative training delta stays `colors.textMuted`.
+
+6. Icon density increases.
+   Icons are expected in section headers (16px, before the label), list
+   rows (20px, before the label), metric labels (16px, when a natural
+   symbol exists — e.g. a flame for streak), empty states (32px) and the
+   tab bar. All monoline, 1.5px stroke, `colors.textMuted` or
+   `colors.textPrimary`. No filled icons, no duotone, no emoji. An icon
+   must add meaning the text does not already carry: a dumbbell before
+   "Bench Press" is noise — skip it.
+
+7. Hero metrics can carry supporting decoration.
+   A hero (label + value + unit + delta) may add ONE of: a trend
+   sparkline (30px tall, 1.5px stroke, no axis), a ring chart (60–88px)
+   beside the value, or a background icon watermark (10% opacity, 80px,
+   monoline, bottom-right). Never more than one. Never at the cost of the
+   value's legibility.
+
+8. Section headers get an optional icon or rule.
+   Same typography as v2 rule 1, plus optionally a 16px monoline glyph
+   6px before the label, OR a 1px `colors.hairline` rule running to the
+   right edge of the header row (only when there is no right action).
+   Never both.
+
+9. Exercise blocks become cards.
+   On Active Workout, Session Detail and Exercise Detail each exercise
+   block (title row + set table) is a card. Set rows inside keep their
+   internal hairlines.
+
+10. List rows may carry a leading visual.
+    History rows, exercise picker rows and routine rows may lead with a
+    40px rounded square (8px radius, `colors.surface` fill, no border)
+    holding either the muscle icon or the first letter (Inter 16px /
+    600). Never colored, never a photo, never unrelated decoration.
+
+### What v3 does not override
+
+These rules are more specific than v3 and still win:
+
+- **Ring charts** (section below): permitted screens, one ring per
+  section, fill `colors.primary` or `colors.accent` only. Rule 7's ring
+  decoration applies only on ring-permitted screens, and rule 5 does not
+  make `colors.success` a ring fill.
+- **Charts** sit directly on white and are never given a card of their
+  own (`src/features/analytics/AGENTS.md`). An existing hero card that
+  groups a metric with its chart stays.
+- **Profile**: no card around settings sections or the identity block
+  (`src/features/profile/AGENTS.md`).
+- **History**: rows stay plain under sticky month headers; rule 10's
+  tile is the only addition (`src/features/history/AGENTS.md`).
+- **Onboarding / Welcome**: unchanged (`src/features/onboarding/AGENTS.md`).
+- Exactly one primary action and one dominant number per screen.
+- No gradients, blur, glassmorphism, photography, or new fonts.
 
 ---
 

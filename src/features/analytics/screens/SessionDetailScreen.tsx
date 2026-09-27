@@ -19,6 +19,7 @@ import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
+import { Card } from "@components/Card";
 import { EmptyState } from "@components/EmptyState";
 import { ScreenHeader } from "@components/ScreenHeader";
 import { colors, gutter, spacing, type } from "@theme";
@@ -47,6 +48,9 @@ type Props = NativeStackScreenProps<HistoryStackParamList, "SessionDetail">;
 
 /** Vertical distance between the summary sections. */
 const SECTION_GAP = spacing.xxxl;
+
+/** Vertical distance between two exercise cards. */
+const BLOCK_GAP = spacing.lg;
 
 /** Gap between the header and the top block. */
 const CONTENT_TOP = spacing.xxl;
@@ -170,29 +174,31 @@ export function SessionDetailScreen({
         <Text style={styles.meta}>{formatLongDateTime(session.startedAt)}</Text>
 
         <View style={styles.section}>
-          <StatStrip>
-            <StatColumn
-              label="Volume"
-              testID="session-detail-volume"
-              value={formatTonnage(volumeKg)}
-            />
-            <StatColumn
-              label="Sets"
-              testID="session-detail-sets"
-              value={formatInteger(sets)}
-            />
-            <StatColumn
-              label="Reps"
-              testID="session-detail-reps"
-              value={formatInteger(reps)}
-            />
-            <StatColumn
-              caption="min"
-              label="Time"
-              testID="session-detail-time"
-              value={formatInteger(minutes)}
-            />
-          </StatStrip>
+          <Card testID="session-detail-stats" variant="well">
+            <StatStrip>
+              <StatColumn
+                label="Volume"
+                testID="session-detail-volume"
+                value={formatTonnage(volumeKg)}
+              />
+              <StatColumn
+                label="Sets"
+                testID="session-detail-sets"
+                value={formatInteger(sets)}
+              />
+              <StatColumn
+                label="Reps"
+                testID="session-detail-reps"
+                value={formatInteger(reps)}
+              />
+              <StatColumn
+                caption="min"
+                label="Time"
+                testID="session-detail-time"
+                value={formatInteger(minutes)}
+              />
+            </StatStrip>
+          </Card>
         </View>
 
         <View style={styles.section}>
@@ -272,7 +278,7 @@ const styles = StyleSheet.create({
     marginTop: SECTION_GAP,
   },
   block: {
-    marginTop: SECTION_GAP,
+    marginTop: BLOCK_GAP,
   },
   footer: {
     paddingHorizontal: gutter,

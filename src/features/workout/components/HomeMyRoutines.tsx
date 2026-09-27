@@ -13,11 +13,13 @@
  * CTA, so a screen never carries two primary create actions.
  *
  * At most three routines are shown; when more exist the header carries a
- * "See all" action that opens the full list.
+ * "See all" action that opens the full list. The rows are one short list
+ * group, so they sit in a single Card (v3 rule 1).
  */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { Card } from "@components/Card";
 import { SectionHeader } from "@components/SectionHeader";
 import type { Routine } from "@domain/entities";
 import { RoutineRow, routineDurationMinutes } from "@features/routines";
@@ -111,6 +113,7 @@ export function HomeMyRoutines({
       <View style={styles.header}>
         <SectionHeader
           action={showSeeAll ? seeAll : undefined}
+          icon="list"
           label="My Routines"
           testID={testID ? `${testID}-header` : undefined}
         />
@@ -124,19 +127,22 @@ export function HomeMyRoutines({
         />
       ) : (
         <View style={styles.list}>
-          {shown.map((routine, index) => (
-            <View key={routine.id}>
-              {index > 0 ? <View style={styles.divider} /> : null}
-              <RoutineRow
-                isActive={routine.id === activeRoutineId}
-                meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
-                name={routine.name}
-                onPress={() => onSelectRoutine(routine.id)}
-                onPressMore={() => onPressMore(routine)}
-                testID={`home-routine-row-${routine.id}`}
-              />
-            </View>
-          ))}
+          <Card testID={testID ? `${testID}-card` : undefined}>
+            {shown.map((routine, index) => (
+              <View key={routine.id}>
+                {index > 0 ? <View style={styles.divider} /> : null}
+                <RoutineRow
+                  isActive={routine.id === activeRoutineId}
+                  meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
+                  name={routine.name}
+                  onPress={() => onSelectRoutine(routine.id)}
+                  onPressMore={() => onPressMore(routine)}
+                  testID={`home-routine-row-${routine.id}`}
+                  variant="inset"
+                />
+              </View>
+            ))}
+          </Card>
         </View>
       )}
     </View>
@@ -189,10 +195,10 @@ const styles = StyleSheet.create({
 
   list: {
     marginTop: spacing.sm,
+    marginHorizontal: spacing.xl,
   },
   divider: {
     height: 1,
-    marginHorizontal: spacing.xl,
     backgroundColor: colors.hairline,
   },
 });

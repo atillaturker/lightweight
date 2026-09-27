@@ -6,7 +6,8 @@
  * is deliberately absent so the same interaction works on Home's preview.
  *
  * The active routine is marked with a 6px accent dot, per the feature
- * design — never a badge or pill, and only one row can carry it.
+ * design — never a badge or pill, and only one row can carry it. The rows
+ * are one list group, so they share a single Card (v3 rule 1).
  */
 import React, { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -14,6 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
+import { Card } from "@components/Card";
+import { LineIcon } from "@components/LineIcon";
 import { ScreenHeader } from "@components/ScreenHeader";
 import type { Routine } from "@domain/entities";
 import { colors, emptyStatePadding, gutter, spacing, type } from "@theme";
@@ -26,6 +29,9 @@ import { routineDurationMinutes } from "../utils";
 import type { TodayStackParamList } from "@/app/navigation/types";
 
 type Props = NativeStackScreenProps<TodayStackParamList, "Routines">;
+
+/** Empty-state glyph, per v3 rule 6. */
+const EMPTY_GLYPH_SIZE = 32;
 
 /** Routines list, owned by the Today stack since routines live on Home. */
 export function RoutinesScreen({ navigation }: Props): React.ReactElement {
@@ -69,25 +75,31 @@ export function RoutinesScreen({ navigation }: Props): React.ReactElement {
       >
         {isEmpty ? (
           <View style={styles.emptyState}>
+            <LineIcon name="list" size={EMPTY_GLYPH_SIZE} />
             <Text style={styles.emptyTitle}>No routines yet</Text>
             <Text style={styles.emptyMessage}>
               Create your first routine to start tracking.
             </Text>
           </View>
         ) : (
-          routines.map((routine, index) => (
-            <View key={routine.id}>
-              {index > 0 ? <View style={styles.rowHairline} /> : null}
-              <RoutineRow
-                isActive={routine.id === activeRoutineId}
-                meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
-                name={routine.name}
-                onPress={() => openEditor(routine.id)}
-                onPressMore={() => setActionRoutine(routine)}
-                testID={`routine-row-${routine.id}`}
-              />
-            </View>
-          ))
+          <View style={styles.list}>
+            <Card testID="routines-card">
+              {routines.map((routine, index) => (
+                <View key={routine.id}>
+                  {index > 0 ? <View style={styles.rowHairline} /> : null}
+                  <RoutineRow
+                    isActive={routine.id === activeRoutineId}
+                    meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
+                    name={routine.name}
+                    onPress={() => openEditor(routine.id)}
+                    onPressMore={() => setActionRoutine(routine)}
+                    testID={`routine-row-${routine.id}`}
+                    variant="inset"
+                  />
+                </View>
+              ))}
+            </Card>
+          </View>
         )}
       </ScrollView>
 
@@ -123,9 +135,11 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
 
+  list: {
+    marginHorizontal: gutter,
+  },
   rowHairline: {
     height: 1,
-    marginHorizontal: gutter,
     backgroundColor: colors.hairline,
   },
 
@@ -135,6 +149,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...type.sectionTitle,
+    marginTop: spacing.lg,
     textAlign: "center",
     color: colors.textPrimary,
   },

@@ -23,6 +23,8 @@ export const colors = {
   // State
   success: "#10B981",
   error: "#EF4444",
+  /** "Close to limit" state (e.g. RPE 9–10). At most once per screen. */
+  warning: "#F59E0B",
 
   // Overlay
   /** Dim layer behind a bottom sheet. */

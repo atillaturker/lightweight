@@ -1,9 +1,10 @@
 /**
  * One "By exercise" row: exercise name over a volume-share micro-bar, with
- * the period delta right-aligned. Plain row — no card, no surface. Only the
- * fastest-improving row tints its micro-bar with the accent color; every
- * other row uses the primary color. Negative deltas are muted, never the
- * error red.
+ * the period delta right-aligned. The row itself draws no surface; the
+ * `inset` variant drops the gutter padding for rows grouped in a Card. Only
+ * the fastest-improving row tints its micro-bar with the accent color;
+ * every other row uses the primary color. Negative deltas are muted, never
+ * the error red.
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -33,6 +34,11 @@ export interface ExerciseDeltaRowProps {
   dividerTop: boolean;
   /** Muscle group for the row icon; omitted when the exercise is unknown. */
   muscleGroup?: MuscleGroup;
+  /**
+   * `list` (default) pads the row to the screen gutter; `inset` has no
+   * horizontal padding, for rows inside a Card.
+   */
+  variant?: 'list' | 'inset';
   onPress: () => void;
   testID?: string;
 }
@@ -53,6 +59,7 @@ export function ExerciseDeltaRow({
   accent,
   dividerTop,
   muscleGroup,
+  variant = 'list',
   onPress,
   testID,
 }: ExerciseDeltaRowProps): React.ReactElement {
@@ -64,7 +71,7 @@ export function ExerciseDeltaRow({
       accessibilityLabel={`${row.name} progress`}
       accessibilityRole="button"
       onPress={onPress}
-      style={styles.row}
+      style={[styles.row, variant === 'list' ? styles.rowList : null]}
       testID={testID}
     >
       {dividerTop ? <View style={styles.divider} /> : null}
@@ -108,6 +115,8 @@ const styles = StyleSheet.create({
   row: {
     minHeight: ROW_HEIGHT,
     justifyContent: 'center',
+  },
+  rowList: {
     paddingHorizontal: gutter,
   },
   divider: {

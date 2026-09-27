@@ -1,12 +1,12 @@
 /**
  * One row of the Exercise Detail "Recent sets" list: date on the left, set
- * summary right-aligned. Plain row — hairline separators are the caller's,
- * drawn as the row's top edge.
+ * summary right-aligned. Sits inside the screen's Card, which owns the
+ * horizontal padding; hairline separators are drawn as the row's top edge.
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, gutter, spacing, type } from '@theme';
+import { colors, spacing, type } from '@theme';
 
 /** Minimum row height. */
 const ROW_HEIGHT = 44;
@@ -47,7 +47,6 @@ const styles = StyleSheet.create({
   wrap: {
     minHeight: ROW_HEIGHT,
     justifyContent: 'center',
-    paddingHorizontal: gutter,
   },
   divider: {
     height: 1,

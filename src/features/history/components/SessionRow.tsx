@@ -1,8 +1,9 @@
 /**
  * One past session in the History list.
  *
- * A plain row: routine name and summary line on the left, session volume
- * right-aligned in a fixed column, and a muted chevron. The hairline
+ * A plain row: a 40px letter tile for the routine (v3 rule 10), routine
+ * name and summary line, session volume right-aligned in a fixed column,
+ * and a muted chevron. The hairline
  * between rows is drawn as the row's top divider so it can never appear
  * above the first row of a month or below the last.
  */
@@ -10,6 +11,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import { IconTile } from '@components/IconTile';
 import type { Workout } from '@domain/entities';
 import { colors, fineSpacing, gutter, spacing, type } from '@theme';
 
@@ -53,6 +55,8 @@ export function SessionRow({
       {dividerTop ? <View style={styles.divider} /> : null}
 
       <View style={styles.body}>
+        <IconTile text={row.title} variant="letter" />
+
         <View style={styles.left}>
           <Text numberOfLines={1} style={styles.title}>
             {row.title}
@@ -100,6 +104,7 @@ const styles = StyleSheet.create({
   },
   left: {
     flex: 1,
+    marginLeft: spacing.md,
     justifyContent: 'center',
   },
   title: {
