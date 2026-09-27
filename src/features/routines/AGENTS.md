@@ -1,4 +1,4 @@
-﻿# AGENTS.md — Routines feature
+# AGENTS.md — Routines feature
 
 Routine CRUD and exercise picker. Three screens.
 
@@ -24,8 +24,9 @@ Routine CRUD and exercise picker. Three screens.
 - Exercise picker is PICKER MODE only in this feature. The same layout
   becomes Library mode when opened from Profile — different header,
   different tap behavior.
-- Every exercise has a pictogram. Pictograms are monoline SVGs defined
-  in `assets/pictograms/`. Never substitute with `@expo/vector-icons`.
+- Every exercise has a pictogram. Pictograms are monoline SVG paths in
+  `src/components/MuscleIcon/`, keyed by the exercise's muscle group.
+  Never substitute with `@expo/vector-icons`.
 
 ## Set targets
 

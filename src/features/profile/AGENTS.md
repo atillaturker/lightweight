@@ -1,4 +1,4 @@
-﻿# AGENTS.md — Profile feature
+# AGENTS.md — Profile feature
 
 Account, settings, and preferences. Two screens.
 
@@ -9,8 +9,10 @@ Account, settings, and preferences. Two screens.
 
 ## Rules
 
-- Section headers: `Inter 11px / 500 #6B7280`, uppercase, `0.06em`
-  tracking. 24px above the header, 8px below. No background, no border.
+- Section headers: the shared `SectionHeader` (root AGENTS.md, design
+  enrichment rule 1: Inter 12px / 600 `colors.textMuted`, uppercase,
+  `0.06em` tracking). 24px above the header, 8px below. No background,
+  no border.
 - Settings row: 52px minimum height. Hairline between rows only —
   never above the first row of a section, never below the last.
 - Right side of a row has EXACTLY ONE of these, never two:

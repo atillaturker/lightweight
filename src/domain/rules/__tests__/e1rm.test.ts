@@ -1,5 +1,5 @@
 import type { Set } from '../../entities/Set';
-import { bestE1RM, calculateE1RM } from '../e1rm';
+import { bestE1RM, calculateE1RM, isWorkingSet } from '../e1rm';
 
 /** Build a working set with sensible defaults for the fields under test. */
 function makeSet(overrides: Partial<Set> = {}): Set {
@@ -69,5 +69,24 @@ describe('bestE1RM', () => {
 
   it('returns null for empty input', () => {
     expect(bestE1RM([])).toBeNull();
+  });
+
+  it('ignores completed zero-rep sets instead of throwing', () => {
+    const sets = [
+      makeSet({ id: 'a', weightKg: 200, reps: 0 }),
+      makeSet({ id: 'b', weightKg: 100, reps: 5 }),
+    ];
+
+    expect(bestE1RM(sets)?.value).toBeCloseTo(116.667, 3);
+  });
+});
+
+describe('isWorkingSet', () => {
+  it('excludes a completed set with zero reps', () => {
+    expect(isWorkingSet(makeSet({ reps: 0 }))).toBe(false);
+  });
+
+  it('accepts a completed normal set with reps', () => {
+    expect(isWorkingSet(makeSet({ reps: 1 }))).toBe(true);
   });
 });

@@ -9,12 +9,14 @@
  */
 import type { Set as DomainSet, Workout } from '@domain/entities';
 import {
+  addWeeks,
   calculateDelta,
   calculateVolume,
   detectPRs,
   isWorkingSet,
   startOfWeek,
   summarizeVolume,
+  weeksBetween,
 } from '@domain/rules';
 import { formatMinutesBetween, formatMonthShort } from '@lib/format';
 
@@ -81,8 +83,6 @@ export interface ProgressData {
 }
 
 const WEEK_START = 'monday' as const;
-const DAY_MS = 24 * 60 * 60 * 1000;
-const WEEK_MS = 7 * DAY_MS;
 const MAX_EXERCISE_ROWS = 5;
 
 /** Bucket count and unit for each range. */
@@ -131,21 +131,21 @@ function buildPeriod(range: ProgressRange, now: number): Period {
 
   if (unit === 'week') {
     const anchor = startOfWeek(now, WEEK_START);
-    const currentStart = anchor - (count - 1) * WEEK_MS;
-    const previousStart = currentStart - count * WEEK_MS;
+    const currentStart = addWeeks(anchor, -(count - 1));
+    const previousStart = addWeeks(currentStart, -count);
     return {
       count,
       unit,
       currentStart,
-      currentEnd: anchor + WEEK_MS,
+      currentEnd: addWeeks(anchor, 1),
       previousStart,
       labels: Array.from({ length: count }, (_, index) => `W${index + 1}`),
       bucketIndex: (startedAt) => {
-        const index = (startOfWeek(startedAt, WEEK_START) - currentStart) / WEEK_MS;
+        const index = weeksBetween(currentStart, startOfWeek(startedAt, WEEK_START));
         return index >= 0 && index < count ? index : null;
       },
       previousBucketIndex: (startedAt) => {
-        const index = (startOfWeek(startedAt, WEEK_START) - previousStart) / WEEK_MS;
+        const index = weeksBetween(previousStart, startOfWeek(startedAt, WEEK_START));
         return index >= 0 && index < count ? index : null;
       },
     };

@@ -1,10 +1,12 @@
 import type { Set } from '../../entities/Set';
 import type { Workout } from '../../entities/Workout';
 import {
+  addWeeks,
   calculateVolume,
   startOfWeek,
   summarizeVolume,
   weeklyVolume,
+  weeksBetween,
 } from '../volume';
 
 /** Build a working set with sensible defaults for the fields under test. */
@@ -35,8 +37,8 @@ function makeWorkout(startedAt: number, sets: Set[]): Workout {
   };
 }
 
-/** A stable reference timestamp: 2024-01-01T00:00:00Z (a Monday). */
-const MONDAY = Date.UTC(2024, 0, 1);
+/** Local midnight on 2024-01-01, a Monday. */
+const MONDAY = new Date(2024, 0, 1).getTime();
 
 describe('calculateVolume', () => {
   it('excludes warmup sets', () => {
@@ -90,21 +92,60 @@ describe('weeklyVolume', () => {
     const weekOne = makeWorkout(MONDAY, [
       makeSet({ id: 'a', weightKg: 100, reps: 5 }),
     ]);
-    const weekTwo = makeWorkout(MONDAY + 7 * 24 * 60 * 60 * 1000, [
+    const weekTwo = makeWorkout(new Date(2024, 0, 8).getTime(), [
       makeSet({ id: 'b', weightKg: 100, reps: 10 }),
     ]);
 
     expect(weeklyVolume([weekOne, weekTwo], 'monday')).toEqual([
       { weekStartMs: MONDAY, volume: 500 },
-      { weekStartMs: MONDAY + 7 * 24 * 60 * 60 * 1000, volume: 1000 },
+      { weekStartMs: new Date(2024, 0, 8).getTime(), volume: 1000 },
     ]);
   });
 
   it('respects weekStart = sunday', () => {
     // 2024-01-01 is a Monday; with a Sunday week start its week begins
     // on 2023-12-31.
-    const sunday = Date.UTC(2023, 11, 31);
+    const sunday = new Date(2023, 11, 31).getTime();
     expect(startOfWeek(MONDAY, 'sunday')).toBe(sunday);
     expect(startOfWeek(MONDAY, 'monday')).toBe(MONDAY);
   });
 });
+
+/**
+ * The suite runs in America/New_York (see jest.globalSetup.js): west of
+ * UTC and with daylight saving, so both local-calendar bugs surface on any
+ * machine or CI runner.
+ */
+describe('startOfWeek local calendar', () => {
+  it('keeps a late-Sunday session in the week ending that Sunday', () => {
+    const sundayNight = new Date(2024, 0, 7, 21, 30).getTime();
+    expect(startOfWeek(sundayNight, 'monday')).toBe(MONDAY);
+  });
+
+  it('puts an early-Monday session in the week starting that Monday', () => {
+    const mondayEarly = new Date(2024, 0, 8, 1, 0).getTime();
+    expect(startOfWeek(mondayEarly, 'monday')).toBe(new Date(2024, 0, 8).getTime());
+  });
+
+  it('returns local midnight', () => {
+    const start = new Date(startOfWeek(new Date(2024, 0, 10, 15).getTime(), 'monday'));
+    expect([start.getDay(), start.getHours(), start.getMinutes()]).toEqual([1, 0, 0]);
+  });
+});
+
+describe('addWeeks', () => {
+  it('lands on local midnight across a daylight-saving change', () => {
+    const beforeChange = new Date(2024, 2, 4).getTime();
+    expect(addWeeks(beforeChange, 1)).toBe(new Date(2024, 2, 11).getTime());
+    expect(addWeeks(new Date(2024, 2, 11).getTime(), -1)).toBe(beforeChange);
+  });
+});
+
+describe('weeksBetween', () => {
+  it('counts whole weeks across a daylight-saving change', () => {
+    const from = new Date(2024, 2, 4).getTime();
+    expect(weeksBetween(from, new Date(2024, 2, 11).getTime())).toBe(1);
+    expect(weeksBetween(from, new Date(2024, 2, 25).getTime())).toBe(3);
+  });
+});
+

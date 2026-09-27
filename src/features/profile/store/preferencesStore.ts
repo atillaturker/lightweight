@@ -45,6 +45,9 @@ export interface PreferencesStore extends UserPreferences {
   setNotificationsEnabled: (enabled: boolean) => void;
 }
 
+/** Base MMKV key; the app layer scopes it per signed-in user. */
+export const PREFERENCES_STORE_KEY = 'preferences';
+
 /**
  * Persisted preferences store. Subscribe with a selector, e.g.
  * `usePreferencesStore((s) => s.unit)`.
@@ -61,7 +64,7 @@ export const usePreferencesStore = create<PreferencesStore>()(
         set({ notificationsEnabled }),
     }),
     {
-      name: 'preferences',
+      name: PREFERENCES_STORE_KEY,
       storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({
         unit: state.unit,

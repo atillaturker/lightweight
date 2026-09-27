@@ -9,7 +9,7 @@
 import { useMemo } from 'react';
 
 import type { Exercise, WeightUnit } from '@domain/entities';
-import { useHistoryStore } from '@features/history/store';
+import { useHistoryStore } from '@features/history';
 import { getExerciseLibrary, getWeightUnit } from '@features/workout';
 
 import {

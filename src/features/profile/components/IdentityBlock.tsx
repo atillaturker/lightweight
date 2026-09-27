@@ -7,7 +7,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { colors, radii, spacing, type } from '@theme';
+import { colors, fineSpacing, radii, spacing, type } from '@theme';
 
 import { displayNameFor, initialsFor } from '../utils';
 
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   email: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
 });

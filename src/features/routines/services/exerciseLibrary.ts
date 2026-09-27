@@ -20,7 +20,7 @@
  */
 import type { Exercise } from '@domain/entities';
 
-import type { RoutineTemplateId } from '@features/onboarding/types';
+import type { RoutineTemplateId } from '../types';
 
 /** Fixed creation stamp so the catalog is deterministic across runs. */
 const LIBRARY_EPOCH = 1_700_000_000_000;

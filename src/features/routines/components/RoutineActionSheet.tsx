@@ -21,7 +21,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { Routine } from "@domain/entities";
-import { colors, gutter, radii, spacing, type } from "@theme";
+import { colors, fineSpacing, gutter, radii, spacing, type } from "@theme";
 
 /** Props for {@link RoutineActionSheet}. */
 export interface RoutineActionSheetProps {
@@ -177,7 +177,7 @@ export function RoutineActionSheet({
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.25)",
+    backgroundColor: colors.backdrop,
   },
 
   sheet: {
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
 

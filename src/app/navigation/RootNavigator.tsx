@@ -18,9 +18,9 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { useAuth, useAuthStore } from "@features/auth";
+import { useAppStore } from "@features/onboarding";
 import { colors } from "@theme";
 
-import { useAppStore } from "../store";
 import { AuthStack } from "./AuthStack";
 import { IntroStack } from "./IntroStack";
 import { MainTabs } from "./MainTabs";

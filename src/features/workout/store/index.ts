@@ -1,4 +1,5 @@
 export {
+  ACTIVE_WORKOUT_STORE_KEY,
   EMPTY_WORKOUT,
   countCompletedSets,
   countTotalSets,

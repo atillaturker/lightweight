@@ -1,10 +1,7 @@
 import type { Workout } from '../entities/Workout';
 import type { WeekStart } from '../entities/User';
 import { isWorkingSet } from './e1rm';
-import { startOfWeek } from './volume';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-const WEEK_MS = 7 * DAY_MS;
+import { addWeeks, startOfWeek } from './volume';
 
 /** A "quick session" under 30 minutes does not count toward a streak. */
 export const MIN_STREAK_DURATION_MS = 30 * 60 * 1000;
@@ -57,7 +54,7 @@ export function currentWeeklyStreak(
   let cursor = currentWeek;
   while (weeks.has(cursor)) {
     streak += 1;
-    cursor -= WEEK_MS;
+    cursor = addWeeks(cursor, -1);
   }
   return streak;
 }
@@ -74,7 +71,7 @@ export function longestWeeklyStreak(
   let longest = 0;
   let run = 0;
   for (let index = 0; index < weeks.length; index += 1) {
-    const isConsecutive = index > 0 && weeks[index] - weeks[index - 1] === WEEK_MS;
+    const isConsecutive = index > 0 && weeks[index] === addWeeks(weeks[index - 1], 1);
     run = isConsecutive ? run + 1 : 1;
     longest = Math.max(longest, run);
   }

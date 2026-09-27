@@ -11,7 +11,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import type { Workout } from '@domain/entities';
-import { colors, gutter, spacing, type } from '@theme';
+import { colors, fineSpacing, gutter, spacing, type } from '@theme';
 
 import { toHistoryRow } from '../utils';
 
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
   volume: {

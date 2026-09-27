@@ -31,7 +31,9 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -50,6 +52,10 @@ yarn-error.*
 # Personal notes
 auth-flow-research.md
 lightweight-3bc46-firebase-adminsdk-fbsvc-a21ab872a5.json
-# Firebase admin credentials — NEVER commit
+# Firebase admin credentials â€” NEVER commit
 serviceAccountKey.json
 *firebase-adminsdk*.json
+
+# Firebase emulator logs
+firebase-debug.log
+firestore-debug.log

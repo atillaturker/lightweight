@@ -229,6 +229,9 @@ function toPersisted(state: ActiveWorkoutState): PersistedWorkout {
   };
 }
 
+/** Base MMKV key; the app layer scopes it per signed-in user. */
+export const ACTIVE_WORKOUT_STORE_KEY = 'active-workout';
+
 /**
  * Persisted active-session store. Subscribe through the workout hooks,
  * e.g. `useActiveWorkout()`.
@@ -362,7 +365,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
       discardWorkout: () => set({ ...EMPTY_WORKOUT }),
     }),
     {
-      name: 'active-workout',
+      name: ACTIVE_WORKOUT_STORE_KEY,
       storage: createJSONStorage(() => zustandStorage),
       partialize: (state): PersistedWorkout => toPersisted(state),
     },

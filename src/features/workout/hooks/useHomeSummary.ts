@@ -5,18 +5,17 @@
  * the weekly strip figures, and the recent-session list. The screen only
  * renders what this returns, so no business logic leaks into JSX.
  *
- * Recomputes when the active session changes — finishing or discarding a
- * workout is what moves every number on this screen.
+ * Recomputes whenever history changes, whatever changed it: a finished
+ * workout, a deleted session, a cloud sync, or an account switch.
  */
 import { useMemo } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 
 import type { Exercise, Routine, Workout } from '@domain/entities';
-import { useRoutineStore } from '@features/routines/store';
+import { useHistoryStore } from '@features/history';
+import { useRoutineStore } from '@features/routines';
 
 import { DEFAULT_WEEK_START, RECENT_ACTIVITY_LIMIT } from '../config';
-import { getExerciseLibrary, getSessionHistory } from '../services';
-import { useActiveWorkoutStore } from '../store';
+import { getExerciseLibrary } from '../services';
 import { selectNextRoutine } from '../utils/routineSelection';
 import {
   recentSessions,
@@ -43,22 +42,17 @@ export interface HomeSummary {
 }
 
 /**
- * Read model behind the Home screen. Session history and the exercise
- * library come from the feature's data providers; both default to empty,
- * which is exactly the first-run state the screen has to render.
+ * Read model behind the Home screen. Session history is subscribed to
+ * directly so every change re-renders; the exercise library comes from the
+ * feature's data provider. Both start empty, which is exactly the first-run
+ * state the screen has to render.
  */
 export function useHomeSummary(): HomeSummary {
   const routines = useRoutineStore((state) => state.routines);
   const activeRoutineId = useRoutineStore((state) => state.activeRoutineId);
-  const sessionId = useActiveWorkoutStore(
-    useShallow((state) => state.sessionId),
-  );
-  const exerciseCount = useActiveWorkoutStore(
-    useShallow((state) => state.exercises.length),
-  );
+  const sessions = useHistoryStore((state) => state.sessions);
 
   return useMemo((): HomeSummary => {
-    const sessions = getSessionHistory();
     const library = getExerciseLibrary();
     const nextRoutine = selectNextRoutine(routines, activeRoutineId);
     const byId = new Map(library.map((exercise) => [exercise.id, exercise]));
@@ -79,7 +73,5 @@ export function useHomeSummary(): HomeSummary {
       weekly: summarizeWeeks(sessions, DEFAULT_WEEK_START, Date.now()),
       recent: recentSessions(sessions, RECENT_ACTIVITY_LIMIT),
     };
-    // `sessionId`/`exerciseCount` are reactive inputs: they change when a
-    // session starts, finishes, or is discarded, which is when history moves.
-  }, [routines, activeRoutineId, sessionId, exerciseCount]);
+  }, [routines, activeRoutineId, sessions]);
 }

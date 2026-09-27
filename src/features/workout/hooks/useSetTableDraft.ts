@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, type TextInput } from 'react-native';
 
-import type { ActiveExercise, ActiveSet, FocusedCell } from '../types';
+import type { ActiveExercise, ActiveSet, FocusedCell, NumericField } from '../types';
 
 /** Values returned by {@link useSetTableDraft}. */
 export interface SetTableDraft {
@@ -50,11 +50,16 @@ export function sanitizeNumericInput(text: string): string {
   return rest.length === 0 ? whole : `${whole}.${rest.join('')}`;
 }
 
-/** Parse draft text into a number, or `null` when it is not usable. */
-export function parseDraftValue(text: string): number | null {
+/**
+ * Parse draft text into a number, or `null` when it is not usable for
+ * `field`. Weight accepts any non-negative number (0 = bodyweight); reps
+ * must be a whole number of at least one.
+ */
+export function parseDraftValue(text: string, field: NumericField): number | null {
   if (text.trim() === '') return null;
   const value = Number(text);
   if (!Number.isFinite(value) || value < 0) return null;
+  if (field === 'reps' && (!Number.isInteger(value) || value < 1)) return null;
   return value;
 }
 
@@ -84,7 +89,7 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
 
   /** Send a cell's draft to the write path, but only when it parses. */
   const writeDraft = useCallback((cell: FocusedCell, text: string): void => {
-    const parsed = parseDraftValue(text);
+    const parsed = parseDraftValue(text, cell.field);
     if (parsed !== null) commitRef.current(cell, parsed);
   }, []);
 

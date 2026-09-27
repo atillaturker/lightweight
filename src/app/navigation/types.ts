@@ -2,6 +2,7 @@
  * Navigation param lists. Every navigator and stack declares its routes
  * here so screens can type their props with `NativeStackScreenProps`.
  */
+import type { NavigatorScreenParams } from '@react-navigation/native';
 
 /** Root-level conditional: intro, auth, onboarding, or the main tabs. */
 export type RootStackParamList = {
@@ -33,8 +34,6 @@ export type OnboardingStackParamList = {
   SetupFrequency: undefined;
   SetupRoutine: undefined;
 };
-
-import type { NavigatorScreenParams } from '@react-navigation/native';
 
 /** Bottom tab destinations. Each tab owns a nested native stack. */
 export type MainTabParamList = {

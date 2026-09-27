@@ -29,10 +29,6 @@ jest.mock('@react-native-community/netinfo', () => ({
   fetch: async () => ({ isConnected: true }),
 }));
 
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: () => ({ invalidateQueries: jest.fn() }),
-}));
-
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { Set as DomainSet, Workout } from '@domain/entities';

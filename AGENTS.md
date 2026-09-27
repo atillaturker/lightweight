@@ -1,4 +1,4 @@
-﻿# AGENTS.md — Kinetic Strength Analytics
+# AGENTS.md — Kinetic Strength Analytics
 
 Mobile strength-training analytics app built with React Native (Expo).
 Users log workouts; the app turns training history into progression
@@ -10,11 +10,12 @@ local-first persistence strategy.
 
 ## Tech stack
 
-- Expo (managed workflow, SDK 51+)
+- Expo (managed workflow, SDK 54, dev client)
 - TypeScript (strict mode, `moduleResolution: bundler`)
-- Zustand (client state) + TanStack Query (server state)
-- React Navigation 8 (native-stack + bottom-tabs)
+- Zustand for all state, persisted to MMKV; Firestore is a synced mirror
+- React Navigation 7 (native-stack + bottom-tabs)
 - react-native-mmkv (fast KV persistence)
+- Firebase Auth + Firestore (JS SDK)
 - react-native-svg (custom icons only)
 - Space Grotesk + Inter (bundled font assets)
 
@@ -39,7 +40,16 @@ Path aliases: `@theme`, `@components`, `@domain`, `@features`,
 | `src/app/`            | Navigation root, providers                          | Top of the tree                             |
 
 Imports flow downward only: `app → features → components → domain → theme/lib`.
-Never import upward or sideways between features.
+
+Between features:
+
+- A feature may import another feature only through its public barrel
+  (`@features/<name>`, i.e. its `index.ts`), never a path inside it.
+- Feature dependencies must not form a cycle.
+- A feature may import from `src/app` only the navigation param lists,
+  and only as `import type` from `@/app/navigation/types`.
+
+`src/__tests__/architecture.test.ts` enforces all three.
 
 ---
 
@@ -50,7 +60,9 @@ Before writing any code:
 1. Does a type for this already exist in `@domain/entities/`?
    Reuse it. Never redefine.
 2. Are you using tokens from `@theme`?
-   Hard-coded colors and spacings are FORBIDDEN.
+   Hard-coded colors and spacings are FORBIDDEN. Use `spacing` for new
+   layouts; `fineSpacing` and `emptyStatePadding` exist only for the few
+   named off-scale values, each with one job.
 3. Does a util or hook already do this?
    Check `@lib/` and `@features/*/utils/`, `@features/*/hooks/`.
    Never duplicate logic.
@@ -64,7 +76,7 @@ Before writing any code:
 - TypeScript strict. `any` is FORBIDDEN. Use `unknown` + type guards.
 - Every exported function and component gets a JSDoc block.
 - Functions max 40 lines. Split if longer.
-- Named exports everywhere. Default exports only for screens.
+- Named exports everywhere, screens included.
 - File names: PascalCase for components, camelCase for utils and hooks.
 - Import order: external → `@domain` → `@theme` → local. Blank line between groups.
 - Comments in English.
@@ -75,19 +87,49 @@ Before writing any code:
 
 | Kind           | Tool                   | Rule                                                                  |
 | -------------- | ---------------------- | --------------------------------------------------------------------- |
-| Server data    | TanStack Query         | Cache keys: `['sessions']`, `['progress', range]`, `['exercise', id]` |
+| User data      | Zustand + MMKV persist | Local-first source of truth; mirrored to Firestore (see "Sync")       |
 | Client state   | Zustand                | `useShallow` MANDATORY on object selectors                            |
 | Active workout | Zustand + MMKV persist | Writes on every set log. No "save" button.                            |
 | Local UI       | `useState`             | Modals, inputs, transient state                                       |
 
-Mutating server data:
+There is no request/response server data: every user-owned record is
+local-first and synced (see "Sync"). Add a server-state library only
+together with a backend that needs one.
 
-1. Optimistic update via `queryClient.setQueryData`.
-2. Fire the mutation.
-3. On success: `invalidateQueries` for related keys.
-4. On failure: rollback and surface an inline error.
+Never use `useEffect` for data fetching. The one exception is the sync
+loop in `src/app/providers/useCloudSync.ts`, which reacts to sign-in and
+app-foreground events rather than rendering fetched data.
 
-Never use `useEffect` for data fetching.
+### Per-account storage
+
+History, routines, the active workout and preferences are persisted per
+signed-in uid (`<key>:<uid>` in MMKV). `src/app/providers/userScope.ts`
+switches them synchronously whenever the auth user changes, so one account
+never sees or writes another's data, and nothing is deleted on sign-out
+(routines and an unfinished workout exist only on the device). A new
+user-owned persisted store MUST be added to `userScope.ts` and export its
+base key.
+
+### Sync
+
+- Firestore paths: `users/{uid}` (profile) and
+  `users/{uid}/workouts/{workoutId}`. Shapes live in
+  `src/features/profile/services/userProfileDocument.ts` and
+  `src/features/history/services/workoutDocument.ts`.
+- Finished workouts are immutable. Deleting one writes a tombstone
+  (`{ id, startedAt, deletedAt }`) instead of removing the document, so
+  other devices learn about the delete. A tombstone is final.
+- On sign-in and on foreground (at most every 5 minutes),
+  `useCloudSync` reads the cloud history and reconciles it with
+  `reconcileSessions`: tombstones remove local copies, cloud-only sessions
+  are added, local-only sessions are queued for upload.
+- Every cloud write that can fail goes through the offline queue
+  (`@infrastructure/network`). Queued items carry the owning uid as their
+  `scope` and are delivered only while that account is signed in. An item
+  that fails 5 times is parked (`failed`), never dropped, and retried
+  after the next sign-in sync.
+- `firestore.rules` is the access and schema contract. Change it together
+  with any document shape, and add a case to `firestore/rules.emulator.ts`.
 
 ---
 
@@ -103,7 +145,7 @@ Root (conditional)
 ├── HistoryTab (stack: History → SessionDetail → ExerciseDetail)
 └── ProfileTab (stack: Profile → Routines → RoutineEditor → ExercisePicker)
 
-- Root switches on `hasSeenIntro`, `authStatus`, and `hasOnboarded`, in
+- Root switches on `hasSeenIntro`, the signed-in `user`, and `hasOnboarded`, in
   that order. Intro is shown before auth and is never repeated on the
   same install.
 - Push screens use `navigation.replace` to avoid stack growth.
@@ -238,8 +280,19 @@ A ring chart must follow these rules:
 
 - Every `domain/rules/*.ts` has a `__tests__/*.test.ts`.
 - Component tests use React Native Testing Library.
+- Native modules without a JS fallback (MMKV, Google Sign-In) have Jest
+  stand-ins in the root `__mocks__/`. A test's own `jest.mock` wins.
 - New feature requires at least one integration test for the main flow.
 - Test names: `describe('functionName')` + `it('does X')`.
+- `npm test` runs in `America/New_York` (pinned by `jest.globalSetup.js`)
+  so date code is tested west of UTC and across daylight saving. Build
+  expected dates with local constructors (`new Date(2024, 0, 1)`), never
+  `Date.UTC`.
+- `npm run test:rules` runs `firestore/rules.emulator.ts` against the
+  Firestore emulator. Requires Java 21.
+- Before reporting work as done, run `npm run typecheck`, `npm run lint`
+  and `npm test`. Lint uses `eslint-config-expo`; tests may declare
+  `jest.mock` before imports (see `eslint.config.js`).
 
 ---
 
@@ -265,7 +318,9 @@ Never create a screen before its types, service, and hook exist.
   must keep their official colors. They are the only legal exception. All
   other colors come from @theme.
 - No `any` type.
-- No `AsyncStorage`. MMKV only.
+- No `AsyncStorage`. MMKV only. The single exception is Firebase Auth's own
+  session persistence in `src/services/firebase/config.ts`
+  (`getReactNativePersistence`).
 - No `useEffect` for data fetching.
 - No new state libraries (Redux, MobX, Jotai, Recoil).
 - No new navigation libraries (Expo Router, Wouter).
@@ -274,25 +329,24 @@ Never create a screen before its types, service, and hook exist.
 - No two primary buttons on one screen.
 - No KPI card grids or heatmaps on any screen.
 - Donut and ring charts are allowed ONLY as specified in the
-  "Ring charts" section below. Follow those rules exactly.
+  "Ring charts" section above. Follow those rules exactly.
 - No shadows, gradients, or blur anywhere.
 - No `console.log` in committed code.
 - No touching `/src/_legacy/` — it exists only for reference.
-- No refactoring `/src/screens/auth/`, `/src/services/`, `/src/schemas/`,
-  or `/src/hooks/` until the new auth feature is written.
 
 ---
 
 ## Current project status
 
-- **Auth**: legacy Firebase implementation is working. Do not break it.
-  New `features/auth/` will be written later, at which point legacy auth
-  is removed.
-- **Onboarding, Workout, Routines, Analytics, History, Profile**: screens
-  are designed (see `/DESIGN.md` and `/docs/screens/`) but not implemented.
-- **Backend**: Firebase Auth + Firestore. Workout data persists to
-  Firestore via `src/services/firebase/workoutService.ts`.
-- **Design reference**: all screen specs live in `/docs/screens/`.
+- **Auth**: implemented in `src/features/auth/` (email/password, Google,
+  Apple). `src/services/firebase/config.ts` initializes Firebase and is
+  the only file left under `src/services/`.
+- **Onboarding, Workout, Routines, Analytics, History, Profile**:
+  implemented under `src/features/`.
+- **Backend**: Firebase Auth + Firestore. Workouts, the profile and
+  preferences sync to Firestore (see "Sync"). Routines are local-only.
+- **Design reference**: `/DESIGN.md`. There are no per-screen spec files.
+- **Not released yet.** Data migrations may assume development installs.
 
 ---
 
@@ -314,100 +368,64 @@ Never create a screen before its types, service, and hook exist.
 
 ## Examples of correct code
 
-**Domain util:**
+**Domain rule:**
 
-````ts
+```ts
 // src/domain/rules/e1rm.ts
 
 /**
  * Estimate 1RM using the Epley formula.
  * Single-rep sets return the raw weight.
  */
-
-
-// src/features/workout/store/activeWorkoutStore.ts
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { mmkvStorage } from '@infrastructure/storage/mmkv';
-
-interface ActiveWorkoutState {
-  sessionId: string | null;
-  startWorkout: (routineId: string) => void;
-  discardWorkout: () => void;
-}
-
-export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
-  persist(
-    (set) => ({
-      sessionId: null,
-      startWorkout: (routineId) => set({ sessionId: routineId }),
-      discardWorkout: () => set({ sessionId: null }),
-    }),
-    { name: 'active-workout', storage: createJSONStorage(() => mmkvStorage) },
-  ),
-);
 export function calculateE1RM(weightKg: number, reps: number): number {
   if (reps <= 0) throw new Error('reps must be positive');
   if (reps === 1) return weightKg;
   return weightKg * (1 + reps / 30);
 }
+```
 
+**Persisted store:**
+
+```ts
+// src/features/workout/store/activeWorkoutStore.ts
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+import { zustandStorage } from '@infrastructure/storage';
+
+/** Base MMKV key; the app layer scopes it per signed-in user. */
+export const ACTIVE_WORKOUT_STORE_KEY = 'active-workout';
+
+export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
+  persist(
+    (set) => ({
+      sessionId: null,
+      discardWorkout: () => set({ sessionId: null }),
+    }),
+    {
+      name: ACTIVE_WORKOUT_STORE_KEY,
+      storage: createJSONStorage(() => zustandStorage),
+    },
+  ),
+);
+```
+
+**Screen:**
+
+```ts
 // src/features/workout/screens/ActiveWorkoutScreen.tsx
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { TodayStackParamList } from '@/app/navigation/types';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import type { TodayStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<TodayStackParamList, 'ActiveWorkout'>;
 
 export function ActiveWorkoutScreen({ route, navigation }: Props) {
-  const { routineId } = route.params;
   // ...
 }
-
+```
 
 ---
-
-## 2. `/src/domain/AGENTS.md`
-
-```markdown
-# AGENTS.md — Domain layer
-
-Pure TypeScript. No React, no React Native, no navigation, no state
-libraries, no network, no I/O. Imported by every other layer.
-
-## Files
-
-- `entities/` — Exercise, Workout, Set, Routine, User
-- `value-objects/` — Weight, Reps, Volume, E1RM
-- `rules/` — volume, pr, streak, e1rm calculations
-
-## Rules
-
-- Every exported function has a JSDoc block.
-- No imports from `features/`, `components/`, `infrastructure/`, or `theme/`.
-- Errors: throw plain `Error` with a clear message. No custom error classes.
-- Pure functions only. No side effects, no async, no I/O.
-- Weight is always stored as `kg`. Unit conversion happens at the UI edge.
-
-## Naming
-
-- `calculateX()` for calculations
-- `isX()` for predicates
-- `toX()` for conversions
-- PascalCase for types and interfaces
-
-## Testing
-
-Every rule file gets a matching `__tests__/x.test.ts`. Test names
-describe behavior: `it('excludes warmup sets from volume')`.
-
-## Do not
-
-- Do not import anything from React or React Native.
-- Do not import from `@theme` (colors are a UI concern).
-- Do not use `Date.now()` inside a pure function — accept a `now: number`
-  parameter when time matters.
-- Do not throw on nullable data. Return `null` explicitly.
-````
 
 ## Verification rule
 

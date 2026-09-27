@@ -8,8 +8,6 @@ export { ProfileStack } from "./ProfileStack";
 export { AuthStack } from "./AuthStack";
 export { IntroStack } from "./IntroStack";
 export { OnboardingStack } from "./OnboardingStack";
-export { useAuthState } from "./useAuthState";
-export type { AuthState } from "./useAuthState";
 export type {
   AuthStackParamList,
   HistoryStackParamList,

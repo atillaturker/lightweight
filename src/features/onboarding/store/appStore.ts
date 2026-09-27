@@ -1,5 +1,6 @@
 /**
- * App-level flags.
+ * Install-level first-run flags, owned by the onboarding feature that
+ * sets them and read by the root navigator.
  *
  * These describe the install itself, not the signed-in account, so they
  * are deliberately kept out of the auth store. Both `hasSeenWelcome` and

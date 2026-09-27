@@ -13,7 +13,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
-import { colors, gutter, spacing, type } from "@theme";
+import { colors, fineSpacing, gutter, spacing, type } from "@theme";
 
 /** Rendered edge length of the overflow glyph. */
 const MORE_GLYPH_SIZE = 20;
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     fontVariant: ["tabular-nums"],
     color: colors.textMuted,
   },

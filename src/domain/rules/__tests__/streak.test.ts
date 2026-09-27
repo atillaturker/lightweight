@@ -5,8 +5,8 @@ import { currentWeeklyStreak, longestWeeklyStreak } from '../streak';
 const DAY = 24 * 60 * 60 * 1000;
 const WEEK = 7 * DAY;
 
-/** A stable reference timestamp: 2024-01-01T00:00:00Z (a Monday). */
-const MONDAY = Date.UTC(2024, 0, 1);
+/** Local midnight on 2024-01-01, a Monday. */
+const MONDAY = new Date(2024, 0, 1).getTime();
 
 /** Build a completed working set. */
 function makeSet(overrides: Partial<Set> = {}): Set {
@@ -96,3 +96,21 @@ describe('longestWeeklyStreak', () => {
     expect(longestWeeklyStreak([], 'monday')).toBe(0);
   });
 });
+
+describe('weekly streaks across daylight saving', () => {
+  // US clocks moved forward on 2024-03-10, so that week is 167 hours long.
+  const sessions = [
+    makeWorkout(new Date(2024, 2, 5, 18).getTime()),
+    makeWorkout(new Date(2024, 2, 12, 18).getTime()),
+    makeWorkout(new Date(2024, 2, 19, 18).getTime()),
+  ];
+
+  it('keeps the current streak unbroken', () => {
+    expect(currentWeeklyStreak(sessions, 'monday', new Date(2024, 2, 20).getTime())).toBe(3);
+  });
+
+  it('keeps the longest streak unbroken', () => {
+    expect(longestWeeklyStreak(sessions, 'monday')).toBe(3);
+  });
+});
+

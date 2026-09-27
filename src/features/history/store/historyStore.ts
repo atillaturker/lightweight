@@ -16,6 +16,9 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Workout } from '@domain/entities';
 import { zustandStorage } from '@infrastructure/storage';
 
+/** Base MMKV key; the app layer scopes it per signed-in user. */
+export const HISTORY_STORE_KEY = 'history';
+
 /** Maximum sessions retained locally. Oldest are dropped past this. */
 export const MAX_HISTORY_SESSIONS = 500;
 
@@ -50,7 +53,7 @@ export const useHistoryStore = create<HistoryStore>()(
       clearAll: () => set({ sessions: [] }),
     }),
     {
-      name: 'history',
+      name: HISTORY_STORE_KEY,
       storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({ sessions: state.sessions }),
     },

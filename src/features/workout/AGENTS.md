@@ -1,4 +1,4 @@
-﻿# AGENTS.md — Workout feature
+# AGENTS.md — Workout feature
 
 The core logging flow. This is the heart of the product. Zero tolerance
 for data loss or UI blocking. A dropped set is a broken product.
@@ -17,17 +17,22 @@ for data loss or UI blocking. A dropped set is a broken product.
   Access via `useActiveWorkout()`, `useSetLogger()`, `useRestTimer()`.
 - After logging a set, schedule PR detection with
   `InteractionManager.runAfterInteractions`. Never block UI.
-- Network failures on set log enqueue via `useOfflineQueue`.
-  Do not throw to the user.
+- Set logging never touches the network. A finished session is written
+  to local history first, then mirrored to Firestore through the
+  history feature's cloud seam, which queues on failure. Do not throw
+  to the user.
 - Leaving ActiveWorkoutScreen without finishing opens a bottom sheet:
   Finish / Discard / Keep training. Never silently close.
 
 ## Critical components
 
 - `SetRow` — column alignment depends on `tabular-nums`.
-- `RestTimerBar` — thin line, never an overlay card.
+- Rest timer — a thin line driven by `useRestTimerLine`, never an
+  overlay card.
 - `ExerciseBlock` — holds all sets for one exercise.
-- `PRBadge` — appears for 3 seconds, then fades. No modal, no sound.
+- PR marker — `Badge variant="pr"` in the `ExerciseBlock` title. No
+  modal, no sound. Spec: appears for 3 seconds, then fades (NOT yet
+  implemented; the badge currently stays).
 
 ## Set model
 

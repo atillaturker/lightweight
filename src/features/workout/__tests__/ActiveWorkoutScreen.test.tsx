@@ -29,10 +29,6 @@ jest.mock('@react-native-community/netinfo', () => ({
   fetch: async () => ({ isConnected: true }),
 }));
 
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: () => ({ invalidateQueries: jest.fn() }),
-}));
-
 // PR detection runs after interactions and is covered by its own domain
 // tests; disabling it here keeps the logging assertions synchronous.
 jest.mock('@domain/rules', () => ({

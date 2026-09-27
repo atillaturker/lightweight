@@ -12,6 +12,7 @@ import type { ActiveExercise, ActiveSet, FocusedCell } from '../../types';
 import {
   firstIncompleteSet,
   nextCell,
+  parseDraftValue,
   useSetTableDraft,
   type SetTableDraft,
 } from '../useSetTableDraft';
@@ -209,5 +210,39 @@ describe('nextCell', () => {
     const exercises = [makeExercise('bench', [makeSet('b1', false)])];
 
     expect(nextCell(exercises, { setId: 'b1', field: 'reps' })).toBeNull();
+  });
+});
+
+describe('parseDraftValue', () => {
+  it('accepts zero weight for bodyweight sets', () => {
+    expect(parseDraftValue('0', 'weight')).toBe(0);
+  });
+
+  it('accepts a fractional weight', () => {
+    expect(parseDraftValue('62.5', 'weight')).toBe(62.5);
+  });
+
+  it('rejects zero reps', () => {
+    expect(parseDraftValue('0', 'reps')).toBeNull();
+  });
+
+  it('rejects fractional reps', () => {
+    expect(parseDraftValue('2.5', 'reps')).toBeNull();
+  });
+
+  it('accepts a whole number of reps', () => {
+    expect(parseDraftValue('8', 'reps')).toBe(8);
+  });
+});
+
+describe('useSetTableDraft reps validation', () => {
+  it('keeps the stored reps when zero is typed', () => {
+    const harness = renderDraft();
+
+    act(() => harness.hook.focusCell(REPS, 8));
+    act(() => harness.hook.changeDraft('0'));
+    act(() => harness.hook.commit());
+
+    expect(harness.writes).toEqual([]);
   });
 });

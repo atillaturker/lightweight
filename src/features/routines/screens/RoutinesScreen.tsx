@@ -16,7 +16,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "@components/Button";
 import { ScreenHeader } from "@components/ScreenHeader";
 import type { Routine } from "@domain/entities";
-import { colors, gutter, spacing, type } from "@theme";
+import { colors, emptyStatePadding, gutter, spacing, type } from "@theme";
 
 import { RoutineActionSheet } from "../components/RoutineActionSheet";
 import { RoutineRow } from "../components/RoutineRow";
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
 
   emptyState: {
     alignItems: "center",
-    paddingVertical: 48,
+    paddingVertical: emptyStatePadding,
   },
   emptyTitle: {
     ...type.sectionTitle,

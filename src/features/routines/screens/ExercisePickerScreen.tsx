@@ -28,7 +28,7 @@ import { Button } from "@components/Button";
 import { MuscleIcon } from "@components/MuscleIcon";
 import { ScreenHeader } from "@components/ScreenHeader";
 import type { MuscleGroup as DomainMuscleGroup } from "@domain/entities";
-import { colors, gutter, radii, spacing, type } from "@theme";
+import { colors, emptyStatePadding, fineSpacing, gutter, radii, spacing, type } from "@theme";
 
 import { EXERCISE_LIBRARY } from "../services";
 import { useRoutineStore } from "../store";
@@ -38,7 +38,7 @@ import type { TodayStackParamList } from "@/app/navigation/types";
 type Props = NativeStackScreenProps<TodayStackParamList, "ExercisePicker">;
 
 /** Filter chips, in display order. `null` is the "All" chip. */
-const FILTERS: ReadonlyArray<{ label: string; group: DomainMuscleGroup | null }> = [
+const FILTERS: readonly { label: string; group: DomainMuscleGroup | null }[] = [
   { label: "All", group: null },
   { label: "Chest", group: "chest" },
   { label: "Back", group: "back" },
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 48,
-    paddingLeft: 40,
+    paddingLeft: spacing.huge,
     paddingRight: spacing.md,
     backgroundColor: colors.canvas,
     borderWidth: 1,
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 32,
-    paddingHorizontal: 14,
+    paddingHorizontal: fineSpacing.loose,
     borderRadius: radii.pill,
   },
   chipIdle: {
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   },
   muscleLabel: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
 
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
 
   emptyState: {
     alignItems: "center",
-    paddingVertical: 48,
+    paddingVertical: emptyStatePadding,
   },
   emptyTitle: {
     ...type.label,

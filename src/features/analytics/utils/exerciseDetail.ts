@@ -9,6 +9,7 @@
  */
 import type { Set as DomainSet, Workout } from '@domain/entities';
 import {
+  addWeeks,
   bestE1RM,
   bestRecordsForExercise,
   calculateVolume,
@@ -70,8 +71,6 @@ export interface ExerciseDetailData {
 }
 
 const WEEKS = 8;
-const DAY_MS = 24 * 60 * 60 * 1000;
-const WEEK_MS = 7 * DAY_MS;
 const RECENT_LIMIT = 6;
 const WEEK_START = 'monday' as const;
 
@@ -208,9 +207,9 @@ function buildPoints(
   currentStart: number,
 ): (number | null)[] {
   return Array.from({ length: WEEKS }, (_, index) => {
-    const start = currentStart + index * WEEK_MS;
+    const start = addWeeks(currentStart, index);
     return metricValue(
-      setsInWindow(sessions, exerciseId, start, start + WEEK_MS),
+      setsInWindow(sessions, exerciseId, start, addWeeks(start, 1)),
       metric,
     );
   });
@@ -239,9 +238,9 @@ export function buildExerciseDetail(
   now: number,
 ): ExerciseDetailData {
   const anchor = startOfWeek(now, WEEK_START);
-  const currentStart = anchor - (WEEKS - 1) * WEEK_MS;
-  const currentEnd = anchor + WEEK_MS;
-  const previousStart = currentStart - WEEKS * WEEK_MS;
+  const currentStart = addWeeks(anchor, -(WEEKS - 1));
+  const currentEnd = addWeeks(anchor, 1);
+  const previousStart = addWeeks(currentStart, -WEEKS);
 
   const allSets = allWorkingSets(sessions, exerciseId);
   const currentSets = setsInWindow(sessions, exerciseId, currentStart, currentEnd);

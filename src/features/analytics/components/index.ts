@@ -16,3 +16,7 @@ export { RecordRow } from './RecordRow';
 export type { RecordRowProps } from './RecordRow';
 export { RecentSetRow } from './RecentSetRow';
 export type { RecentSetRowProps } from './RecentSetRow';
+export { ProgressHero } from './ProgressHero';
+export type { ProgressHeroProps } from './ProgressHero';
+export { PRStrip } from './PRStrip';
+export type { PRStripProps } from './PRStrip';

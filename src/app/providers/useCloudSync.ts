@@ -16,10 +16,13 @@ import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 
-import type { UserPreferences, Workout } from '@domain/entities';
+import type { UserPreferences } from '@domain/entities';
 import { useAuthStore } from '@features/auth/store';
-import { mergeSessions } from '@features/history/services';
-import { fetchWorkoutsFromFirestore } from '@features/history/services/firestoreWorkouts';
+import { reconcileSessions } from '@features/history/services';
+import {
+  fetchWorkoutsFromFirestore,
+  type RemoteHistory,
+} from '@features/history/services/firestoreWorkouts';
 import { useHistoryStore } from '@features/history/store';
 import { DEFAULT_PREFERENCES, usePreferencesStore } from '@features/profile/store';
 import { resolvePreferences } from '@features/profile/services';
@@ -30,6 +33,8 @@ import {
   saveHasOnboarded,
   saveUserPreferences,
 } from '@features/profile/services/firestoreProfile';
+
+import { pendingWorkoutIds, queueWorkoutUploads, resumeQueue } from './cloudSync';
 
 /** Preferences still to be pushed, debounced by this much. */
 const PREFERENCES_DEBOUNCE_MS = 500;
@@ -49,6 +54,15 @@ function pickPreferences(store: UserPreferences): UserPreferences {
     restTimerSeconds: store.restTimerSeconds,
     notificationsEnabled: store.notificationsEnabled,
   };
+}
+
+/**
+ * Whether `uid` is still the signed-in account. A read that resolves after
+ * a sign-out or account switch must not write into the new account's
+ * stores, which are already scoped to someone else.
+ */
+function isStillSignedIn(uid: string): boolean {
+  return useAuthStore.getState().user?.uid === uid;
 }
 
 /** Read the profile document, tolerating a missing or unreadable one. */
@@ -73,6 +87,7 @@ async function syncOnSignIn(uid: string): Promise<void> {
   const localPreferences = pickPreferences(usePreferencesStore.getState());
   const localOnboarded = useAuthStore.getState().user?.hasOnboarded ?? false;
   const profile = await readProfile(uid);
+  if (!isStillSignedIn(uid)) return;
 
   if (profile === null) {
     try {
@@ -102,15 +117,41 @@ async function syncOnSignIn(uid: string): Promise<void> {
     }
   }
 
-  let remote: Workout[] = [];
-  try {
-    remote = await fetchWorkoutsFromFirestore(uid);
-  } catch (error: unknown) {
-    console.warn('[firestore] failed to read workouts', error);
-  }
-  const merged = mergeSessions(useHistoryStore.getState().sessions, remote);
-  useHistoryStore.setState({ sessions: merged });
+  const remote = await readRemoteHistory(uid);
+  if (!isStillSignedIn(uid)) return;
+  if (remote !== null) reconcileHistory(uid, remote);
   lastSyncedAt = Date.now();
+  // Deliver anything this account left queued, including parked writes.
+  resumeQueue();
+}
+
+/** Read the cloud history, or `null` when the read failed. */
+async function readRemoteHistory(uid: string): Promise<RemoteHistory | null> {
+  try {
+    return await fetchWorkoutsFromFirestore(uid);
+  } catch (error: unknown) {
+    // Reconciling against nothing would re-upload the whole history.
+    console.warn('[firestore] failed to read workouts', error);
+    return null;
+  }
+}
+
+/**
+ * Apply a cloud read to local history and queue what the cloud is missing.
+ * Queued mutations count as already done: a queued delete must not be
+ * undone by the read, and a queued save must not be queued twice.
+ */
+function reconcileHistory(uid: string, remote: RemoteHistory): void {
+  const pending = pendingWorkoutIds(uid);
+  const result = reconcileSessions(useHistoryStore.getState().sessions, {
+    ...remote,
+    deletedIds: [...remote.deletedIds, ...pending.deletes],
+  });
+  useHistoryStore.setState({ sessions: result.sessions });
+  queueWorkoutUploads(
+    uid,
+    result.toUpload.filter((workout) => !pending.saves.has(workout.id)),
+  );
 }
 
 /**

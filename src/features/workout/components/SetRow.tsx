@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   underline: {
     position: 'absolute',
-    bottom: 8,
+    bottom: spacing.sm,
     height: UNDERLINE_HEIGHT,
     width: NUMERIC_COLUMN_WIDTH - spacing.xl,
     backgroundColor: colors.primary,

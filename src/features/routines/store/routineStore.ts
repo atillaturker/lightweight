@@ -12,7 +12,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Routine, RoutineExercise } from '@domain/entities';
 import { zustandStorage } from '@infrastructure/storage';
 
-import type { RoutineTemplateId } from '@features/onboarding/types';
+import type { RoutineTemplateId } from '../types';
 
 import {
   DEFAULT_ROUTINE_NAME,
@@ -144,6 +144,9 @@ function buildTemplateRoutine(template: RoutineTemplateId): Routine {
     isArchived: false,
   };
 }
+
+/** Base MMKV key; the app layer scopes it per signed-in user. */
+export const ROUTINES_STORE_KEY = 'routines';
 
 /**
  * Persisted routine store. Subscribe with a selector, e.g.
@@ -299,7 +302,7 @@ export const useRoutineStore = create<RoutineStore>()(
         }),
     }),
     {
-      name: 'routines',
+      name: ROUTINES_STORE_KEY,
       storage: createJSONStorage(() => zustandStorage),
     },
   ),

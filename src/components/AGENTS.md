@@ -1,4 +1,4 @@
-﻿# AGENTS.md — Shared components
+# AGENTS.md — Shared components
 
 Cross-feature UI primitives. Every component here is used by at least
 two features. If a component is used by only one feature, it belongs

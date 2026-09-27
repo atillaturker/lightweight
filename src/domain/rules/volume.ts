@@ -38,22 +38,39 @@ export function summarizeVolume(sets: Set[]): VolumeSummary {
   return summary;
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Start of the week containing `timestamp`, aligned to the given week start.
- * Anchored to UTC midnight so grouping is stable across device timezones.
+ * Start of the week containing `timestamp`: local midnight on the given
+ * first day of the week.
+ *
+ * Weeks follow the device's calendar, like every other date label in the
+ * app. A UTC anchor put a session at 01:00 on a Monday in UTC+3 into the
+ * previous week.
  */
 export function startOfWeek(timestamp: number, weekStart: WeekStart): number {
   const date = new Date(timestamp);
-  const day = date.getUTCDay();
+  const day = date.getDay();
   const offset = weekStart === 'monday' ? (day + 6) % 7 : day;
-  const midnight = Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-  );
-  return midnight - offset * DAY_MS;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() - offset).getTime();
+}
+
+/**
+ * Shift a week start by `weeks` calendar weeks (negative moves back).
+ * Stays on local midnight across daylight-saving changes, where a week is
+ * 167 or 169 hours rather than a fixed 7 × 24.
+ */
+export function addWeeks(weekStartMs: number, weeks: number): number {
+  const date = new Date(weekStartMs);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 7 * weeks).getTime();
+}
+
+/**
+ * Whole calendar weeks from one week start to another. Rounds, so the
+ * hour a daylight-saving change adds or removes does not skew the result.
+ */
+export function weeksBetween(fromWeekStartMs: number, toWeekStartMs: number): number {
+  return Math.round((toWeekStartMs - fromWeekStartMs) / WEEK_MS);
 }
 
 /**
@@ -64,7 +81,7 @@ export function startOfWeek(timestamp: number, weekStart: WeekStart): number {
 export function weeklyVolume(
   sessions: Workout[],
   weekStart: WeekStart,
-): Array<{ weekStartMs: number; volume: number }> {
+): { weekStartMs: number; volume: number }[] {
   const byWeek = new Map<number, number>();
   for (const session of sessions) {
     const weekStartMs = startOfWeek(session.startedAt, weekStart);

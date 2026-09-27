@@ -9,7 +9,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, type } from '@theme';
+import { colors, fineSpacing, spacing, type } from '@theme';
 
 import { ChevronGlyph } from './Glyphs';
 
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   /** 2px below the title. */
   meta: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
   volume: {

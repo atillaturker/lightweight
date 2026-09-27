@@ -1,15 +1,16 @@
-// Import the functions you need from the SDKs you need
+/**
+ * Firebase initialization: the app, Auth with a persisted session, and
+ * Firestore.
+ */
 import { initializeApp } from "firebase/app";
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
-
-// @ts-ignore -> KESİN ÇÖZÜM: Tam olarak hata veren bu importun üstünde olmalı!
+// @ts-expect-error `firebase/auth` publishes only its web type declarations;
+// Metro resolves the React Native build, which does export
+// getReactNativePersistence. Fails loudly once Firebase ships RN types.
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
+// Values come from EXPO_PUBLIC_* variables (see .env.example).
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -19,7 +20,6 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 export const auth = initializeAuth(app, {

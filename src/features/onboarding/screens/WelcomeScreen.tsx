@@ -24,10 +24,10 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
 import { SectionHeader } from "@components/SectionHeader";
-import { colors, gutter, spacing } from "@theme";
+import { colors, fineSpacing, gutter, spacing } from "@theme";
 
 import type { IntroStackParamList } from "@/app/navigation/types";
-import { useAppStore } from "@/app/store";
+import { useAppStore } from "../store/appStore";
 import { WelcomeChartCarousel } from "../components/WelcomeChartCarousel";
 import { WelcomeMonthlyStats } from "../components/WelcomeMonthlyStats";
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     fontFamily: "SpaceGrotesk-SemiBold",
     fontSize: 26,
     letterSpacing: -0.78,
-    marginLeft: 14,
+    marginLeft: fineSpacing.loose,
     color: colors.textPrimary,
   },
   copy: {

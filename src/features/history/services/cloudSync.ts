@@ -19,8 +19,11 @@ import { useOfflineQueue } from '@infrastructure/network';
 /** Receives every finished workout so it can be mirrored to the cloud. */
 export type CloudWorkoutWriter = (workout: Workout) => void;
 
-/** Receives every deleted workout so it can be removed from the cloud. */
-export type CloudWorkoutDeleter = (workoutId: string) => void;
+/**
+ * Receives every deleted workout so it can be removed from the cloud.
+ * `startedAt` lets the cloud keep a tombstone that sorts with sessions.
+ */
+export type CloudWorkoutDeleter = (workoutId: string, startedAt: number) => void;
 
 /** Supplies the signed-in uid, or `null` when signed out. */
 export type CurrentUserIdProvider = () => string | null;
@@ -59,8 +62,8 @@ export function syncWorkoutToCloud(workout: Workout): void {
 }
 
 /** Remove a workout from the cloud through the registered deleter. */
-export function deleteWorkoutFromCloud(workoutId: string): void {
-  cloudWorkoutDeleter(workoutId);
+export function deleteWorkoutFromCloud(workoutId: string, startedAt: number): void {
+  cloudWorkoutDeleter(workoutId, startedAt);
 }
 
 /** Reset every seam to its inert default. Used by tests. */
@@ -76,24 +79,31 @@ export function enqueueWorkoutSave(uid: string, workout: Workout): void {
     endpoint: `firestore/users/${uid}/workouts/${workout.id}`,
     method: 'PUT',
     transport: 'firestore',
+    scope: uid,
     body: { kind: 'saveWorkout', uid, workout },
   });
 }
 
 /** Queue an offline delete of one workout document. */
-export function enqueueWorkoutDelete(uid: string, workoutId: string): void {
+export function enqueueWorkoutDelete(
+  uid: string,
+  workoutId: string,
+  startedAt: number,
+): void {
   useOfflineQueue.getState().enqueue({
     endpoint: `firestore/users/${uid}/workouts/${workoutId}`,
     method: 'DELETE',
     transport: 'firestore',
-    body: { kind: 'deleteWorkout', uid, workoutId },
+    scope: uid,
+    body: { kind: 'deleteWorkout', uid, workoutId, startedAt },
   });
 }
 
 /** A queued history mutation body. */
 export type WorkoutQueueBody =
   | { kind: 'saveWorkout'; uid: string; workout: Workout }
-  | { kind: 'deleteWorkout'; uid: string; workoutId: string };
+  // `startedAt` is absent on deletes queued before tombstones existed.
+  | { kind: 'deleteWorkout'; uid: string; workoutId: string; startedAt?: number };
 
 /** Type guard for a queued history mutation body. */
 export function isWorkoutQueueBody(value: unknown): value is WorkoutQueueBody {

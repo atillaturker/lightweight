@@ -7,7 +7,7 @@
  */
 
 /** Predicates that each contribute an equal share of the score. */
-const CRITERIA: ReadonlyArray<(password: string) => boolean> = [
+const CRITERIA: readonly ((password: string) => boolean)[] = [
   (password) => password.length >= 8,
   (password) => /[a-z]/.test(password),
   (password) => /[A-Z]/.test(password),

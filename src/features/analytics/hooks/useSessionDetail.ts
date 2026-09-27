@@ -7,7 +7,7 @@
  */
 import { useMemo } from 'react';
 
-import { useHistoryStore } from '@features/history/store';
+import { useHistoryStore } from '@features/history';
 import { getExerciseLibrary } from '@features/workout';
 
 import { buildSessionDetail, type SessionDetailModel } from '../utils';

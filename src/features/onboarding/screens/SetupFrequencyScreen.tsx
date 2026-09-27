@@ -21,10 +21,10 @@ import { styles } from "./onboardingScreen.styles";
 type Props = NativeStackScreenProps<OnboardingStackParamList, "SetupFrequency">;
 
 /** The offered frequency targets, in display order. */
-const FREQUENCY_OPTIONS: ReadonlyArray<{
+const FREQUENCY_OPTIONS: readonly {
   value: TrainingFrequency;
   label: string;
-}> = [
+}[] = [
   { value: "2-3", label: "2–3 days per week" },
   { value: "4", label: "4 days per week" },
   { value: "5", label: "5 days per week" },

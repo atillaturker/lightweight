@@ -20,8 +20,16 @@
  * a conversion layer at every read site. `undefined` is never written:
  * Firestore rejects it, so optional fields are omitted when absent.
  *
- * Security model assumed (documented, not enforced here): a user may read
- * and write only documents under their own `users/{uid}` path.
+ * A deleted workout is replaced by a tombstone at the same path:
+ *
+ *   id            string
+ *   startedAt     number   // kept so the tombstone sorts with sessions
+ *   deletedAt     number   // epoch ms
+ *
+ * The tombstone carries no training data. It tells every other device that
+ * the session was deleted, rather than never uploaded.
+ *
+ * Access and shape are enforced by `firestore.rules`.
  */
 import type { Set as DomainSet, SetType, Workout } from '@domain/entities';
 
@@ -49,6 +57,13 @@ export interface WorkoutDocument {
   finishedAt: number | null;
   note?: string;
   sets: WorkoutSetDocument[];
+}
+
+/** A deleted workout, as persisted in Firestore. */
+export interface WorkoutTombstoneDocument {
+  id: string;
+  startedAt: number;
+  deletedAt: number;
 }
 
 /** The valid `SetType` members, used when validating a read document. */
@@ -168,4 +183,23 @@ export function fromWorkoutDocument(id: string, data: unknown): Workout {
   };
   if (data.note !== undefined) workout.note = data.note;
   return workout;
+}
+
+/** Build the tombstone that replaces a deleted workout's document. */
+export function toWorkoutTombstone(
+  id: string,
+  startedAt: number,
+  deletedAt: number,
+): WorkoutTombstoneDocument {
+  return { id, startedAt, deletedAt };
+}
+
+/** Type guard for a stored tombstone. */
+export function isWorkoutTombstone(value: unknown): value is WorkoutTombstoneDocument {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === 'string' &&
+    typeof value.startedAt === 'number' &&
+    typeof value.deletedAt === 'number'
+  );
 }

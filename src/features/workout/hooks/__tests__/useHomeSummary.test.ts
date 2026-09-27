@@ -27,7 +27,8 @@ jest.mock('@lib/id', () => ({
   createId: () => 'set-1',
 }));
 
-import type { Routine } from '@domain/entities';
+import type { Routine, Workout } from '@domain/entities';
+import { useHistoryStore } from '@features/history';
 import { useRoutineStore } from '@features/routines/store';
 
 import { EMPTY_WORKOUT, useActiveWorkoutStore } from '../../store';
@@ -49,6 +50,7 @@ beforeEach(() => {
   mockMemory.clear();
   useActiveWorkoutStore.setState({ ...EMPTY_WORKOUT });
   useRoutineStore.setState({ routines: [], activeRoutineId: null });
+  useHistoryStore.setState({ sessions: [] });
 });
 
 describe('useHomeSummary nextRoutine', () => {
@@ -100,3 +102,42 @@ describe('useHomeSummary nextRoutine', () => {
     expect(result.current.nextRoutine?.id).toBe(other.id);
   });
 });
+
+describe('useHomeSummary history', () => {
+  /** A finished session started at `startedAt`. */
+  function session(id: string, startedAt: number): Workout {
+    return {
+      id,
+      routineId: null,
+      routineName: id,
+      startedAt,
+      finishedAt: startedAt + 60 * 60 * 1000,
+      sets: [],
+    };
+  }
+
+  it('updates when history changes without a workout finishing', () => {
+    const { result } = renderHook(() => useHomeSummary());
+    expect(result.current.hasHistory).toBe(false);
+
+    // A cloud sync or account switch rewrites history directly.
+    act(() => {
+      useHistoryStore.setState({ sessions: [session('synced', Date.now())] });
+    });
+
+    expect(result.current.hasHistory).toBe(true);
+    expect(result.current.recent.map((entry) => entry.id)).toEqual(['synced']);
+  });
+
+  it('drops a session removed from history', () => {
+    useHistoryStore.setState({ sessions: [session('gone', Date.now())] });
+    const { result } = renderHook(() => useHomeSummary());
+
+    act(() => {
+      useHistoryStore.setState({ sessions: [] });
+    });
+
+    expect(result.current.recent).toEqual([]);
+  });
+});
+

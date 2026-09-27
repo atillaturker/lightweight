@@ -14,8 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
-import { useAuthStore } from "@features/auth/store";
-import { useRoutineStore } from "@features/routines/store";
+import { useAuthStore } from "@features/auth";
+import { useRoutineStore } from "@features/routines";
 
 import type { OnboardingStackParamList } from "@/app/navigation/types";
 import { SetupOptionRow } from "../components/SetupOptionRow";
@@ -27,11 +27,11 @@ import { styles } from "./onboardingScreen.styles";
 type Props = NativeStackScreenProps<OnboardingStackParamList, "SetupRoutine">;
 
 /** The offered first-routine choices, in display order. */
-const ROUTINE_OPTIONS: ReadonlyArray<{
+const ROUTINE_OPTIONS: readonly {
   value: RoutineChoice;
   title: string;
   subtitle: string;
-}> = [
+}[] = [
   {
     value: "ppl",
     title: "Push / Pull / Legs",

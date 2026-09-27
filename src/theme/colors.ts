@@ -24,6 +24,10 @@ export const colors = {
   success: "#10B981",
   error: "#EF4444",
 
+  // Overlay
+  /** Dim layer behind a bottom sheet. */
+  backdrop: "rgba(0,0,0,0.25)",
+
   // Chart
   chartLine: "#111111",
   chartBarCurrent: "#111111",

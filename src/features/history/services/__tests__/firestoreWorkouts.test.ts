@@ -86,7 +86,22 @@ describe('saveWorkoutToFirestore', () => {
 });
 
 describe('deleteWorkoutFromFirestore', () => {
-  it('deletes the document at the user path', async () => {
+  it('replaces the document with a tombstone when the start time is known', async () => {
+    await deleteWorkoutFromFirestore('uid-1', 'session-1', 1_700_000_000_000);
+
+    expect(mockDeleteDoc).not.toHaveBeenCalled();
+    const [ref, data, options] = mockSetDoc.mock.calls[0];
+    expect(ref.path).toBe('users/uid-1/workouts/session-1');
+    expect(data).toEqual({
+      id: 'session-1',
+      startedAt: 1_700_000_000_000,
+      deletedAt: expect.any(Number),
+    });
+    // A full replace, so no training data survives the delete.
+    expect(options).toBeUndefined();
+  });
+
+  it('removes the document outright for a legacy queued delete', async () => {
     await deleteWorkoutFromFirestore('uid-1', 'session-1');
 
     expect(mockDeleteDoc).toHaveBeenCalledTimes(1);
@@ -103,9 +118,9 @@ describe('fetchWorkoutsFromFirestore', () => {
       ],
     });
 
-    const workouts = await fetchWorkoutsFromFirestore('uid-1');
+    const remote = await fetchWorkoutsFromFirestore('uid-1');
 
-    expect(workouts).toEqual([WORKOUT]);
+    expect(remote).toEqual({ workouts: [WORKOUT], deletedIds: [], truncatedBefore: null });
   });
 
   it('skips invalid documents instead of failing', async () => {
@@ -116,8 +131,35 @@ describe('fetchWorkoutsFromFirestore', () => {
       ],
     });
 
-    const workouts = await fetchWorkoutsFromFirestore('uid-1');
+    const remote = await fetchWorkoutsFromFirestore('uid-1');
 
-    expect(workouts).toEqual([WORKOUT]);
+    expect(remote.workouts).toEqual([WORKOUT]);
+  });
+
+  it('reports tombstones as deleted ids', async () => {
+    mockGetDocs.mockResolvedValue({
+      docs: [
+        { id: 'gone', data: () => ({ id: 'gone', startedAt: 5, deletedAt: 9 }) },
+        { id: 'session-1', data: () => toWorkoutDocument(WORKOUT) },
+      ],
+    });
+
+    const remote = await fetchWorkoutsFromFirestore('uid-1');
+
+    expect(remote.deletedIds).toEqual(['gone']);
+    expect(remote.workouts).toEqual([WORKOUT]);
+  });
+
+  it('marks a read that hit the limit as truncated at its oldest document', async () => {
+    mockGetDocs.mockResolvedValue({
+      docs: [
+        { id: 'gone', data: () => ({ id: 'gone', startedAt: 1_800_000_000_000, deletedAt: 9 }) },
+        { id: 'session-1', data: () => toWorkoutDocument(WORKOUT) },
+      ],
+    });
+
+    const remote = await fetchWorkoutsFromFirestore('uid-1', 2);
+
+    expect(remote.truncatedBefore).toBe(WORKOUT.startedAt);
   });
 });

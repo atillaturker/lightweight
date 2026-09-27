@@ -25,6 +25,7 @@ import {
 } from '@features/history/services/firestoreWorkouts';
 import {
   setFirestoreQueueTransport,
+  setQueueScopeProvider,
   startOfflineQueueListener,
   useOfflineQueue,
 } from '@infrastructure/network';
@@ -55,6 +56,43 @@ function flushQueue(): void {
   });
 }
 
+/** Workout ids with a save or delete for `uid` still waiting in the queue. */
+export interface PendingWorkoutIds {
+  saves: Set<string>;
+  deletes: Set<string>;
+}
+
+/** Collect the workout mutations `uid` still has queued. */
+export function pendingWorkoutIds(uid: string): PendingWorkoutIds {
+  const pending: PendingWorkoutIds = { saves: new Set(), deletes: new Set() };
+  for (const mutation of useOfflineQueue.getState().queue) {
+    const body = mutation.body;
+    if (!isWorkoutQueueBody(body) || body.uid !== uid) continue;
+    if (body.kind === 'saveWorkout') pending.saves.add(body.workout.id);
+    else pending.deletes.add(body.workoutId);
+  }
+  return pending;
+}
+
+/**
+ * Queue uploads for sessions the cloud has never seen. They go through the
+ * queue rather than direct writes so hundreds of sessions are delivered in
+ * order, offline-safe, and retried like any other write.
+ */
+export function queueWorkoutUploads(uid: string, workouts: Workout[]): void {
+  for (const workout of workouts) enqueueWorkoutSave(uid, workout);
+}
+
+/**
+ * Give parked mutations a fresh set of attempts and deliver what the
+ * signed-in account owns. Called after each sign-in sync, so a workout
+ * that failed repeatedly is retried rather than lost.
+ */
+export function resumeQueue(): void {
+  useOfflineQueue.getState().retryFailed();
+  flushQueue();
+}
+
 /**
  * Write a finished workout directly when online, otherwise queue it. A
  * failed online write also falls back to the queue so a session is never
@@ -76,17 +114,21 @@ async function writeOrQueueWorkout(uid: string, workout: Workout): Promise<void>
 }
 
 /** Delete a workout directly when online, otherwise queue the delete. */
-async function deleteOrQueueWorkout(uid: string, workoutId: string): Promise<void> {
+async function deleteOrQueueWorkout(
+  uid: string,
+  workoutId: string,
+  startedAt: number,
+): Promise<void> {
   const online = await isOnline();
   if (online) {
     try {
-      await deleteWorkoutFromFirestore(uid, workoutId);
+      await deleteWorkoutFromFirestore(uid, workoutId, startedAt);
       return;
     } catch (error: unknown) {
       console.warn('[firestore] workout delete failed, queueing instead', error);
     }
   }
-  enqueueWorkoutDelete(uid, workoutId);
+  enqueueWorkoutDelete(uid, workoutId, startedAt);
   if (online) flushQueue();
 }
 
@@ -99,7 +141,11 @@ async function deliverQueuedMutation(mutation: QueuedMutation): Promise<void> {
     await saveWorkoutToFirestore(mutation.body.uid, mutation.body.workout);
     return;
   }
-  await deleteWorkoutFromFirestore(mutation.body.uid, mutation.body.workoutId);
+  await deleteWorkoutFromFirestore(
+    mutation.body.uid,
+    mutation.body.workoutId,
+    mutation.body.startedAt,
+  );
 }
 
 /**
@@ -117,16 +163,17 @@ export function registerCloudSync(): void {
       console.warn('[firestore] workout sync failed', error);
     });
   });
-  setCloudWorkoutDeleter((workoutId) => {
+  setCloudWorkoutDeleter((workoutId, startedAt) => {
     const uid = currentUid();
     if (uid === null) {
       console.warn('[firestore] no signed-in uid; workout delete skipped');
       return;
     }
-    void deleteOrQueueWorkout(uid, workoutId).catch((error: unknown) => {
+    void deleteOrQueueWorkout(uid, workoutId, startedAt).catch((error: unknown) => {
       console.warn('[firestore] workout delete failed', error);
     });
   });
+  setQueueScopeProvider(currentUid);
   setFirestoreQueueTransport(deliverQueuedMutation);
   startOfflineQueueListener();
 }

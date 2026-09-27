@@ -7,14 +7,12 @@
  */
 import type { WeekStart, Workout } from '@domain/entities';
 import {
+  addWeeks,
   calculateDelta,
   calculateVolume,
   currentWeeklyStreak,
   startOfWeek,
 } from '@domain/rules';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-const WEEK_MS = 7 * DAY_MS;
 
 /** The four figures the Home strip renders. */
 export interface WeeklySummary {
@@ -59,8 +57,8 @@ export function summarizeWeeks(
   now: number,
 ): WeeklySummary {
   const currentWeekStart = startOfWeek(now, weekStart);
-  const nextWeekStart = currentWeekStart + WEEK_MS;
-  const previousWeekStart = currentWeekStart - WEEK_MS;
+  const nextWeekStart = addWeeks(currentWeekStart, 1);
+  const previousWeekStart = addWeeks(currentWeekStart, -1);
 
   const thisWeek = sessionsBetween(sessions, currentWeekStart, nextWeekStart);
   const lastWeek = sessionsBetween(

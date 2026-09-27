@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import { colors, spacing, type } from "@theme";
+import { colors, fineSpacing, spacing, type } from "@theme";
 
 /** Height of the bar plot area, excluding the label row and x-axis. */
 export const BAR_PLOT_HEIGHT = 96;
@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
   /** 6px below the label row, per the welcome stat spec. */
   plot: {
     height: BAR_PLOT_HEIGHT,
-    marginTop: 6,
+    marginTop: fineSpacing.tight,
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
