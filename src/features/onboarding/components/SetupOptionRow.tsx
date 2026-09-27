@@ -12,7 +12,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Radio } from "@components/Radio";
-import { colors, spacing } from "@theme";
+import { colors, fineSpacing, spacing } from "@theme";
 
 /** Row height when the option has a single line of text. */
 export const OPTION_ROW_HEIGHT = 64;
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: "Inter-Regular",
     fontSize: 13,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
 });

@@ -12,7 +12,7 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import type { Exercise, Routine, Workout } from '@domain/entities';
-import { useRoutineStore } from '@features/routines/store';
+import { useRoutineStore } from '@features/routines';
 
 import { DEFAULT_WEEK_START, RECENT_ACTIVITY_LIMIT } from '../config';
 import { getExerciseLibrary, getSessionHistory } from '../services';

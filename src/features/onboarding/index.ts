@@ -18,6 +18,8 @@ export {
   useOnboardingStore,
 } from './store/onboardingStore';
 export type { OnboardingStore } from './store/onboardingStore';
+export { useAppStore } from './store/appStore';
+export type { AppStore } from './store/appStore';
 
 export { SetupOptionRow, SetupProgress, SetupTopRow, WelcomeChartCard, WelcomeChartCarousel } from './components';
 export type { SetupProgressProps, SetupStep, WelcomeChartCardProps, WelcomeChartSeries } from './components';

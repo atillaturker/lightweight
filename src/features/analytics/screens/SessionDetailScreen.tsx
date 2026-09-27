@@ -27,8 +27,8 @@ import {
   formatLongDateTime,
   formatTonnage,
 } from "@lib/format";
-import { useRoutineStore } from "@features/routines/store";
-import { useSessionActions } from "@features/history/hooks";
+import { useRoutineStore } from "@features/routines";
+import { useSessionActions } from "@features/history";
 import {
   MoreGlyph,
   PRSection,

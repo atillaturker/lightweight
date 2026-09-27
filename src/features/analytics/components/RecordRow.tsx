@@ -7,7 +7,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
-import { colors, gutter, spacing, type } from '@theme';
+import { colors, fineSpacing, gutter, spacing, type } from '@theme';
 
 /** Minimum row height. */
 const ROW_HEIGHT = 56;
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   date: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
   value: {

@@ -14,10 +14,10 @@ import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
-import { colors, spacing } from "@theme";
+import { colors, fineSpacing, spacing } from "@theme";
 
 import type { IntroStackParamList } from "@/app/navigation/types";
-import { useAppStore } from "@/app/store";
+import { useAppStore } from "../store/appStore";
 import { styles } from "./onboardingScreen.styles";
 
 type Props = NativeStackScreenProps<IntroStackParamList, "Intro1">;
@@ -216,7 +216,7 @@ const rowStyles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 3,
+    gap: fineSpacing.unit,
   },
   cellCheck: {
     width: 40,

@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import { colors, type } from "@theme";
+import { colors, fineSpacing, type } from "@theme";
 
 /**
  * Static styles for RingChart. The diameter and stroke width are
@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
   centerSublabel: {
     ...type.labelSmall,
     letterSpacing: 0,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
 });

@@ -25,14 +25,10 @@ import { SegmentedControl } from "@components/SegmentedControl";
 import { TextTabs } from "@components/TextTabs";
 import type { MuscleGroup } from "@domain/entities";
 import { getExerciseLibrary } from "@features/workout";
-import { useHistoryFilterStore } from "@features/history/store";
+import { useHistoryFilterStore } from "@features/history";
 import { colors, gutter, radii, spacing, type } from "@theme";
-import {
-  formatDecimal,
-  formatInteger,
-} from "@lib/format";
 
-import { ExerciseDeltaRow, ProgressBarChart } from "../components";
+import { ExerciseDeltaRow, PRStrip, ProgressBarChart, ProgressHero } from "../components";
 import { useProgressData } from "../hooks";
 import type {
   ProgressMetric,
@@ -61,10 +57,6 @@ const SECTION_GAP = spacing.xxxl;
 const FILTER_BUTTON_SIZE = 36;
 const FILTER_GLYPH_SIZE = 20;
 
-/** PR strip geometry. */
-const PR_STRIP_HEIGHT = 40;
-const CHEVRON_SIZE = 16;
-
 /** Sort action glyph. */
 const SORT_GLYPH_SIZE = 12;
 
@@ -85,37 +77,6 @@ const METRIC_OPTIONS = [
   { value: "time", label: "Time" },
   { value: "sessions", label: "Sessions" },
 ] as const;
-
-/** Hero label, unit, and value formatter per metric. */
-const METRIC_DISPLAY: Record<
-  ProgressMetric,
-  { label: string; unit?: string; format: (value: number) => string }
-> = {
-  volume: {
-    label: "TOTAL VOLUME",
-    unit: "t",
-    format: (value) => formatDecimal(value / 1000, 1),
-  },
-  sets: { label: "TOTAL SETS", format: formatInteger },
-  reps: { label: "TOTAL REPS", format: formatInteger },
-  time: {
-    label: "TOTAL TIME",
-    unit: "h",
-    format: (value) => formatDecimal(value / 60, 1),
-  },
-  sessions: { label: "TOTAL SESSIONS", format: formatInteger },
-};
-
-/** The context row's fields, in spec order; the selected metric is dropped. */
-const CONTEXT_FIELDS: {
-  key: ProgressMetric;
-  render: (totals: ProgressTotals) => string;
-}[] = [
-  { key: "sessions", render: (t) => `${formatInteger(t.sessions)} sessions` },
-  { key: "sets", render: (t) => `${formatInteger(t.sets)} sets` },
-  { key: "reps", render: (t) => `${formatInteger(t.reps)} reps` },
-  { key: "time", render: (t) => `${formatDecimal(t.time / 60, 1)}h` },
-];
 
 /** No-op for the sort affordance, which ships in a later batch. */
 function noop(): void {
@@ -185,100 +146,6 @@ function ProgressEmptyState(): React.ReactElement {
         Complete a workout to see your progress here.
       </Text>
     </View>
-  );
-}
-
-/** The hero block: label, value + unit, delta, context, trend context. */
-function ProgressHero({
-  metric,
-  totals,
-  delta,
-  range,
-  hasPeriod,
-  avgPerBucket,
-  peak,
-  peakLabel,
-}: {
-  metric: ProgressMetric;
-  totals: ProgressTotals;
-  delta: number | null;
-  range: ProgressRange;
-  hasPeriod: boolean;
-  avgPerBucket: number;
-  peak: number;
-  peakLabel: string;
-}): React.ReactElement {
-  const display = METRIC_DISPLAY[metric];
-  const unitWord = range === "4W" || range === "12W" ? "weeks" : "months";
-  const count = range === "4W" ? 4 : range === "12W" ? 12 : range === "6M" ? 6 : 12;
-  const contextFields = CONTEXT_FIELDS.filter((field) => field.key !== metric);
-
-  return (
-    <View>
-      <Text style={styles.heroLabel} testID="progress-hero-label">
-        {display.label}
-      </Text>
-
-      <View style={styles.heroValueRow}>
-        <Text style={styles.heroValue} testID="progress-hero-value">
-          {display.format(totals[metric])}
-        </Text>
-        {display.unit !== undefined ? (
-          <Text style={styles.heroUnit}>{display.unit}</Text>
-        ) : null}
-      </View>
-
-      {delta !== null ? (
-        <Text
-          style={[styles.delta, delta > 0 ? styles.deltaPositive : null]}
-          testID="progress-hero-delta"
-        >
-          {`${delta > 0 ? "▲" : "▼"} ${formatDecimal(Math.abs(delta), 1)}% vs previous ${count} ${unitWord}`}
-        </Text>
-      ) : null}
-
-      <Text style={styles.context} testID="progress-context">
-        {contextFields.map((field, index) => (
-          <React.Fragment key={field.key}>
-            {index > 0 ? <Text style={styles.contextDivider}> · </Text> : null}
-            {field.render(totals)}
-          </React.Fragment>
-        ))}
-      </Text>
-
-      {hasPeriod ? (
-        <Text style={styles.trend} testID="progress-trend">
-          {`Avg ${display.format(avgPerBucket)}/${unitWord} · Peak ${display.format(peak)} (${peakLabel})`}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
-/** Single tappable row linking to the History PR filter. */
-function PRStrip({ count, onPress }: { count: number; onPress: () => void }): React.ReactElement {
-  return (
-    <Pressable
-      accessibilityLabel="View personal records"
-      accessibilityRole="button"
-      onPress={onPress}
-      style={styles.prStrip}
-      testID="progress-pr-strip"
-    >
-      <Text style={styles.prStripLabel}>{`${count} PRs this period`}</Text>
-      <Svg
-        fill="none"
-        height={CHEVRON_SIZE}
-        stroke={colors.textMuted}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        viewBox="0 0 24 24"
-        width={CHEVRON_SIZE}
-      >
-        <Path d="M9 6l6 6-6 6" />
-      </Svg>
-    </Pressable>
   );
 }
 
@@ -482,48 +349,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.canvas,
   },
 
-  heroLabel: {
-    ...type.labelSmall,
-    letterSpacing: 0.66,
-    textTransform: "uppercase",
-    color: colors.textMuted,
-  },
-  heroValueRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginTop: spacing.xs + 2,
-    gap: spacing.sm,
-  },
-  heroValue: {
-    ...type.metricHero,
-    fontVariant: ["tabular-nums"],
-    color: colors.textPrimary,
-  },
-  heroUnit: {
-    ...type.metric,
-    fontFamily: "Inter-Medium",
-    color: colors.textMuted,
-  },
-  delta: {
-    ...type.label,
-    marginTop: spacing.sm,
-    color: colors.textMuted,
-  },
-  deltaPositive: { color: colors.success },
-  context: {
-    ...type.bodySmall,
-    marginTop: spacing.lg,
-    fontVariant: ["tabular-nums"],
-    color: colors.textMuted,
-  },
-  contextDivider: { color: colors.textDivider },
-  trend: {
-    ...type.bodySmall,
-    marginTop: spacing.xs,
-    fontVariant: ["tabular-nums"],
-    color: colors.textMuted,
-  },
-
   chartBlock: {
     marginTop: CHART_GAP,
   },
@@ -552,18 +377,6 @@ const styles = StyleSheet.create({
   sortAction: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   sortLabel: { ...type.label, color: colors.textMuted },
   rows: { marginTop: spacing.md },
-
-  prStrip: {
-    height: PR_STRIP_HEIGHT,
-    marginHorizontal: gutter,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.hairline,
-  },
-  prStripLabel: { ...type.body, fontSize: 14, color: colors.textPrimary },
 
   empty: {
     flex: 1,

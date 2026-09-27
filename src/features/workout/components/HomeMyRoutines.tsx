@@ -20,8 +20,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { SectionHeader } from "@components/SectionHeader";
 import type { Routine } from "@domain/entities";
-import { RoutineRow } from "@features/routines/components/RoutineRow";
-import { routineDurationMinutes } from "@features/routines/utils";
+import { RoutineRow, routineDurationMinutes } from "@features/routines";
 import { colors, spacing, type } from "@theme";
 
 /** Maximum routines previewed on Home before "See all" takes over. */

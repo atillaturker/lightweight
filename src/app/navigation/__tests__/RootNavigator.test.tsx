@@ -75,7 +75,7 @@ jest.mock('@/services/firebase/config', () => ({ auth: {}, db: {} }));
 import { render, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
-import { useAppStore } from '@/app/store';
+import { useAppStore } from '@features/onboarding';
 import { useAuthStore } from '@features/auth/store/authStore';
 import type { AuthUser } from '@features/auth/types';
 

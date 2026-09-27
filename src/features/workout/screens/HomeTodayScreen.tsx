@@ -25,13 +25,12 @@ import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { Routine } from "@domain/entities";
-import { RoutineActionSheet } from "@features/routines/components/RoutineActionSheet";
-import { colors, spacing } from "@theme";
-import { useRoutineStore } from "@features/routines/store";
+import { RoutineActionSheet, useRoutineStore } from "@features/routines";
 import type {
   MainTabParamList,
   TodayStackParamList,
 } from "@/app/navigation/types";
+import { colors, spacing } from "@theme";
 
 import {
   HomeMyRoutines,

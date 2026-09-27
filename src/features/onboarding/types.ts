@@ -6,12 +6,13 @@
  * whatever was half-answered.
  */
 import type { WeightUnit } from '@domain/entities';
+import type { RoutineTemplateId } from '@features/routines';
 
 /** Weekly training-frequency targets offered on setup step 2. */
 export type TrainingFrequency = '2-3' | '4' | '5' | '6+';
 
 /** Template IDs that materialise an actual routine on setup step 3. */
-export type RoutineTemplateId = 'ppl' | 'upper-lower' | 'full-body';
+export type { RoutineTemplateId };
 
 /** Every setup step 3 answer — a template id, or building one from scratch. */
 export type RoutineChoice = RoutineTemplateId | 'scratch';

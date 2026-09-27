@@ -15,7 +15,7 @@ import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import type { Exercise, Routine, Workout } from '@domain/entities';
-import { useRoutineStore } from '@features/routines/store';
+import { useRoutineStore } from '@features/routines';
 
 import {
   getExerciseLibrary,

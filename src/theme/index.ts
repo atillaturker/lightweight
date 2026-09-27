@@ -9,5 +9,3 @@ export type { RadiusToken } from "./radii";
 
 export * from "./typography";
 export type { TypeToken } from "./typography";
-
-import { colors, spacing, radii, type } from "@theme";

@@ -25,14 +25,14 @@ import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
-import { MuscleIcon } from "@components/MuscleIcon";
 import { ScreenHeader } from "@components/ScreenHeader";
-import { colors, gutter, spacing, type } from "@theme";
+import { colors, emptyStatePadding, fineSpacing, gutter, spacing, type } from "@theme";
 
 import { DEFAULT_ROUTINE_NAME, estimateDurationMinutes } from "../config";
 import { EXERCISE_LIBRARY } from "../services";
 import { useRoutineStore } from "../store";
 import { DurationSheet } from "../components/DurationSheet";
+import { RoutineEditorRow } from "../components/RoutineEditorRow";
 import { TargetSheet } from "../components/TargetSheet";
 import { calculatedRoutineMinutes, routineDurationMinutes } from "../utils";
 
@@ -62,24 +62,6 @@ function PencilGlyph(): React.ReactElement {
       width={16}
     >
       <Path d="M12 20h9 M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4z" />
-    </Svg>
-  );
-}
-
-/** Three-line grip glyph; visual-only until drag ships. */
-function GripGlyph(): React.ReactElement {
-  return (
-    <Svg
-      fill="none"
-      height={16}
-      stroke={colors.textMuted}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-      viewBox="0 0 24 24"
-      width={16}
-    >
-      <Path d="M4 8h16 M4 12h16 M4 16h16" />
     </Svg>
   );
 }
@@ -305,48 +287,22 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
         ) : (
           <View style={styles.list}>
             {rows.map((row, index) => (
-              <View key={row.slot.exerciseId}>
-                {index > 0 ? <View style={styles.rowHairline} /> : null}
-                <View style={styles.row}>
-                  <View style={styles.iconColumn}>
-                    <MuscleIcon group={row.muscleGroup ?? "core"} size={24} />
-                  </View>
-
-                  <View style={styles.textColumn}>
-                    <Text numberOfLines={1} style={styles.exerciseName}>
-                      {row.name}
-                    </Text>
-                    <Text style={styles.muscleLabel}>
-                      {row.muscleGroup
-                        ? row.muscleGroup.charAt(0).toUpperCase() +
-                          row.muscleGroup.slice(1)
-                        : "Other"}
-                    </Text>
-                  </View>
-
-                  <Pressable
-                    accessibilityLabel={`Target ${row.slot.targetSets} by ${row.slot.targetReps}`}
-                    accessibilityRole="button"
-                    onPress={() =>
-                      setTargetEditing({
-                        exerciseId: row.slot.exerciseId,
-                        name: row.name,
-                        sets: row.slot.targetSets,
-                        reps: row.slot.targetReps,
-                      })
-                    }
-                    style={styles.targetCell}
-                  >
-                    <Text style={styles.targetText}>
-                      {`${row.slot.targetSets} × ${row.slot.targetReps}`}
-                    </Text>
-                  </Pressable>
-
-                  <View style={styles.gripColumn}>
-                    <GripGlyph />
-                  </View>
-                </View>
-              </View>
+              <RoutineEditorRow
+                key={row.slot.exerciseId}
+                muscleGroup={row.muscleGroup}
+                name={row.name}
+                onEditTarget={() =>
+                  setTargetEditing({
+                    exerciseId: row.slot.exerciseId,
+                    name: row.name,
+                    sets: row.slot.targetSets,
+                    reps: row.slot.targetReps,
+                  })
+                }
+                showDivider={index > 0}
+                targetReps={row.slot.targetReps}
+                targetSets={row.slot.targetSets}
+              />
             ))}
           </View>
         )}
@@ -436,7 +392,7 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 6,
+    marginTop: fineSpacing.tight,
   },
   meta: {
     ...type.bodySmall,
@@ -459,60 +415,9 @@ const styles = StyleSheet.create({
   },
 
   list: { marginTop: spacing.xxxl },
-  rowHairline: { height: 1, backgroundColor: colors.hairline },
-
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 72,
-  },
-
-  iconColumn: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  textColumn: {
-    flex: 1,
-    justifyContent: "center",
-    marginLeft: spacing.md,
-  },
-  exerciseName: {
-    ...type.label,
-    fontSize: 15,
-    color: colors.textPrimary,
-  },
-  muscleLabel: {
-    ...type.bodySmall,
-    marginTop: 2,
-    color: colors.textMuted,
-  },
-
-  targetCell: {
-    justifyContent: "center",
-    minHeight: 44,
-    paddingHorizontal: spacing.sm,
-  },
-  targetText: {
-    ...type.label,
-    fontSize: 14,
-    fontVariant: ["tabular-nums"],
-    color: colors.textPrimary,
-  },
-
-  gripColumn: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: spacing.md,
-  },
-
   emptyState: {
     alignItems: "center",
-    paddingVertical: 48,
+    paddingVertical: emptyStatePadding,
   },
   emptyTitle: {
     ...type.label,
@@ -529,7 +434,7 @@ const styles = StyleSheet.create({
   addAction: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: fineSpacing.tight,
     height: 44,
     marginTop: spacing.lg,
   },

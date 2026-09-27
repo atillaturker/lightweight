@@ -12,7 +12,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Routine, RoutineExercise } from '@domain/entities';
 import { zustandStorage } from '@infrastructure/storage';
 
-import type { RoutineTemplateId } from '@features/onboarding/types';
+import type { RoutineTemplateId } from '../types';
 
 import {
   DEFAULT_ROUTINE_NAME,

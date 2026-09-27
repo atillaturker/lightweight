@@ -25,7 +25,7 @@ jest.mock('react-native-mmkv', () => ({
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { IntroStackParamList } from '@/app/navigation/types';
-import { useAppStore } from '@/app/store';
+import { useAppStore } from '../store/appStore';
 
 import { WelcomeScreen } from '../screens/WelcomeScreen';
 

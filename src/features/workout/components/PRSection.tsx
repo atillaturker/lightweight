@@ -13,7 +13,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
-import { colors, spacing, type } from '@theme';
+import { colors, fineSpacing, spacing, type } from '@theme';
 
 import type { PRSummaryRow } from '../utils/prSummary';
 
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   /** 2px below the exercise name. */
   description: {
     ...type.bodySmall,
-    marginTop: 2,
+    marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
 });

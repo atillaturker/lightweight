@@ -40,7 +40,16 @@ Path aliases: `@theme`, `@components`, `@domain`, `@features`,
 | `src/app/`            | Navigation root, providers                          | Top of the tree                             |
 
 Imports flow downward only: `app → features → components → domain → theme/lib`.
-Never import upward or sideways between features.
+
+Between features:
+
+- A feature may import another feature only through its public barrel
+  (`@features/<name>`, i.e. its `index.ts`), never a path inside it.
+- Feature dependencies must not form a cycle.
+- A feature may import from `src/app` only the navigation param lists,
+  and only as `import type` from `@/app/navigation/types`.
+
+`src/__tests__/architecture.test.ts` enforces all three.
 
 ---
 
@@ -51,7 +60,9 @@ Before writing any code:
 1. Does a type for this already exist in `@domain/entities/`?
    Reuse it. Never redefine.
 2. Are you using tokens from `@theme`?
-   Hard-coded colors and spacings are FORBIDDEN.
+   Hard-coded colors and spacings are FORBIDDEN. Use `spacing` for new
+   layouts; `fineSpacing` and `emptyStatePadding` exist only for the few
+   named off-scale values, each with one job.
 3. Does a util or hook already do this?
    Check `@lib/` and `@features/*/utils/`, `@features/*/hooks/`.
    Never duplicate logic.
@@ -273,6 +284,8 @@ A ring chart must follow these rules:
 
 - Every `domain/rules/*.ts` has a `__tests__/*.test.ts`.
 - Component tests use React Native Testing Library.
+- Native modules without a JS fallback (MMKV, Google Sign-In) have Jest
+  stand-ins in the root `__mocks__/`. A test's own `jest.mock` wins.
 - New feature requires at least one integration test for the main flow.
 - Test names: `describe('functionName')` + `it('does X')`.
 - `npm test` runs in `America/New_York` (pinned by `jest.globalSetup.js`)
