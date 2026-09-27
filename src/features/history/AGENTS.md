@@ -1,12 +1,14 @@
-﻿# AGENTS.md — History feature
+# AGENTS.md — History feature
 
-Session history list and read-only session detail. Two screens.
+Session history list, the durable history store, and its cloud sync
+services (Firestore documents, tombstones, reconciliation, queued
+writes).
 
 ## Screens
 
 - `HistoryScreen` — sessions grouped by month, sticky headers.
-- `SessionDetailScreen` — full record of a single session, plus a
-  "Repeat this workout" CTA.
+- `SessionDetailScreen` lives in the analytics feature and is pushed
+  from the History stack. Its rules below still apply.
 
 ## Rules
 

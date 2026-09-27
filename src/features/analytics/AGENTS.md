@@ -1,4 +1,4 @@
-﻿# AGENTS.md — Analytics feature
+# AGENTS.md — Analytics feature
 
 Progress, Exercise Detail, Session Detail. Read-only screens.
 Pure computation sourced from `@domain/rules/`.
