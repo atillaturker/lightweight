@@ -152,6 +152,23 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
     navigation.setParams({ routineId: id });
   }, [createRoutine, isCreateMode, navigation]);
 
+  /** Set by "Create routine", so leaving afterwards keeps the routine. */
+  const submittedRef = useRef(false);
+
+  // Leaving a new routine without creating it (back button, swipe, Android
+  // back) must not leave an empty "My Routine 2" behind. A routine that
+  // already has exercises is kept: that work is worth not losing.
+  useEffect(() => {
+    if (!isCreateMode || routineId === undefined) return;
+    return navigation.addListener("beforeRemove", () => {
+      if (submittedRef.current) return;
+      const current = useRoutineStore.getState().routines.find((r) => r.id === routineId);
+      if (current !== undefined && current.exercises.length === 0) {
+        useRoutineStore.getState().deleteRoutine(routineId);
+      }
+    });
+  }, [isCreateMode, navigation, routineId]);
+
   // A new routine opens with its name field focused and empty, so the
   // first thing the user does is name it.
   const [isRenaming, setIsRenaming] = useState(isCreateMode);
@@ -221,6 +238,7 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
     if (isCreateMode) {
       setActiveRoutine(routineId);
     }
+    submittedRef.current = true;
     navigation.goBack();
   }, [
     commitRename,

@@ -25,8 +25,6 @@ import { LineIcon } from "@components/LineIcon";
 import { SectionHeader } from "@components/SectionHeader";
 import { SegmentedControl } from "@components/SegmentedControl";
 import { TextTabs } from "@components/TextTabs";
-import type { MuscleGroup } from "@domain/entities";
-import { getExerciseLibrary } from "@features/workout";
 import { useHistoryFilterStore } from "@features/history";
 import { gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
@@ -38,10 +36,14 @@ import {
   ProgressHero,
 } from "../components";
 import { useProgressData } from "../hooks";
-import type {
-  ProgressMetric,
-  ProgressRange,
-  ProgressTotals,
+import {
+  EXERCISE_SORT_LABELS,
+  nextSortMode,
+  sortExerciseRows,
+  type ExerciseSortMode,
+  type ProgressMetric,
+  type ProgressRange,
+  type ProgressTotals,
 } from "../utils";
 
 import type {
@@ -173,18 +175,15 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
   const data = useProgressData(range, metric);
   const { width } = useWindowDimensions();
 
-  /**
-   * Muscle group per exercise, for the "By exercise" row icons. Resolved
-   * from the same library the read model uses to name the rows; unknown
-   * exercises get no icon rather than a generic fallback.
-   */
-  const muscleByExercise = useMemo((): Map<string, MuscleGroup> => {
-    const map = new Map<string, MuscleGroup>();
-    for (const exercise of getExerciseLibrary()) {
-      map.set(exercise.id, exercise.muscleGroup);
-    }
-    return map;
-  }, []);
+  const [sortMode, setSortMode] = useState<ExerciseSortMode>("improved");
+  const exerciseRows = useMemo(
+    () => sortExerciseRows(data.exerciseRows, sortMode),
+    [data.exerciseRows, sortMode],
+  );
+  // The accent marks the fastest-improving lift wherever the sort puts it.
+  const fastestId = sortExerciseRows(data.exerciseRows, "improved").find(
+    (row) => (row.deltaPercent ?? 0) > 0,
+  )?.exerciseId;
 
   /** Chart width inside the hero card: screen minus gutters and card padding. */
   const chartWidth =
@@ -285,14 +284,14 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
                 <SectionHeader
                   action={
                     <Pressable
-                      accessibilityLabel="Sort exercises"
+                      accessibilityLabel={`Sort exercises, now by ${EXERCISE_SORT_LABELS[sortMode]}`}
                       accessibilityRole="button"
-                      onPress={noop}
+                      onPress={() => setSortMode(nextSortMode)}
                       style={styles.sortAction}
                       testID="progress-sort"
                     >
                       <SortGlyph />
-                      <Text style={styles.sortLabel}>Sort</Text>
+                      <Text style={styles.sortLabel}>{EXERCISE_SORT_LABELS[sortMode]}</Text>
                     </Pressable>
                   }
                   icon="trend"
@@ -302,12 +301,11 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
 
               <View style={styles.rows}>
                 <Card testID="progress-exercise-card">
-                  {data.exerciseRows.map((row, index) => (
+                  {exerciseRows.map((row, index) => (
                     <ExerciseDeltaRow
-                      accent={index === 0 && (row.deltaPercent ?? 0) > 0}
+                      accent={row.exerciseId === fastestId}
                       dividerTop={index > 0}
                       key={row.exerciseId}
-                      muscleGroup={muscleByExercise.get(row.exerciseId)}
                       onPress={() => openExercise(row.exerciseId)}
                       row={row}
                       testID={`progress-exercise-${row.exerciseId}`}

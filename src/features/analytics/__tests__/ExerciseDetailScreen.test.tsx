@@ -5,7 +5,8 @@
  * pins that the hero renders in the user's preferred unit (kg vs lb) via the
  * workout feature's unit seam. Navigation is mocked; not tested visually.
  */
-import { render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Alert, type AlertButton } from 'react-native';
 import React from 'react';
 
 // In-memory MMKV double, matching the pattern used across the suite.
@@ -34,6 +35,11 @@ import { registerDataProviders } from '@/app/providers';
 import { useHistoryStore } from '@features/history/store';
 import { usePreferencesStore } from '@features/profile/store';
 import { resetSessionDataProviders } from '@features/workout';
+import {
+  resetCustomExerciseCloud,
+  setCloudCustomExerciseWriter,
+} from '@features/routines/services';
+import { useCustomExerciseStore } from '@features/routines/store';
 
 import type { ProgressStackParamList } from '@/app/navigation/types';
 
@@ -148,5 +154,46 @@ describe('ExerciseDetailScreen for a timed exercise', () => {
     expect(screen.getByTestId('exercise-detail-hero-value')).toHaveTextContent('1:05');
     expect(screen.getByText('Hold')).toBeTruthy();
     expect(screen.queryByText('1RM')).toBeNull();
+  });
+});
+
+describe('ExerciseDetailScreen options', () => {
+  afterEach(() => resetCustomExerciseCloud());
+
+  it('offers no options menu for a built-in exercise', () => {
+    render(<ExerciseDetailScreen navigation={navigation} route={route} />);
+
+    expect(screen.queryByTestId('exercise-detail-more')).toBeNull();
+  });
+
+  it('archives and restores a custom exercise, mirroring each change', () => {
+    const mirrored: boolean[] = [];
+    setCloudCustomExerciseWriter((exercise) => mirrored.push(exercise.isArchived));
+    const custom = useCustomExerciseStore.getState().createExercise({
+      name: 'Seal Row',
+      muscleGroup: 'back',
+      equipment: 'barbell',
+      measure: 'reps',
+      perSide: false,
+    });
+    const alert = jest.spyOn(Alert, 'alert');
+    const press = (label: string) => {
+      const buttons = alert.mock.calls.at(-1)?.[2] as AlertButton[];
+      act(() => buttons.find((button) => button.text === label)?.onPress?.());
+    };
+    const customRoute = { params: { exerciseId: custom.id } } as Props['route'];
+
+    render(<ExerciseDetailScreen navigation={navigation} route={customRoute} />);
+    fireEvent.press(screen.getByTestId('exercise-detail-more'));
+    press('Archive exercise');
+
+    expect(screen.getByTestId('exercise-detail-archived')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('exercise-detail-more'));
+    press('Restore exercise');
+
+    expect(screen.queryByTestId('exercise-detail-archived')).toBeNull();
+    expect(mirrored).toEqual([true, false]);
+    alert.mockRestore();
   });
 });

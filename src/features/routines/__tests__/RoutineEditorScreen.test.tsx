@@ -51,6 +51,7 @@ function makeNavigation() {
     goBack: jest.fn(),
     navigate: jest.fn(),
     setParams: jest.fn(),
+    addListener: jest.fn((_event: string, _listener: () => void) => () => undefined),
   };
 }
 
@@ -197,5 +198,48 @@ describe("RoutineEditorScreen supersets", () => {
 
     expect(screen.getByText(/Superset A1/)).toBeTruthy();
     expect(screen.getByText(/Superset A2/)).toBeTruthy();
+  });
+});
+
+describe("RoutineEditorScreen leaving a new routine", () => {
+  /** Render create mode and return the registered beforeRemove listener. */
+  function renderCreate() {
+    const navigation = makeNavigation();
+    render(
+      <RoutineEditorScreen
+        navigation={navigation as unknown as Props["navigation"]}
+        route={makeRoute()}
+      />,
+    );
+    const call = navigation.addListener.mock.calls.find(([event]) => event === "beforeRemove");
+    return { navigation, leave: () => call?.[1]() };
+  }
+
+  it("discards an empty routine when backing out", () => {
+    const { leave } = renderCreate();
+    expect(useRoutineStore.getState().routines).toHaveLength(1);
+
+    leave();
+
+    expect(useRoutineStore.getState().routines).toEqual([]);
+  });
+
+  it("keeps a routine that already has exercises", () => {
+    const { leave } = renderCreate();
+    const [routine] = useRoutineStore.getState().routines;
+    useRoutineStore.getState().addExercisesToRoutine(routine.id, ["bench-press"]);
+
+    leave();
+
+    expect(useRoutineStore.getState().routines).toHaveLength(1);
+  });
+
+  it("keeps a routine created with the Create routine button", () => {
+    const { leave } = renderCreate();
+
+    fireEvent.press(screen.getByTestId("routine-editor-submit"));
+    leave();
+
+    expect(useRoutineStore.getState().routines).toHaveLength(1);
   });
 });

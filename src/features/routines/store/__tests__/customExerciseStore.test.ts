@@ -37,3 +37,20 @@ describe('useCustomExerciseStore', () => {
     expect(useCustomExerciseStore.getState().exercises).toEqual([created]);
   });
 });
+
+describe('setArchived', () => {
+  it('archives and restores with a newer updatedAt', () => {
+    const created = useCustomExerciseStore.getState().createExercise(INPUT, 1);
+
+    const archived = useCustomExerciseStore.getState().setArchived(created.id, true, 5);
+    expect(archived).toMatchObject({ isArchived: true, updatedAt: 5 });
+    expect(useCustomExerciseStore.getState().exercises[0].isArchived).toBe(true);
+
+    useCustomExerciseStore.getState().setArchived(created.id, false, 9);
+    expect(useCustomExerciseStore.getState().exercises[0]).toMatchObject({ isArchived: false, updatedAt: 9 });
+  });
+
+  it('returns null for an unknown id', () => {
+    expect(useCustomExerciseStore.getState().setArchived('custom-missing', true)).toBeNull();
+  });
+});

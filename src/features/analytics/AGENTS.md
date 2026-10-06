@@ -16,6 +16,9 @@ analytics-specific behavior.
   timed → "Longest hold" hero, Hold. The read model returns the metrics
   offered and the one shown; display text lives in
   `utils/exerciseDetailFormat.ts`.
+- Progress → "By exercise": rows lead with the exercise tile; "Sort"
+  cycles Improved → Volume → A–Z (`utils/exerciseSort`). The accent
+  micro-bar marks the fastest-improving lift whatever the order.
 - Progress → "Muscles": the muscle map over the last week / month / 3
   months. Load per region comes from `@domain/rules/muscles` (a working
   set adds 1 to the exercise's target region, 0.5 to secondary ones;
