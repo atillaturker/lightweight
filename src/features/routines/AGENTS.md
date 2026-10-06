@@ -41,7 +41,13 @@ Routine CRUD and exercise picker. Three screens.
   text) on `CustomExerciseScreen`; the new exercise comes back selected.
 - Stored in `useCustomExerciseStore` (per account, see `userScope.ts`),
   ids prefixed `custom-`, mirrored to Firestore through the
-  `syncCustomExerciseToCloud` seam. Never deleted, only archived.
+  `syncCustomExerciseToCloud` seam. Never deleted, only archived:
+  Exercise Detail's "⋯" offers Archive / Restore for custom exercises
+  (built-ins have no options menu). Archived ones leave the picker but
+  keep naming their logged sets.
+- Leaving a new routine without "Create routine" discards it if it has
+  no exercises (`beforeRemove` in the editor), so no empty routines pile
+  up.
 - Screens read the library through `useExerciseLibrary()`: `pickable`
   (active custom exercises first, then built-ins) and `byId` (archived
   included). Never read `EXERCISE_LIBRARY` directly in a screen.

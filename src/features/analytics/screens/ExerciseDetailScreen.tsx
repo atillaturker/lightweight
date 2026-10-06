@@ -28,7 +28,11 @@ import { SectionHeader } from "@components/SectionHeader";
 import { TextTabs } from "@components/TextTabs";
 import { gutter, spacing, type, createStyles } from "@theme";
 import { formatShortDate } from "@lib/format";
-import { ExerciseTechnique } from "@features/routines";
+import {
+  ExerciseTechnique,
+  useCustomExerciseStore,
+  useSetCustomExerciseArchived,
+} from "@features/routines";
 import { MoreGlyph } from "@features/workout";
 
 import {
@@ -95,12 +99,31 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
   const { exercise, unit, data } = useExerciseDetail(exerciseId, metric);
   const { width } = useWindowDimensions();
 
+  // Live archive state of a custom exercise (`undefined` for built-ins), so
+  // the menu and the note update the moment it changes.
+  const archived = useCustomExerciseStore(
+    (state) => state.exercises.find((entry) => entry.id === exerciseId)?.isArchived,
+  );
+  const setArchived = useSetCustomExerciseArchived();
+
+  /** Only custom exercises have options: archive, or restore when archived. */
   const handleOverflow = useCallback((): void => {
-    Alert.alert(exercise?.name ?? "Exercise", undefined, [
-      { text: "Archive exercise", onPress: () => undefined },
-      { text: "Cancel", style: "cancel" },
-    ]);
-  }, [exercise]);
+    if (archived === undefined) return;
+    const action = archived
+      ? { text: "Restore exercise", onPress: () => setArchived(exerciseId, false) }
+      : {
+          text: "Archive exercise",
+          style: "destructive" as const,
+          onPress: () => setArchived(exerciseId, true),
+        };
+    Alert.alert(
+      exercise?.name ?? "Exercise",
+      archived
+        ? "Restoring brings it back to the exercise picker."
+        : "Archiving hides it from the exercise picker. Your history keeps it.",
+      [action, { text: "Cancel", style: "cancel" }],
+    );
+  }, [archived, exercise, exerciseId, setArchived]);
 
   if (exercise === null) {
     return (
@@ -142,15 +165,17 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
       <ScreenHeader
         onBack={navigation.goBack}
         rightAction={
-          <Pressable
-            accessibilityLabel="Exercise options"
-            accessibilityRole="button"
-            hitSlop={spacing.xs}
-            onPress={handleOverflow}
-            testID="exercise-detail-more"
-          >
-            <MoreGlyph size={MORE_GLYPH_SIZE} />
-          </Pressable>
+          archived === undefined ? undefined : (
+            <Pressable
+              accessibilityLabel="Exercise options"
+              accessibilityRole="button"
+              hitSlop={spacing.xs}
+              onPress={handleOverflow}
+              testID="exercise-detail-more"
+            >
+              <MoreGlyph size={MORE_GLYPH_SIZE} />
+            </Pressable>
+          )
         }
         showBack
         testID="exercise-detail-header"
@@ -162,6 +187,11 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
         showsVerticalScrollIndicator={false}
         testID="exercise-detail-scroll"
       >
+        {archived === true ? (
+          <Text style={styles.archivedNote} testID="exercise-detail-archived">
+            Archived · hidden from the exercise picker
+          </Text>
+        ) : null}
         <ExerciseHero
           deltaPositive={hero.deltaPositive}
           deltaText={hero.deltaText}
@@ -263,6 +293,11 @@ const useStyles = createStyles((colors) => ({
     paddingHorizontal: gutter,
   },
 
+  archivedNote: {
+    ...type.bodySmall,
+    marginBottom: spacing.md,
+    color: colors.textMuted,
+  },
   tabBlock: { marginTop: TAB_GAP },
   chartTitle: {
     ...type.labelSmall,

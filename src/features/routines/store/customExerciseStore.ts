@@ -32,6 +32,12 @@ export interface CustomExerciseStore {
   exercises: Exercise[];
   /** Create and store an exercise; returns it. */
   createExercise: (input: NewCustomExercise, now?: number) => Exercise;
+  /**
+   * Archive or restore an exercise; returns the updated exercise, or
+   * `null` when the id is unknown. Archived exercises leave the picker but
+   * still name their logged sets.
+   */
+  setArchived: (exerciseId: string, archived: boolean, now?: number) => Exercise | null;
   /** Replace the list, e.g. with the result of a cloud merge. */
   setExercises: (exercises: Exercise[]) => void;
 }
@@ -57,12 +63,21 @@ export function buildCustomExercise(input: NewCustomExercise, now: number): Exer
 /** Persisted custom-exercise store. */
 export const useCustomExerciseStore = create<CustomExerciseStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       exercises: [],
       createExercise: (input, now = Date.now()) => {
         const exercise = buildCustomExercise(input, now);
         set((state) => ({ exercises: [...state.exercises, exercise] }));
         return exercise;
+      },
+      setArchived: (exerciseId, archived, now = Date.now()) => {
+        const current = get().exercises.find((exercise) => exercise.id === exerciseId);
+        if (current === undefined) return null;
+        const updated = { ...current, isArchived: archived, updatedAt: now };
+        set((state) => ({
+          exercises: state.exercises.map((exercise) => (exercise.id === exerciseId ? updated : exercise)),
+        }));
+        return updated;
       },
       setExercises: (exercises) => set({ exercises }),
     }),

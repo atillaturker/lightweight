@@ -4,7 +4,8 @@
  */
 export type { RoutineTemplateId } from './types';
 
-export { ROUTINES_STORE_KEY, useRoutineStore } from './store';
+export { ROUTINES_STORE_KEY, useCustomExerciseStore, useRoutineStore } from './store';
+export { useSetCustomExerciseArchived } from './hooks';
 export type { RoutineStore } from './store';
 
 export {
@@ -19,6 +20,7 @@ export { RoutineActionSheet } from './components/RoutineActionSheet';
 export type { RoutineActionSheetProps } from './components/RoutineActionSheet';
 export { RoutineRow } from './components/RoutineRow';
 export { ExerciseTechnique } from './components/ExerciseTechnique';
+export { ExerciseThumb } from './components/ExerciseThumb';
 export type { ExerciseTechniqueProps } from './components/ExerciseTechnique';
 export type { RoutineRowProps } from './components/RoutineRow';
 
