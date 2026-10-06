@@ -243,3 +243,22 @@ describe("RoutineEditorScreen leaving a new routine", () => {
     expect(useRoutineStore.getState().routines).toHaveLength(1);
   });
 });
+
+describe("RoutineEditorScreen progression", () => {
+  it("chooses a progression policy from the meta line", () => {
+    const id = useRoutineStore.getState().createRoutine("Push");
+    render(
+      <RoutineEditorScreen
+        navigation={makeNavigation() as unknown as Props["navigation"]}
+        route={makeRoute(id)}
+      />,
+    );
+    expect(screen.getByTestId("routine-progression-target")).toHaveTextContent("No progression");
+
+    fireEvent.press(screen.getByTestId("routine-progression-target"));
+    fireEvent.press(screen.getByTestId("progression-option-linear"));
+
+    expect(useRoutineStore.getState().routines[0].progression).toBe("linear");
+    expect(screen.getByTestId("routine-progression-target")).toHaveTextContent("Linear");
+  });
+});

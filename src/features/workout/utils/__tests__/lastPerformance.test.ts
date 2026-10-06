@@ -1,6 +1,6 @@
 import type { Set } from '@domain/entities';
 
-import { summarizeLastPerformance } from '../lastPerformance';
+import { recentSessions, summarizeLastPerformance } from '../lastPerformance';
 
 function set(overrides: Partial<Set>): Set {
   return {
@@ -38,5 +38,26 @@ describe('summarizeLastPerformance', () => {
 
   it('returns null without history', () => {
     expect(summarizeLastPerformance([])).toBeNull();
+  });
+});
+
+describe('recentSessions', () => {
+  it('groups working sets by session, newest first, in set order', () => {
+    const history = [
+      set({ id: 'a1', workoutId: 'a', reps: 5 }),
+      set({ id: 'b1', workoutId: 'b', reps: 6 }),
+      set({ id: 'bw', workoutId: 'b', type: 'warmup' }),
+      set({ id: 'b2', workoutId: 'b', reps: 7 }),
+    ];
+
+    expect(recentSessions(history, 3).map((session) => session.map((s) => s.id))).toEqual([
+      ['b1', 'b2'],
+      ['a1'],
+    ]);
+  });
+
+  it('stops at the limit', () => {
+    const history = ['a', 'b', 'c'].map((id) => set({ id, workoutId: id }));
+    expect(recentSessions(history, 2).map((s) => s[0].id)).toEqual(['c', 'b']);
   });
 });

@@ -52,6 +52,13 @@ Routine CRUD and exercise picker. Three screens.
   (active custom exercises first, then built-ins) and `byId` (archived
   included). Never read `EXERCISE_LIBRARY` directly in a screen.
 
+## Progression
+
+A routine's `progression` (No progression / Linear / Double progression)
+is chosen from the editor's meta line. It only affects how Active
+Workout seeds sets; the rules and their reasons live in
+`@domain/rules/progression`.
+
 ## Supersets
 
 A superset is a run of consecutive slots sharing `supersetGroup` (stored

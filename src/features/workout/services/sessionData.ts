@@ -19,7 +19,10 @@ import { DEFAULT_REST_SECONDS } from '../config';
 /** Supplies the full exercise library. */
 export type ExerciseLibraryProvider = () => Exercise[];
 
-/** Supplies an exercise's past working sets, in any order. */
+/**
+ * Past sets for one exercise from finished sessions, in chronological
+ * order (oldest first), so the last session's sets are at the end.
+ */
 export type ExerciseHistoryProvider = (exerciseId: string) => Set[];
 
 /** Supplies finished sessions, most recent first. */

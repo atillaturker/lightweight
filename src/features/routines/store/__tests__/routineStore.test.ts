@@ -344,3 +344,14 @@ describe('supersets', () => {
     expect(groups(id)).toEqual(['-']);
   });
 });
+
+describe('setRoutineProgression', () => {
+  it('sets the policy, which is off until chosen', () => {
+    const id = newRoutine();
+    expect(routineById(id).progression).toBeUndefined();
+
+    useRoutineStore.getState().setRoutineProgression(id, 'double');
+
+    expect(routineById(id).progression).toBe('double');
+  });
+});

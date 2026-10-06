@@ -8,6 +8,7 @@
  * once the session finishes.
  */
 import type { ExerciseMeasure, SetType } from '@domain/entities';
+import type { Prescription } from '@domain/rules';
 
 /** One set of the in-progress session. */
 export interface ActiveSet {
@@ -47,6 +48,12 @@ export interface ActiveExercise {
    * are logged round by round, with rest only after each round.
    */
   supersetGroup?: string;
+  /**
+   * The routine's progression for this session: targets the sets were
+   * seeded with and why. Absent when progression is off or there is no
+   * history yet.
+   */
+  prescription?: Prescription;
 }
 
 /**

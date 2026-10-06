@@ -18,6 +18,7 @@ import { usePreferencesStore } from '@features/profile/store';
 import { EXERCISE_LIBRARY } from '@features/routines/services';
 import { useCustomExerciseStore } from '@features/routines/store';
 import {
+  setExerciseHistoryProvider,
   setExerciseLibraryProvider,
   setRestTimerSecondsProvider,
   setRpeEnabledProvider,
@@ -40,6 +41,12 @@ export function registerDataProviders(): void {
   setWeightUnitProvider(() => usePreferencesStore.getState().unit);
   setRpeEnabledProvider(() => usePreferencesStore.getState().rpeEnabled);
   setSessionHistoryProvider(() => useHistoryStore.getState().sessions);
+  // History is stored newest first; the seam promises oldest first.
+  setExerciseHistoryProvider((exerciseId) =>
+    [...useHistoryStore.getState().sessions]
+      .reverse()
+      .flatMap((session) => session.sets.filter((set) => set.exerciseId === exerciseId)),
+  );
   setSessionRecorder((workout) => {
     // Durable local history first; the cloud mirror is best-effort and
     // queues itself when offline or when Firestore rejects the write.

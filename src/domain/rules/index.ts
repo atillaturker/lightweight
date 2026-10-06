@@ -56,3 +56,18 @@ export type {
   IntensityLevel,
   MuscleLoad,
 } from './muscles';
+export {
+  defaultIncrementKg,
+  DELOAD_FACTOR,
+  DOUBLE_PROGRESSION_SPAN,
+  HOLD_INCREMENT_SECONDS,
+  nextPrescription,
+  STALL_SESSIONS,
+} from './progression';
+export type {
+  Prescription,
+  PrescriptionReason,
+  ProgressionInput,
+  ProgressionKind,
+  ProgressionPolicy,
+} from './progression';

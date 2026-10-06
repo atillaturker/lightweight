@@ -62,8 +62,9 @@ import type {
   NumericField,
 } from '../types';
 import { lastTimeLine } from '../utils/lastPerformance';
+import { prescriptionLine } from '../utils/prescriptionLine';
 import { shouldRestAfter } from '../utils/supersetOrder';
-import { getExerciseHistory, getRestTimerSeconds, getRpeEnabled } from '../services';
+import { getExerciseHistory, getRestTimerSeconds, getRpeEnabled, getWeightUnit } from '../services';
 import { PREVIEW_LAST_TIME, resolveFrameExercises } from '../utils/workoutPreview';
 type Props = NativeStackScreenProps<TodayStackParamList, 'ActiveWorkout'>;
 
@@ -286,6 +287,11 @@ export function ActiveWorkoutScreen({
                 exercise={exercise}
                 focusedCell={focusedCell}
                 lastTimeLine={resolveLastTimeLine(exercise, isPreview)}
+                prescriptionLine={
+                  exercise.prescription === undefined
+                    ? null
+                    : prescriptionLine(exercise.prescription, getWeightUnit(), exercise.measure === 'time')
+                }
                 onAddSet={() => addSet(exercise.exerciseId)}
                 onFocusCell={handleFocusCell}
                 onPressMore={noop}
