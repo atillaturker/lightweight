@@ -1,5 +1,5 @@
 import type { Set } from '../../entities/Set';
-import { bestE1RM, calculateE1RM, isWorkingSet } from '../e1rm';
+import { bestE1RM, calculateE1RM, E1RM_MAX_REPS, isE1RMEligible, isWorkingSet } from '../e1rm';
 
 /** Build a working set with sensible defaults for the fields under test. */
 function makeSet(overrides: Partial<Set> = {}): Set {
@@ -88,5 +88,36 @@ describe('isWorkingSet', () => {
 
   it('accepts a completed normal set with reps', () => {
     expect(isWorkingSet(makeSet({ reps: 1 }))).toBe(true);
+  });
+});
+
+describe('isE1RMEligible', () => {
+  it('accepts a working set up to the rep cap', () => {
+    expect(isE1RMEligible(makeSet({ reps: E1RM_MAX_REPS }))).toBe(true);
+  });
+
+  it('rejects a set above the rep cap', () => {
+    expect(isE1RMEligible(makeSet({ reps: E1RM_MAX_REPS + 1 }))).toBe(false);
+  });
+
+  it('rejects a warmup set', () => {
+    expect(isE1RMEligible(makeSet({ type: 'warmup' }))).toBe(false);
+  });
+});
+
+describe('bestE1RM rep cap', () => {
+  it('ignores a high-rep set that would otherwise win', () => {
+    const sets = [
+      makeSet({ id: 'heavy', weightKg: 100, reps: 5 }),
+      makeSet({ id: 'endurance', weightKg: 80, reps: 20 }),
+    ];
+
+    const best = bestE1RM(sets);
+
+    expect(best?.sourceSet).toEqual({ weightKg: 100, reps: 5 });
+  });
+
+  it('returns null when every set is above the cap', () => {
+    expect(bestE1RM([makeSet({ reps: 15 })])).toBeNull();
   });
 });

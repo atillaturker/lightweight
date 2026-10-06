@@ -11,7 +11,9 @@ import { Keyboard, type TextInput } from 'react-native';
 
 import type { ActiveExercise, ActiveSet, FocusedCell } from '../../types';
 import {
+  EMPTY_CELL,
   firstIncompleteSet,
+  listCells,
   nextCell,
   parseDraftValue,
   replaceSeed,
@@ -245,6 +247,56 @@ describe('useSetTableDraft keyboard focus', () => {
   });
 });
 
+describe('useSetTableDraft RPE', () => {
+  const RPE: FocusedCell = { setId: 'set-1', field: 'rpe' };
+
+  it('starts an unrated RPE cell empty and shows a dash when idle', () => {
+    const harness = renderDraft();
+
+    expect(harness.hook.displayValue(RPE, undefined)).toBe(EMPTY_CELL);
+    act(() => harness.hook.focusCell(RPE, undefined));
+    expect(harness.hook.draftValue).toBe('');
+  });
+
+  it('commits a rating on the scale', () => {
+    const harness = renderDraft();
+
+    act(() => harness.hook.focusCell(RPE, undefined));
+    act(() => harness.hook.changeDraft('8.5'));
+    act(() => harness.hook.commit());
+
+    expect(harness.writes).toEqual([{ cell: RPE, value: 8.5 }]);
+  });
+
+  it('drops a rating off the scale', () => {
+    const harness = renderDraft();
+
+    act(() => harness.hook.focusCell(RPE, undefined));
+    act(() => harness.hook.changeDraft('11'));
+    act(() => harness.hook.commit());
+
+    expect(harness.writes).toEqual([]);
+  });
+});
+
+describe('listCells', () => {
+  const table = [makeExercise('bench', [makeSet('a', false)])];
+
+  it('omits RPE cells unless the column is shown', () => {
+    expect(listCells(table).map((cell) => cell.field)).toEqual(['weight', 'reps']);
+    expect(listCells(table, true).map((cell) => cell.field)).toEqual([
+      'weight',
+      'reps',
+      'rpe',
+    ]);
+  });
+
+  it('advances from reps to RPE when the column is shown', () => {
+    const reps: FocusedCell = { setId: 'a', field: 'reps' };
+    expect(nextCell(table, reps, true)).toEqual({ setId: 'a', field: 'rpe' });
+  });
+});
+
 describe('replaceSeed', () => {
   it('keeps only what was typed after the seed', () => {
     expect(replaceSeed('0', '085')).toBe('85');
@@ -324,6 +376,12 @@ describe('nextCell', () => {
 });
 
 describe('parseDraftValue', () => {
+  it('accepts RPE in half steps from 1 to 10 only', () => {
+    expect(parseDraftValue('7.5', 'rpe')).toBe(7.5);
+    expect(parseDraftValue('0', 'rpe')).toBeNull();
+    expect(parseDraftValue('8.3', 'rpe')).toBeNull();
+  });
+
   it('accepts zero weight for bodyweight sets', () => {
     expect(parseDraftValue('0', 'weight')).toBe(0);
   });

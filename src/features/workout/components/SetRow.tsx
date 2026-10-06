@@ -34,6 +34,17 @@ const CHECK_GLYPH_SIZE = 12;
 /** Width of the numeric columns, so headings and values line up. */
 export const NUMERIC_COLUMN_WIDTH = 88;
 
+/**
+ * Narrower columns when the RPE column is shown, so three cells fit a
+ * 375px screen next to the set number and the check.
+ */
+export const NUMERIC_COLUMN_WIDTH_WITH_RPE = 70;
+
+/** Numeric column width for the table's current column set. */
+export function numericColumnWidth(showRpe: boolean): number {
+  return showRpe ? NUMERIC_COLUMN_WIDTH_WITH_RPE : NUMERIC_COLUMN_WIDTH;
+}
+
 /** Underline height under the focused numeric cell. */
 const UNDERLINE_HEIGHT = 1;
 
@@ -48,6 +59,15 @@ export interface SetRowProps {
   weightText: string;
   /** Text shown in the reps cell — the draft while it is being edited. */
   repsText: string;
+  /**
+   * Text shown in the RPE cell. Omit to hide the RPE column (the user's
+   * "RPE field" preference is off).
+   */
+  rpeText?: string;
+  /** Whether the RPE cell carries the focus underline. */
+  isRpeFocused?: boolean;
+  /** Called when the RPE cell is pressed. */
+  onPressRpe?: () => void;
   /** Presentation state for the row. */
   state: SetRowState;
   /** Whether the kilo cell carries the focus underline. */
@@ -73,6 +93,10 @@ export interface SetRowProps {
   testID?: string;
 }
 
+function noop(): void {
+  return undefined;
+}
+
 /** Derive the row state from a set and its position in the block. */
 export function resolveRowState(
   set: ActiveSet,
@@ -88,6 +112,8 @@ function NumericCell({
   unit,
   focused,
   onPress,
+  width,
+  label: accessibilityName,
   readOnly = false,
   testID,
 }: {
@@ -95,6 +121,9 @@ function NumericCell({
   unit?: string;
   focused: boolean;
   onPress: () => void;
+  width: number;
+  /** Spoken name of the column, e.g. "RPE". */
+  label?: string;
   readOnly?: boolean;
   testID?: string;
 }): React.ReactElement {
@@ -106,9 +135,11 @@ function NumericCell({
     </Text>
   );
 
+  const spoken = unit === undefined ? value : `${value} ${unit}`;
+
   if (readOnly) {
     return (
-      <View style={styles.cell} testID={testID}>
+      <View style={[styles.cell, { width }]} testID={testID}>
         {label}
       </View>
     );
@@ -116,14 +147,14 @@ function NumericCell({
 
   return (
     <Pressable
-      accessibilityLabel={unit === undefined ? value : `${value} ${unit}`}
+      accessibilityLabel={accessibilityName ? `${accessibilityName} ${spoken}` : spoken}
       accessibilityRole="button"
       onPress={onPress}
-      style={styles.cell}
+      style={[styles.cell, { width }]}
       testID={testID}
     >
       {label}
-      {focused ? <View style={styles.underline} /> : null}
+      {focused ? <View style={[styles.underline, { width: width - spacing.xl }]} /> : null}
     </Pressable>
   );
 }
@@ -137,11 +168,14 @@ export function SetRow({
   index,
   weightText,
   repsText,
+  rpeText,
   state,
   isWeightFocused,
   isRepsFocused,
+  isRpeFocused = false,
   onPressWeight,
   onPressReps,
+  onPressRpe,
   onToggleComplete,
   readOnly = false,
   rowRef,
@@ -149,6 +183,8 @@ export function SetRow({
 }: SetRowProps): React.ReactElement {
   const styles = useStyles();
   const isCompleted = !readOnly && state === 'completed';
+  const showRpe = rpeText !== undefined;
+  const width = numericColumnWidth(showRpe);
   const isActive = !readOnly && state === 'active';
 
   return (
@@ -173,6 +209,7 @@ export function SetRow({
           testID={testID ? `${testID}-weight` : undefined}
           unit="kg"
           value={weightText}
+          width={width}
         />
         <NumericCell
           focused={isRepsFocused}
@@ -180,7 +217,19 @@ export function SetRow({
           readOnly={readOnly}
           testID={testID ? `${testID}-reps` : undefined}
           value={repsText}
+          width={width}
         />
+        {showRpe ? (
+          <NumericCell
+            focused={isRpeFocused}
+            label="RPE"
+            onPress={onPressRpe ?? noop}
+            readOnly={readOnly}
+            testID={testID ? `${testID}-rpe` : undefined}
+            value={rpeText}
+            width={width}
+          />
+        ) : null}
       </View>
 
       {readOnly ? null : (
@@ -249,7 +298,6 @@ const useStyles = createStyles((colors) => ({
     marginLeft: spacing.lg,
   },
   cell: {
-    width: NUMERIC_COLUMN_WIDTH,
     height: SET_ROW_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
@@ -269,7 +317,6 @@ const useStyles = createStyles((colors) => ({
     position: 'absolute',
     bottom: spacing.sm,
     height: UNDERLINE_HEIGHT,
-    width: NUMERIC_COLUMN_WIDTH - spacing.xl,
     backgroundColor: colors.primary,
   },
   checkTarget: {

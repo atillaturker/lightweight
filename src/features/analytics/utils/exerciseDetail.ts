@@ -10,17 +10,19 @@
 import type { Set as DomainSet, Workout } from '@domain/entities';
 import {
   addWeeks,
+  averageRpe,
   bestE1RM,
   bestRecordsForExercise,
   calculateVolume,
+  hasRpeData,
   isWorkingSet,
   startOfWeek,
   type PRRecord,
   type PRType,
 } from '@domain/rules';
 
-/** The three chart metrics. */
-export type ExerciseMetric = '1rm' | 'volume' | 'reps';
+/** The chart metrics. `rpe` is offered only when the exercise has ratings. */
+export type ExerciseMetric = '1rm' | 'volume' | 'reps' | 'rpe';
 
 /** The record types the screen renders, in order. */
 export type ExerciseRecordType = Extract<
@@ -58,6 +60,10 @@ export interface ExerciseDetailData {
   heroE1RMKg: number | null;
   /** Change in best e1RM vs the previous 8 weeks, in kg, or `null`. */
   heroDeltaKg: number | null;
+  /** The set the hero e1RM is estimated from, or `null`. */
+  heroSource: { weightKg: number; reps: number } | null;
+  /** True when any working set of the exercise carries an RPE rating. */
+  hasEffortData: boolean;
   /** Eight weekly values for the selected metric; `null` where no data. */
   points: (number | null)[];
   /** Change vs the previous 8 weeks for the selected metric, or `null`. */
@@ -120,6 +126,8 @@ function metricValue(sets: DomainSet[], metric: ExerciseMetric): number | null {
       return calculateVolume(sets);
     case 'reps':
       return sets.reduce((total, set) => total + set.reps, 0);
+    case 'rpe':
+      return averageRpe(sets);
   }
 }
 
@@ -250,12 +258,15 @@ export function buildExerciseDetail(
     previousStart,
     currentStart,
   );
-  const currentE1RM = metricValue(currentSets, '1rm');
+  const currentBest = bestE1RM(currentSets);
+  const currentE1RM = currentBest?.value ?? null;
 
   return {
     hasHistory: allSets.length > 0,
     heroE1RMKg: currentE1RM,
     heroDeltaKg: difference(currentE1RM, metricValue(previousSets, '1rm')),
+    heroSource: currentBest?.sourceSet ?? null,
+    hasEffortData: hasRpeData(allSets),
     points: buildPoints(sessions, exerciseId, metric, currentStart),
     delta: difference(
       metricValue(currentSets, metric),

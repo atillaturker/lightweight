@@ -13,6 +13,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, type TextInput } from 'react-native';
 
+import { isValidRpe } from '@domain/rules';
+
 import type { ActiveExercise, ActiveSet, FocusedCell, NumericField } from '../types';
 
 /** Values returned by {@link useSetTableDraft}. */
@@ -25,16 +27,22 @@ export interface SetTableDraft {
   isKeyboardOpen: boolean;
   /** Attach to the hidden `TextInput` that holds keyboard focus. */
   inputRef: React.RefObject<TextInput | null>;
-  /** Start editing a cell, seeding the draft from its current value. */
-  focusCell: (cell: FocusedCell, currentValue: number) => void;
+  /**
+   * Start editing a cell, seeding the draft from its current value.
+   * `undefined` (an unrated RPE) starts an empty draft.
+   */
+  focusCell: (cell: FocusedCell, currentValue: number | undefined) => void;
   /** Replace the draft text. */
   changeDraft: (text: string) => void;
   /** Commit the draft if it parses, then clear it. */
   commit: () => void;
   /** Drop the draft without committing. */
   cancel: () => void;
-  /** The value to render for a cell: draft text or the stored number. */
-  displayValue: (cell: FocusedCell, actual: number) => string;
+  /**
+   * The value to render for a cell: draft text or the stored number;
+   * {@link EMPTY_CELL} for an unrated RPE.
+   */
+  displayValue: (cell: FocusedCell, actual: number | undefined) => string;
 }
 
 /** The write path a committed draft is sent to. */
@@ -42,6 +50,9 @@ export type CommitDraft = (
   cell: FocusedCell,
   value: number,
 ) => void;
+
+/** Shown in a cell with no value (an RPE not rated yet). */
+export const EMPTY_CELL = '–';
 
 /** Strip anything that is not a digit or a decimal point. */
 export function sanitizeNumericInput(text: string): string {
@@ -53,12 +64,14 @@ export function sanitizeNumericInput(text: string): string {
 /**
  * Parse draft text into a number, or `null` when it is not usable for
  * `field`. Weight accepts any non-negative number (0 = bodyweight); reps
- * must be a whole number of at least one.
+ * must be a whole number of at least one; RPE must be on the 1–10 scale in
+ * half steps.
  */
 export function parseDraftValue(text: string, field: NumericField): number | null {
   if (text.trim() === '') return null;
   const value = Number(text);
   if (!Number.isFinite(value) || value < 0) return null;
+  if (field === 'rpe') return isValidRpe(value) ? value : null;
   if (field === 'reps' && (!Number.isInteger(value) || value < 1)) return null;
   return value;
 }
@@ -142,15 +155,16 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
    * be a no-op and the keyboard would never come back, so blur it first.
    */
   const focusCell = useCallback(
-    (cell: FocusedCell, currentValue: number): void => {
+    (cell: FocusedCell, currentValue: number | undefined): void => {
       const previous = cellRef.current;
       if (previous !== null && sameCell(previous, cell)) return;
       if (previous !== null) writeDraft(previous, textRef.current);
 
-      const text = String(currentValue);
+      const text = currentValue === undefined ? '' : String(currentValue);
       cellRef.current = cell;
       textRef.current = text;
-      seedRef.current = text;
+      // An empty draft has nothing for the first keystroke to replace.
+      seedRef.current = text === '' ? null : text;
       setFocusedCell(cell);
       setDraftValue(text);
       const input = inputRef.current;
@@ -181,9 +195,10 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
   }, [commit]);
 
   const displayValue = useCallback(
-    (cell: FocusedCell, actual: number): string => {
+    (cell: FocusedCell, actual: number | undefined): string => {
       const isFocused = focusedCell !== null && sameCell(focusedCell, cell);
-      return isFocused ? draftValue : String(actual);
+      if (isFocused) return draftValue;
+      return actual === undefined ? EMPTY_CELL : String(actual);
     },
     [draftValue, focusedCell],
   );
@@ -230,28 +245,36 @@ export function firstIncompleteSet(
   return null;
 }
 
-/** Every numeric cell of the table, in reading order. */
-export function listCells(exercises: ActiveExercise[]): FocusedCell[] {
+/**
+ * Every numeric cell of the table, in reading order. RPE cells are part of
+ * the order only when the RPE column is shown.
+ */
+export function listCells(
+  exercises: ActiveExercise[],
+  includeRpe = false,
+): FocusedCell[] {
   const cells: FocusedCell[] = [];
   for (const block of exercises) {
     for (const set of block.sets) {
       cells.push({ setId: set.id, field: 'weight' });
       cells.push({ setId: set.id, field: 'reps' });
+      if (includeRpe) cells.push({ setId: set.id, field: 'rpe' });
     }
   }
   return cells;
 }
 
 /**
- * The next numeric cell after `cell` in reading order — weight then reps
- * of the following set, continuing into the next exercise block. Returns
- * `null` at the end of the table.
+ * The next numeric cell after `cell` in reading order — weight, reps (and
+ * RPE when shown) of the following set, continuing into the next exercise
+ * block. Returns `null` at the end of the table.
  */
 export function nextCell(
   exercises: ActiveExercise[],
   cell: FocusedCell,
+  includeRpe = false,
 ): FocusedCell | null {
-  const cells = listCells(exercises);
+  const cells = listCells(exercises, includeRpe);
   const index = cells.findIndex(
     (candidate) =>
       candidate.setId === cell.setId && candidate.field === cell.field,

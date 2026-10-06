@@ -29,14 +29,29 @@ export function isWorkingSet(set: Set): boolean {
 }
 
 /**
- * Find the best estimated 1RM across a list of sets.
- * Ignores warmup sets and uncompleted sets.
- * Returns null if no valid sets exist.
+ * Highest rep count an e1RM is estimated from. Rep-max formulas lose
+ * accuracy fast beyond ~10–12 reps, so a 20-rep set would produce a
+ * misleading number; such sets simply do not feed e1RM.
+ */
+export const E1RM_MAX_REPS = 12;
+
+/**
+ * Whether a set can produce an e1RM: a working set of at most
+ * {@link E1RM_MAX_REPS} reps.
+ */
+export function isE1RMEligible(set: Set): boolean {
+  return isWorkingSet(set) && set.reps <= E1RM_MAX_REPS;
+}
+
+/**
+ * Find the best estimated 1RM across a list of sets, and the set it came
+ * from. Only e1RM-eligible sets count ({@link isE1RMEligible}).
+ * Returns null if no eligible set exists.
  */
 export function bestE1RM(sets: Set[]): E1RMResult | null {
   let best: E1RMResult | null = null;
   for (const set of sets) {
-    if (!isWorkingSet(set)) {
+    if (!isE1RMEligible(set)) {
       continue;
     }
     const value = calculateE1RM(set.weightKg, set.reps);

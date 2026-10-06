@@ -38,6 +38,7 @@ import { formatClock } from '@lib/format';
 import type { TodayStackParamList } from '@/app/navigation/types';
 
 import { ExerciseBlock } from '../components/ExerciseBlock';
+import { KeepScreenAwake } from '../components/KeepScreenAwake';
 import { ProgressLine } from '../components/ProgressLine';
 import { TODAY_HEADER_HEIGHT, TodayWorkoutHeader } from '../components/WorkoutHeaders';
 import { useActiveWorkout } from '../hooks/useActiveWorkout';
@@ -57,9 +58,10 @@ import type {
   ActiveSet,
   ActiveWorkoutPreview,
   FocusedCell,
+  NumericField,
 } from '../types';
 import { lastTimeLine } from '../utils/lastPerformance';
-import { getExerciseHistory, getRestTimerSeconds } from '../services';
+import { getExerciseHistory, getRestTimerSeconds, getRpeEnabled } from '../services';
 import { PREVIEW_LAST_TIME, resolveFrameExercises } from '../utils/workoutPreview';
 type Props = NativeStackScreenProps<TodayStackParamList, 'ActiveWorkout'>;
 
@@ -97,6 +99,9 @@ export function ActiveWorkoutScreen({
   const [isExitSheetOpen, setExitSheetOpen] = useState(false);
 
   const isPreview = preview !== undefined;
+  // Read per render: the preference lives in the profile feature and is
+  // reached only through the provider seam.
+  const showRpe = getRpeEnabled();
   const exercises = useMemo(
     () => resolveFrameExercises(liveExercises, preview),
     [liveExercises, preview],
@@ -107,11 +112,7 @@ export function ActiveWorkoutScreen({
       if (isPreview) return;
       const exerciseId = findExerciseId(exercises, cell.setId);
       if (exerciseId === null) return;
-      updateSet(
-        exerciseId,
-        cell.setId,
-        cell.field === 'weight' ? { weightKg: value } : { reps: value },
-      );
+      updateSet(exerciseId, cell.setId, cellPatch(cell.field, value));
     },
     [exercises, isPreview, updateSet],
   );
@@ -144,8 +145,7 @@ export function ActiveWorkoutScreen({
       if (isPreview) return;
       const current = findSet(exercises, cell.setId);
       if (current === null) return;
-      const actual = cell.field === 'weight' ? current.weightKg : current.reps;
-      draft.focusCell(cell, actual);
+      draft.focusCell(cell, cellValue(current, cell.field));
     },
     [draft, exercises, isPreview],
   );
@@ -172,16 +172,14 @@ export function ActiveWorkoutScreen({
     const cell = draft.focusedCell;
     if (isPreview || cell === null) return;
 
-    const following = nextCell(exercises, cell);
+    const following = nextCell(exercises, cell, showRpe);
     draft.commit();
     if (following === null) return;
 
     const current = findSet(exercises, following.setId);
     if (current === null) return;
-    const actual =
-      following.field === 'weight' ? current.weightKg : current.reps;
-    draft.focusCell(following, actual);
-  }, [draft, exercises, isPreview]);
+    draft.focusCell(following, cellValue(current, following.field));
+  }, [draft, exercises, isPreview, showRpe]);
 
   /**
    * The single primary action. With a cell drafted it advances to the next
@@ -223,6 +221,7 @@ export function ActiveWorkoutScreen({
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
+      {isPreview ? null : <KeepScreenAwake />}
       <TodayWorkoutHeader
         onClose={isPreview ? noop : () => setExitSheetOpen(true)}
         onFinish={isPreview ? noop : () => setExitSheetOpen(true)}
@@ -276,6 +275,7 @@ export function ActiveWorkoutScreen({
               <ExerciseBlock
                 activeSetId={findActiveSet(exercise)?.id ?? null}
                 displayValue={draft.displayValue}
+                showRpe={showRpe}
                 exercise={exercise}
                 focusedCell={focusedCell}
                 lastTimeLine={resolveLastTimeLine(exercise, isPreview)}
@@ -382,6 +382,30 @@ function findSet(
     if (found !== undefined) return found;
   }
   return null;
+}
+
+/** The stored value behind a numeric cell; `undefined` for an unrated RPE. */
+function cellValue(set: ActiveSet, field: NumericField): number | undefined {
+  switch (field) {
+    case 'weight':
+      return set.weightKg;
+    case 'reps':
+      return set.reps;
+    case 'rpe':
+      return set.rpe;
+  }
+}
+
+/** The store patch that writes a committed cell value. */
+function cellPatch(field: NumericField, value: number): Partial<ActiveSet> {
+  switch (field) {
+    case 'weight':
+      return { weightKg: value };
+    case 'reps':
+      return { reps: value };
+    case 'rpe':
+      return { rpe: value };
+  }
 }
 
 /** Shown when the route is reached with no session open. */

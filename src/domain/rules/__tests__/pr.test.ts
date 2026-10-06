@@ -23,6 +23,21 @@ function types(records: Set[] | ReturnType<typeof detectPRs>): string[] {
 }
 
 describe('detectPRs', () => {
+  it('does not award best_1rm to a set above the e1RM rep cap', () => {
+    const history = [makeSet({ id: 'a', weightKg: 100, reps: 5 })];
+    // 80 × 20 estimates 133 kg, above 100 × 5 (117 kg), but is not eligible.
+    const records = detectPRs(history, makeSet({ id: 'b', weightKg: 80, reps: 20 }));
+
+    expect(records.map((r) => r.type)).not.toContain('best_1rm');
+  });
+
+  it('ignores high-rep history when finding the e1RM to beat', () => {
+    const history = [makeSet({ id: 'a', weightKg: 80, reps: 20 })];
+    const records = detectPRs(history, makeSet({ id: 'b', weightKg: 100, reps: 5 }));
+
+    expect(records.map((r) => r.type)).toContain('best_1rm');
+  });
+
   it('detects heaviest_set on a first-ever set', () => {
     const records = detectPRs([], makeSet({ weightKg: 100, reps: 5 }));
 

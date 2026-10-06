@@ -163,3 +163,35 @@ describe('buildExerciseDetail records', () => {
     expect(data.records).toEqual([]);
   });
 });
+
+describe('buildExerciseDetail effort and e1RM source', () => {
+  it('names the set the hero e1RM comes from', () => {
+    const at = NOW - 2 * DAY_MS;
+    const sessions = [
+      makeSession('s1', 2, [makeSet('bench-press', 100, 5, at), makeSet('bench-press', 60, 20, at)]),
+    ];
+
+    const data = buildExerciseDetail(sessions, 'bench-press', '1rm', NOW);
+
+    expect(data.heroSource).toEqual({ weightKg: 100, reps: 5 });
+  });
+
+  it('charts the average RPE of rated sets', () => {
+    const at = NOW - 2 * DAY_MS;
+    const sets = [
+      { ...makeSet('bench-press', 100, 5, at), rpe: 8 },
+      { ...makeSet('bench-press', 100, 5, at + 1), rpe: 9 },
+    ];
+    const data = buildExerciseDetail([makeSession('s1', 2, sets)], 'bench-press', 'rpe', NOW);
+
+    expect(data.hasEffortData).toBe(true);
+    expect(data.points).toContain(8.5);
+  });
+
+  it('reports no effort data when nothing is rated', () => {
+    const at = NOW - 2 * DAY_MS;
+    const sessions = [makeSession('s1', 2, [makeSet('bench-press', 100, 5, at)])];
+
+    expect(buildExerciseDetail(sessions, 'bench-press', 'rpe', NOW).hasEffortData).toBe(false);
+  });
+});

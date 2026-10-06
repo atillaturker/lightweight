@@ -36,6 +36,15 @@ for data loss or UI blocking. A dropped set is a broken product.
   modal, no sound. Spec: appears for 3 seconds, then fades (NOT yet
   implemented; the badge currently stays).
 
+## RPE and screen lock
+
+- The set table shows an RPE column only while the "RPE field"
+  preference is on (read through `getRpeEnabled()`). RPE is optional per
+  set, rated 1–10 in half steps (`isValidRpe`); an unrated cell shows
+  `EMPTY_CELL` and "Next" walks weight → reps → RPE.
+- While a live session is open, `KeepScreenAwake` (expo-keep-awake)
+  stops the phone from locking. It is not rendered in preview frames.
+
 ## Set model
 
 Set types: `normal | warmup | drop | failure`.

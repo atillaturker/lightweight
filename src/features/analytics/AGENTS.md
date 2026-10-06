@@ -8,7 +8,12 @@ analytics-specific behavior.
 ## Rules
 
 - All calculations live in `@domain/rules/`. Zero math inside this feature.
-- e1RM always uses `@domain/rules/e1rm.ts` (Epley formula).
+- e1RM always uses `@domain/rules/e1rm.ts` (Epley formula), and only
+  from sets of at most `E1RM_MAX_REPS` (12) reps (`isE1RMEligible`). The
+  Exercise Detail hero names the set the estimate came from.
+- The "Effort" metric (average RPE, `@domain/rules/effort.ts`) appears
+  only once the exercise has a rated set. Unrated sets are skipped, never
+  counted as zero.
 - Warmup sets are excluded from volume (`Set.type !== 'warmup'`).
 - Delta computation returns `null` when no comparison data exists —
   never `0`. The UI hides the delta line on `null`.

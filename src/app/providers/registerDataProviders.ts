@@ -19,6 +19,7 @@ import { EXERCISE_LIBRARY } from '@features/routines/services';
 import {
   setExerciseLibraryProvider,
   setRestTimerSecondsProvider,
+  setRpeEnabledProvider,
   setSessionHistoryProvider,
   setSessionRecorder,
   setWeightUnitProvider,
@@ -31,6 +32,7 @@ export function registerDataProviders(): void {
     () => usePreferencesStore.getState().restTimerSeconds,
   );
   setWeightUnitProvider(() => usePreferencesStore.getState().unit);
+  setRpeEnabledProvider(() => usePreferencesStore.getState().rpeEnabled);
   setSessionHistoryProvider(() => useHistoryStore.getState().sessions);
   setSessionRecorder((workout) => {
     // Durable local history first; the cloud mirror is best-effort and

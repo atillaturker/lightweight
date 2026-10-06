@@ -38,6 +38,7 @@ import { ExerciseTechnique } from "@features/routines";
 import { MoreGlyph } from "@features/workout";
 
 import {
+  ExerciseHero,
   ExerciseLineChart,
   RecentSetRow,
   RecordRow,
@@ -73,17 +74,19 @@ const MORE_GLYPH_SIZE = 20;
 /** A record is "new" when achieved within this window. */
 const RECENT_RECORD_MS = 30 * 24 * 60 * 60 * 1000;
 
-const METRIC_OPTIONS = [
+const METRIC_OPTIONS: readonly { value: ExerciseMetric; label: string }[] = [
   { value: "1rm", label: "1RM" },
   { value: "volume", label: "Volume" },
   { value: "reps", label: "Reps" },
-] as const;
+  { value: "rpe", label: "Effort" },
+];
 
 /** Chart title per metric. */
 const CHART_TITLES: Record<ExerciseMetric, string> = {
   "1rm": "ESTIMATED 1RM · LAST 8 WEEKS",
   volume: "VOLUME · LAST 8 WEEKS",
   reps: "TOTAL REPS · LAST 8 WEEKS",
+  rpe: "AVERAGE RPE · LAST 8 WEEKS",
 };
 
 /** Convert a stored kilogram value to a display figure for the unit. */
@@ -94,6 +97,7 @@ function formatWeightText(kg: number, unit: WeightUnit): string {
 
 /** Y-axis value formatter for the selected metric. */
 function formatChartValue(metric: ExerciseMetric, value: number): string {
+  // RPE is 1–10 in half steps: one decimal is exact enough.
   return metric === "reps" ? formatInteger(value) : formatDecimal(value, 1);
 }
 
@@ -177,6 +181,10 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
   }
 
   const hasChart = data.points.some((value) => value !== null);
+  // "Effort" appears only once the exercise has RPE ratings to chart.
+  const metricOptions = METRIC_OPTIONS.filter(
+    (option) => option.value !== "rpe" || data.hasEffortData,
+  );
   const badgeType = badgeRecordType(data.records, Date.now());
   const chartWidth = width - gutter * 2;
 
@@ -205,37 +213,31 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
         showsVerticalScrollIndicator={false}
         testID="exercise-detail-scroll"
       >
-        <Text style={styles.heroLabel}>ESTIMATED 1RM</Text>
-        <View style={styles.heroValueRow}>
-          <Text style={styles.heroValue} testID="exercise-detail-hero-value">
-            {data.heroE1RMKg === null
-              ? "—"
-              : formatWeightText(data.heroE1RMKg, unit)}
-          </Text>
-          {data.heroE1RMKg === null ? null : (
-            <Text style={styles.heroUnit}>{unit}</Text>
-          )}
-        </View>
-
-        {data.heroDeltaKg !== null ? (
-          <Text
-            style={[
-              styles.heroDelta,
-              data.heroDeltaKg > 0 ? styles.deltaPositive : null,
-            ]}
-            testID="exercise-detail-hero-delta"
-          >
-            {`${data.heroDeltaKg > 0 ? "▲" : "▼"} ${formatWeightText(
-              Math.abs(data.heroDeltaKg),
-              unit,
-            )} ${unit} over 8 weeks`}
-          </Text>
-        ) : null}
+        <ExerciseHero
+          deltaPositive={data.heroDeltaKg !== null && data.heroDeltaKg > 0}
+          deltaText={
+            data.heroDeltaKg === null
+              ? null
+              : `${data.heroDeltaKg > 0 ? "▲" : "▼"} ${formatWeightText(
+                  Math.abs(data.heroDeltaKg),
+                  unit,
+                )} ${unit} over 8 weeks`
+          }
+          sourceText={
+            data.heroSource === null
+              ? null
+              : `From ${formatWeightText(data.heroSource.weightKg, unit)} ${unit} × ${data.heroSource.reps}`
+          }
+          unit={unit}
+          valueText={
+            data.heroE1RMKg === null ? null : formatWeightText(data.heroE1RMKg, unit)
+          }
+        />
 
         <View style={styles.tabBlock}>
           <TextTabs
             onChange={(value) => setMetric(value as ExerciseMetric)}
-            options={[...METRIC_OPTIONS]}
+            options={metricOptions}
             testID="exercise-detail-metric"
             value={metric}
           />
@@ -328,35 +330,6 @@ const useStyles = createStyles((colors) => ({
     paddingBottom: spacing.huge,
     paddingHorizontal: gutter,
   },
-
-  heroLabel: {
-    ...type.labelSmall,
-    letterSpacing: 0.66,
-    textTransform: "uppercase",
-    color: colors.textMuted,
-  },
-  heroValueRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginTop: spacing.xs + 2,
-    gap: spacing.sm,
-  },
-  heroValue: {
-    ...type.metricHero,
-    fontVariant: ["tabular-nums"],
-    color: colors.textPrimary,
-  },
-  heroUnit: {
-    ...type.metric,
-    fontFamily: "Inter-Medium",
-    color: colors.textMuted,
-  },
-  heroDelta: {
-    ...type.label,
-    marginTop: spacing.sm,
-    color: colors.textMuted,
-  },
-  deltaPositive: { color: colors.success },
 
   tabBlock: { marginTop: TAB_GAP },
   chartTitle: {

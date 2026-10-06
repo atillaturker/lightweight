@@ -31,6 +31,9 @@ export type RestTimerSecondsProvider = () => number;
 /** Supplies the display unit for weights. */
 export type WeightUnitProvider = () => WeightUnit;
 
+/** Whether the set table shows the RPE column. */
+export type RpeEnabledProvider = () => boolean;
+
 /** Receives every finished workout so history can persist it. */
 export type SessionRecorderProvider = (workout: Workout) => void;
 
@@ -39,6 +42,7 @@ const NO_SETS: readonly Set[] = [];
 const NO_SESSIONS: readonly Workout[] = [];
 const DEFAULT_REST_TIMER: RestTimerSecondsProvider = () => DEFAULT_REST_SECONDS;
 const DEFAULT_WEIGHT_UNIT: WeightUnitProvider = () => 'kg';
+const DEFAULT_RPE_ENABLED: RpeEnabledProvider = () => false;
 const NOOP_RECORDER: SessionRecorderProvider = () => undefined;
 
 let exerciseLibraryProvider: ExerciseLibraryProvider = () => [...NO_EXERCISES];
@@ -46,6 +50,7 @@ let exerciseHistoryProvider: ExerciseHistoryProvider = () => [...NO_SETS];
 let sessionHistoryProvider: SessionHistoryProvider = () => [...NO_SESSIONS];
 let restTimerSecondsProvider: RestTimerSecondsProvider = DEFAULT_REST_TIMER;
 let weightUnitProvider: WeightUnitProvider = DEFAULT_WEIGHT_UNIT;
+let rpeEnabledProvider: RpeEnabledProvider = DEFAULT_RPE_ENABLED;
 let sessionRecorderProvider: SessionRecorderProvider = NOOP_RECORDER;
 
 /** Register the source of the exercise library. */
@@ -81,6 +86,11 @@ export function setWeightUnitProvider(provider: WeightUnitProvider): void {
   weightUnitProvider = provider;
 }
 
+/** Register the source of the user's "RPE field" preference. */
+export function setRpeEnabledProvider(provider: RpeEnabledProvider): void {
+  rpeEnabledProvider = provider;
+}
+
 /** Register the sink that persists every finished workout. */
 export function setSessionRecorder(
   provider: SessionRecorderProvider,
@@ -111,6 +121,11 @@ export function getRestTimerSeconds(): number {
   return restTimerSecondsProvider();
 }
 
+/** Whether the set table shows the RPE column. Defaults to off. */
+export function getRpeEnabled(): boolean {
+  return rpeEnabledProvider();
+}
+
 /** The user's display unit for weights. Defaults to kilograms. */
 export function getWeightUnit(): WeightUnit {
   return weightUnitProvider();
@@ -134,5 +149,6 @@ export function resetSessionDataProviders(): void {
   sessionHistoryProvider = () => [...NO_SESSIONS];
   restTimerSecondsProvider = DEFAULT_REST_TIMER;
   weightUnitProvider = DEFAULT_WEIGHT_UNIT;
+  rpeEnabledProvider = DEFAULT_RPE_ENABLED;
   sessionRecorderProvider = NOOP_RECORDER;
 }

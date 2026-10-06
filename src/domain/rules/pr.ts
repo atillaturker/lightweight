@@ -1,5 +1,5 @@
 import type { Set } from '../entities/Set';
-import { calculateE1RM, isWorkingSet } from './e1rm';
+import { calculateE1RM, isE1RMEligible, isWorkingSet } from './e1rm';
 
 /**
  * The kinds of personal record tracked by the app.
@@ -36,11 +36,11 @@ function maxWeight(history: Set[]): number {
   return max;
 }
 
-/** Highest Epley estimate among historical working sets, or 0 when none. */
+/** Highest Epley estimate among historical eligible sets, or 0 when none. */
 function maxE1RM(history: Set[]): number {
   let max = 0;
   for (const set of history) {
-    if (isWorkingSet(set)) {
+    if (isE1RMEligible(set)) {
       max = Math.max(max, calculateE1RM(set.weightKg, set.reps));
     }
   }
@@ -67,7 +67,8 @@ function maxRepsAtLeastWeight(history: Set[], weightKg: number): number {
  * Warmup sets never count.
  *
  * - `heaviest_set` — a strictly heavier completed working set.
- * - `best_1rm` — a strictly higher Epley estimate.
+ * - `best_1rm` — a strictly higher Epley estimate, from a set of at most
+ *   `E1RM_MAX_REPS` reps.
  * - `most_reps` — more reps than any prior working set at an equal or
  *   heavier weight (not a naive global rep maximum).
  */
@@ -88,7 +89,10 @@ export function detectPRs(historicalSets: Set[], newSet: Set): PRRecord[] {
     });
   }
 
-  if (calculateE1RM(newSet.weightKg, newSet.reps) > maxE1RM(historicalSets)) {
+  if (
+    isE1RMEligible(newSet) &&
+    calculateE1RM(newSet.weightKg, newSet.reps) > maxE1RM(historicalSets)
+  ) {
     records.push({
       type: 'best_1rm',
       exerciseId: newSet.exerciseId,

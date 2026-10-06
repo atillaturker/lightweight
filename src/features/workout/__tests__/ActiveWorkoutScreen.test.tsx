@@ -29,9 +29,15 @@ jest.mock('@react-native-community/netinfo', () => ({
   fetch: async () => ({ isConnected: true }),
 }));
 
+const mockUseKeepAwake = jest.fn();
+jest.mock('expo-keep-awake', () => ({
+  useKeepAwake: (tag?: string) => mockUseKeepAwake(tag),
+}));
+
 // PR detection runs after interactions and is covered by its own domain
 // tests; disabling it here keeps the logging assertions synchronous.
 jest.mock('@domain/rules', () => ({
+  ...jest.requireActual('@domain/rules'),
   detectPRs: () => [],
 }));
 
@@ -44,6 +50,7 @@ import { ActiveWorkoutScreen } from '../screens/ActiveWorkoutScreen';
 import {
   resetSessionDataProviders,
   setRestTimerSecondsProvider,
+  setRpeEnabledProvider,
 } from '../services';
 import {
   EMPTY_WORKOUT,
@@ -214,5 +221,44 @@ describe('ActiveWorkoutScreen exit sheet', () => {
     expect(replace).not.toHaveBeenCalled();
     expect(popToTop).not.toHaveBeenCalled();
     expect(useActiveWorkoutStore.getState().sessionId).toBe('session-1');
+  });
+});
+
+describe('ActiveWorkoutScreen RPE column', () => {
+  it('is hidden while the RPE preference is off', () => {
+    seedSession([makeSet('s1', false)]);
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    expect(screen.queryByText('RPE')).toBeNull();
+  });
+
+  it('records a rating typed into the RPE cell', () => {
+    setRpeEnabledProvider(() => true);
+    seedSession([makeSet('s1', false)]);
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    expect(screen.getByText('RPE')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('active-workout-block-0-set-0-rpe'));
+    fireEvent.changeText(screen.getByTestId('active-workout-input'), '8');
+    fireEvent(screen.getByTestId('active-workout-input'), 'submitEditing');
+
+    expect(useActiveWorkoutStore.getState().exercises[0].sets[0].rpe).toBe(8);
+  });
+});
+
+describe('ActiveWorkoutScreen keep awake', () => {
+  it('keeps the screen on while a session is open', () => {
+    mockUseKeepAwake.mockClear();
+    seedSession([makeSet('s1', false)]);
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    expect(mockUseKeepAwake).toHaveBeenCalledWith('active-workout');
+  });
+
+  it('does not hold the lock without an open session', () => {
+    mockUseKeepAwake.mockClear();
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    expect(mockUseKeepAwake).not.toHaveBeenCalled();
   });
 });
