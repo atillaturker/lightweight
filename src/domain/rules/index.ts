@@ -77,13 +77,13 @@ export {
   addDays,
   dailyActivityMinutes,
   dayKey,
+  dayStartOf,
+  isoDay,
   startOfDay,
   UNFINISHED_SESSION_MINUTES,
 } from './activity';
 export type { ActivityLevel } from './activity';
 export {
-  dayStartOf,
-  isoDay,
   latestEntry,
   liveEntries,
   mergeBodyWeight,
@@ -91,3 +91,13 @@ export {
   weightChange,
 } from './bodyWeight';
 export type { BodyWeightMerge } from './bodyWeight';
+export {
+  hasWeeklyPlan,
+  moveSession,
+  nextPlannedDay,
+  OVERRIDE_RETENTION_DAYS,
+  plannedRoutineId,
+  SCHEDULE_HORIZON_DAYS,
+  weekPlan,
+} from './schedule';
+export type { PlannedDay, ScheduleOverrides } from './schedule';

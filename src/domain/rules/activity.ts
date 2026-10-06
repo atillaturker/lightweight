@@ -24,6 +24,20 @@ export function dayKey(timestamp: number): string {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
 
+/** `YYYY-MM-DD` of the local day containing `timestamp`. */
+export function isoDay(timestamp: number): string {
+  const date = new Date(timestamp);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** Local midnight of an `YYYY-MM-DD` day. */
+export function dayStartOf(isoDate: string): number {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day).getTime();
+}
+
 /** Local midnight of the day containing `timestamp`. */
 export function startOfDay(timestamp: number): number {
   const date = new Date(timestamp);

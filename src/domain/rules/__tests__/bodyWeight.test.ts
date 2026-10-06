@@ -1,7 +1,6 @@
 import type { BodyWeightEntry } from '../../entities/BodyWeight';
+import { dayStartOf, isoDay } from '../activity';
 import {
-  dayStartOf,
-  isoDay,
   latestEntry,
   mergeBodyWeight,
   weeklyAverageWeights,
