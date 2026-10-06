@@ -11,12 +11,14 @@
 import { useMemo } from 'react';
 
 import type { Exercise, Routine, Workout } from '@domain/entities';
+import { hasWeeklyPlan, isoDay, nextPlannedDay, type ScheduleOverrides } from '@domain/rules';
 import { useHistoryStore } from '@features/history';
 import { useRoutineStore } from '@features/routines';
 
 import { DEFAULT_WEEK_START, RECENT_ACTIVITY_LIMIT } from '../config';
 import { getExerciseLibrary } from '../services';
 import { selectNextRoutine } from '../utils/routineSelection';
+import { buildWeekPlan, type WeekPlanDay } from '../utils/weekPlan';
 import {
   recentSessions,
   summarizeWeeks,
@@ -27,6 +29,13 @@ import {
 export interface HomeSummary {
   /** Routine the primary CTA will start, or `null` when none exists. */
   nextRoutine: Routine | null;
+  /**
+   * Local midnight of the day `nextRoutine` is planned for, or `null`
+   * when no weekly plan exists and the routine comes from the rotation.
+   */
+  plannedDate: number | null;
+  /** This week's plan, Monday first; empty without a weekly plan. */
+  weekPlan: WeekPlanDay[];
   /** Exercises of `nextRoutine`, resolved against the library. */
   nextExercises: Exercise[];
   /** Every stored routine, in creation order, for the Home preview. */
@@ -42,6 +51,24 @@ export interface HomeSummary {
 }
 
 /**
+ * The next session on the weekly plan, skipping today once a session was
+ * logged today. `null` without a plan or when the planned routine is gone.
+ */
+function plannedNext(
+  now: number,
+  routines: Routine[],
+  overrides: ScheduleOverrides,
+  sessions: Workout[],
+): { routine: Routine; date: number } | null {
+  if (!hasWeeklyPlan(routines)) return null;
+  const today = isoDay(now);
+  const trainedToday = sessions.some((session) => isoDay(session.startedAt) === today);
+  const next = nextPlannedDay(now, routines, overrides, trainedToday);
+  const routine = routines.find((candidate) => candidate.id === next?.routineId);
+  return next === null || routine === undefined ? null : { routine, date: next.date };
+}
+
+/**
  * Read model behind the Home screen. Session history is subscribed to
  * directly so every change re-renders; the exercise library comes from the
  * feature's data provider. Both start empty, which is exactly the first-run
@@ -50,11 +77,14 @@ export interface HomeSummary {
 export function useHomeSummary(): HomeSummary {
   const routines = useRoutineStore((state) => state.routines);
   const activeRoutineId = useRoutineStore((state) => state.activeRoutineId);
+  const overrides = useRoutineStore((state) => state.scheduleOverrides);
   const sessions = useHistoryStore((state) => state.sessions);
 
   return useMemo((): HomeSummary => {
+    const now = Date.now();
     const library = getExerciseLibrary();
-    const nextRoutine = selectNextRoutine(routines, activeRoutineId);
+    const planned = plannedNext(now, routines, overrides, sessions);
+    const nextRoutine = planned?.routine ?? selectNextRoutine(routines, activeRoutineId);
     const byId = new Map(library.map((exercise) => [exercise.id, exercise]));
 
     // `[...arr].sort()` rather than `toSorted`: Hermes does not implement
@@ -66,12 +96,14 @@ export function useHomeSummary(): HomeSummary {
 
     return {
       nextRoutine,
+      plannedDate: planned?.date ?? null,
+      weekPlan: hasWeeklyPlan(routines) ? buildWeekPlan(now, routines, overrides, sessions) : [],
       nextExercises,
       routines,
       activeRoutineId,
       hasHistory: sessions.length > 0,
-      weekly: summarizeWeeks(sessions, DEFAULT_WEEK_START, Date.now()),
+      weekly: summarizeWeeks(sessions, DEFAULT_WEEK_START, now),
       recent: recentSessions(sessions, RECENT_ACTIVITY_LIMIT),
     };
-  }, [routines, activeRoutineId, sessions]);
+  }, [routines, activeRoutineId, overrides, sessions]);
 }
