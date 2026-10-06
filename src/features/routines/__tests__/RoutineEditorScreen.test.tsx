@@ -262,3 +262,23 @@ describe("RoutineEditorScreen progression", () => {
     expect(screen.getByTestId("routine-progression-target")).toHaveTextContent("Linear");
   });
 });
+
+describe("RoutineEditorScreen planned days", () => {
+  it("toggles a weekday on and off the routine's plan", () => {
+    const id = useRoutineStore.getState().createRoutine("Push");
+    const navigation = makeNavigation();
+    render(
+      <RoutineEditorScreen
+        navigation={navigation as unknown as Props["navigation"]}
+        route={makeRoute(id)}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("routine-days-4"));
+    fireEvent.press(screen.getByTestId("routine-days-1"));
+    expect(useRoutineStore.getState().routines[0].days).toEqual([1, 4]);
+
+    fireEvent.press(screen.getByTestId("routine-days-4"));
+    expect(useRoutineStore.getState().routines[0].days).toEqual([1]);
+  });
+});

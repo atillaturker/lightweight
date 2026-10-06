@@ -1,6 +1,7 @@
 export {
   calculatedRoutineMinutes,
   routineDurationMinutes,
+  routineMeta,
 } from './routineDuration';
 export {
   EQUIPMENT_OPTIONS,

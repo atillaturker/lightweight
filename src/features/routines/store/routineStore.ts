@@ -9,8 +9,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { Routine, RoutineExercise } from '@domain/entities';
-import type { ProgressionPolicy } from '@domain/rules';
+import type { Routine, RoutineExercise, Weekday } from '@domain/entities';
+import { moveSession, type ProgressionPolicy, type ScheduleOverrides } from '@domain/rules';
 import { zustandStorage } from '@infrastructure/storage';
 
 import type { RoutineTemplateId } from '../types';
@@ -46,6 +46,15 @@ export interface RoutineStore {
    * user has not chosen one, or after the active routine is deleted.
    */
   activeRoutineId: string | null;
+  /**
+   * One-off changes to the weekly plan by `YYYY-MM-DD` (a moved session);
+   * the plan itself stays in each routine's `days`.
+   */
+  scheduleOverrides: ScheduleOverrides;
+  /** Set the weekdays a routine is planned on. */
+  setRoutineDays: (routineId: string, days: Weekday[]) => void;
+  /** Move the session planned on `from` to `to`, for those dates only. */
+  moveScheduledSession: (from: number, to: number, now?: number) => void;
   /**
    * Create a starter routine from an onboarding template and make it the
    * newest entry. Returns the created routine.
@@ -223,13 +232,28 @@ export const useRoutineStore = create<RoutineStore>()(
     (set, get) => ({
       routines: [],
       activeRoutineId: null,
+      scheduleOverrides: {},
+      setRoutineDays: (routineId, days) =>
+        set((state) =>
+          state.routines.some((routine) => routine.id === routineId)
+            ? {
+                routines: patchRoutine(state.routines, routineId, {
+                  days: [...new Set(days)].sort((a, b) => a - b),
+                }),
+              }
+            : {},
+        ),
+      moveScheduledSession: (from, to, now = Date.now()) =>
+        set((state) => ({
+          scheduleOverrides: moveSession(state.scheduleOverrides, state.routines, from, to, now),
+        })),
       seedFromTemplate: (template) => {
         const routine = buildTemplateRoutine(template);
         set((state) => ({ routines: [...state.routines, routine] }));
         return routine;
       },
       setRoutines: (routines) => set({ routines }),
-      clear: () => set({ routines: [], activeRoutineId: null }),
+      clear: () => set({ routines: [], activeRoutineId: null, scheduleOverrides: {} }),
       createRoutine: (name) => {
         const id = createCustomRoutineId();
         const now = Date.now();

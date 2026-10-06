@@ -10,6 +10,7 @@ import type { Routine } from '@domain/entities';
 import {
   calculatedRoutineMinutes,
   routineDurationMinutes,
+  routineMeta,
 } from '../routineDuration';
 
 /** Build a routine with `exerciseCount` ordered slots. */
@@ -52,5 +53,16 @@ describe('routineDurationMinutes', () => {
 
   it('falls back to the formula when the override is undefined', () => {
     expect(routineDurationMinutes(makeRoutine(7))).toBe(63);
+  });
+});
+
+describe('routineMeta', () => {
+  it('shows exercises and minutes for a routine off the weekly plan', () => {
+    expect(routineMeta(makeRoutine(2))).toMatch(/^2 exercises · ~\d+ min$/);
+  });
+
+  it('appends the planned days Monday first', () => {
+    const routine = { ...makeRoutine(2), days: [0, 4, 1] as Routine['days'] };
+    expect(routineMeta(routine)).toMatch(/· Mon, Thu, Sun$/);
   });
 });

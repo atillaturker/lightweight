@@ -11,6 +11,7 @@ export type { RoutineStore } from './store';
 export {
   calculatedRoutineMinutes,
   routineDurationMinutes,
+  routineMeta,
   supersetLabels,
 } from './utils';
 

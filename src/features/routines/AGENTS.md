@@ -59,6 +59,18 @@ is chosen from the editor's meta line. It only affects how Active
 Workout seeds sets; the rules and their reasons live in
 `@domain/rules/progression`.
 
+## Weekly plan
+
+A routine's `days` (the editor's DAYS chips, `Date.getDay()` numbers)
+put it on the weekly plan; its list meta line shows them
+(`routineMeta`). On a weekday claimed by two routines, the first in
+list order wins. Moving one session (`moveScheduledSession`) records a
+one-off change for those two dates in `scheduleOverrides` (keyed
+`YYYY-MM-DD`, `null` = rest) and never edits `days`; a move onto a
+planned day swaps the two. Overrides older than
+`OVERRIDE_RETENTION_DAYS` are pruned on the next move. The rules live in
+`@domain/rules/schedule`. Like routines, the plan is local-only.
+
 ## Supersets
 
 A superset is a run of consecutive slots sharing `supersetGroup` (stored
