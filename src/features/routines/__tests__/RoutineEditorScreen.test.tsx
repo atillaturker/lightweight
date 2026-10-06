@@ -19,7 +19,7 @@
  * A naive same-pass render passes against the bug, so that ordering is the
  * whole point of this harness.
  */
-import { render } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import React, { useEffect, useState } from "react";
 
 // In-memory MMKV double, matching the auth store test pattern.
@@ -148,5 +148,34 @@ describe("RoutineEditorScreen create mode", () => {
 
     expect(useRoutineStore.getState().routines).toHaveLength(1);
     expect(navigation.setParams).not.toHaveBeenCalled();
+  });
+});
+
+describe("RoutineEditorScreen naming", () => {
+  it("opens a new routine with an empty, focused name field", () => {
+    const navigation = makeNavigation() as unknown as Props["navigation"];
+    render(<RoutineEditorScreen navigation={navigation} route={makeRoute()} />);
+
+    const input = screen.getByTestId("routine-name-input");
+    expect(input.props.value).toBe("");
+    expect(input.props.autoFocus).toBe(true);
+  });
+
+  it("keeps a name typed right before tapping Create routine", () => {
+    const navigation = makeNavigation();
+    render(
+      <RoutineEditorScreen
+        navigation={navigation as unknown as Props["navigation"]}
+        route={makeRoute()}
+      />,
+    );
+
+    // The footer button does not blur the field, so no onBlur fires here.
+    fireEvent.changeText(screen.getByTestId("routine-name-input"), "Push Day");
+    fireEvent.press(screen.getByTestId("routine-editor-submit"));
+
+    const [routine] = useRoutineStore.getState().routines;
+    expect(routine.name).toBe("Push Day");
+    expect(navigation.goBack).toHaveBeenCalled();
   });
 });

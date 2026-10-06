@@ -236,6 +236,15 @@ describe("HomeTodayScreen My Routines", () => {
     expect(screen.queryByTestId("home-my-routines-empty-create")).toBeNull();
   });
 
+  it("offers See all with a single routine, leading to the Routines list", () => {
+    mockSummary = makeSummary([routine("r1", "Upper / Lower")]);
+    render(<HomeTodayScreen />);
+
+    fireEvent.press(screen.getByTestId("home-my-routines-see-all"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("Routines");
+  });
+
   it("shows at most three routines and See all when more exist", () => {
     mockSummary = makeSummary([
       routine("r1", "One"),

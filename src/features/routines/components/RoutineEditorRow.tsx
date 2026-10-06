@@ -1,18 +1,20 @@
 /**
- * One exercise slot in the routine editor: muscle-group icon, name and
- * group label, the tappable `sets × reps` target, and the drag grip.
- * Moved out of RoutineEditorScreen unchanged.
+ * One exercise slot in the routine editor: the exercise's illustration
+ * tile (the same one the picker shows), name and group label, the
+ * tappable `sets × reps` target, and the drag grip.
  */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { MuscleIcon } from "@components/MuscleIcon";
 import type { MuscleGroup } from "@domain/entities";
 import { colors, fineSpacing, spacing, type } from "@theme";
 
+import { ExerciseThumb } from "./ExerciseThumb";
+
 /** Props for {@link RoutineEditorRow}. */
 export interface RoutineEditorRowProps {
+  exerciseId: string;
   name: string;
   /** `undefined` for an exercise missing from the library. */
   muscleGroup: MuscleGroup | undefined;
@@ -43,6 +45,7 @@ function GripGlyph(): React.ReactElement {
 
 /** Editor row for one exercise slot. */
 export function RoutineEditorRow({
+  exerciseId,
   name,
   muscleGroup,
   targetSets,
@@ -54,9 +57,7 @@ export function RoutineEditorRow({
     <View>
       {showDivider ? <View style={styles.rowHairline} /> : null}
       <View style={styles.row}>
-        <View style={styles.iconColumn}>
-          <MuscleIcon group={muscleGroup ?? "core"} size={24} />
-        </View>
+        <ExerciseThumb exerciseId={exerciseId} />
 
         <View style={styles.textColumn}>
           <Text numberOfLines={1} style={styles.exerciseName}>
@@ -93,13 +94,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     minHeight: 72,
-  },
-
-  iconColumn: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
   },
 
   textColumn: {

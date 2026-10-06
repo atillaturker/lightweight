@@ -136,8 +136,9 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
     navigation.setParams({ routineId: id });
   }, [createRoutine, isCreateMode, navigation]);
 
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [isNameFocused, setIsNameFocused] = useState(false);
+  // A new routine opens with its name field focused and empty, so the
+  // first thing the user does is name it.
+  const [isRenaming, setIsRenaming] = useState(isCreateMode);
   const [nameDraft, setNameDraft] = useState("");
   const [targetEditing, setTargetEditing] = useState<TargetEditing | null>(null);
   const [durationSheetVisible, setDurationSheetVisible] = useState(false);
@@ -163,7 +164,6 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
 
   const beginRename = useCallback(() => {
     setNameDraft(routine?.name ?? "");
-    setIsNameFocused(false);
     setIsRenaming(true);
   }, [routine]);
 
@@ -186,13 +186,26 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
     });
   }, [navigation, routine, routineId]);
 
+  /**
+   * Tapping the footer button does not blur the name field, so a name that
+   * is still being typed must be committed here or it is lost.
+   */
   const handleSubmit = useCallback(() => {
     if (routine === undefined || !routineId) return;
+    if (isRenaming) commitRename();
     if (isCreateMode) {
       setActiveRoutine(routineId);
     }
     navigation.goBack();
-  }, [isCreateMode, navigation, routine, routineId, setActiveRoutine]);
+  }, [
+    commitRename,
+    isCreateMode,
+    isRenaming,
+    navigation,
+    routine,
+    routineId,
+    setActiveRoutine,
+  ]);
 
   const handleSelectDuration = useCallback(
     (minutes: number): void => {
@@ -238,17 +251,16 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
             <TextInput
               autoFocus
               onBlur={commitRename}
+              accessibilityLabel="Routine name"
               onChangeText={setNameDraft}
-              onFocus={() => setIsNameFocused(true)}
               onSubmitEditing={commitRename}
+              placeholder="Routine name"
+              placeholderTextColor={colors.textMuted}
               returnKeyType="done"
-              style={[
-                styles.nameInput,
-                isNameFocused ? styles.nameInputFocused : null,
-              ]}
+              style={styles.nameInput}
+              testID="routine-name-input"
               // Android's AppTheme paints `editTextBackground` (a native
-              // underline) behind every input; suppress it so the custom
-              // 1px rule below is the only line.
+              // underline) behind every input; the field has no line.
               underlineColorAndroid="transparent"
               value={nameDraft}
             />
@@ -271,7 +283,7 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
             style={styles.durationTarget}
             testID="routine-duration-target"
           >
-            <Text style={[styles.meta, styles.durationValue]}>
+            <Text style={styles.meta}>
               {`~${durationMinutes} min`}
             </Text>
           </Pressable>
@@ -288,6 +300,7 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
           <View style={styles.list}>
             {rows.map((row, index) => (
               <RoutineEditorRow
+                exerciseId={row.slot.exerciseId}
                 key={row.slot.exerciseId}
                 muscleGroup={row.muscleGroup}
                 name={row.name}
@@ -383,11 +396,6 @@ const styles = StyleSheet.create({
     padding: 0,
     color: colors.textPrimary,
   },
-  /** The custom underline appears only while the input holds focus. */
-  nameInputFocused: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.textPrimary,
-  },
 
   metaRow: {
     flexDirection: "row",
@@ -407,11 +415,6 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     marginVertical: (18 - 44) / 2,
-  },
-  durationValue: {
-    textDecorationLine: "underline",
-    textDecorationStyle: "dotted",
-    textDecorationColor: colors.textDivider,
   },
 
   list: { marginTop: spacing.xxxl },

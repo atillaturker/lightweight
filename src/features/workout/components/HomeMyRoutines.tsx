@@ -12,8 +12,10 @@
  * the screen suppresses when the next-session block already shows the same
  * CTA, so a screen never carries two primary create actions.
  *
- * At most three routines are shown; when more exist the header carries a
- * "See all" action that opens the full list. The rows are one short list
+ * At most three routines are shown. Whenever at least one exists the
+ * header carries a "See all" action that opens the full Routines list —
+ * that list is where further routines are created, so it must be
+ * reachable even with a single routine. The rows are one short list
  * group, so they sit in a single Card (DESIGN.md §7.2).
  */
 import React from "react";
@@ -94,7 +96,7 @@ export function HomeMyRoutines({
   testID,
 }: HomeMyRoutinesProps): React.ReactElement {
   const shown = routines.slice(0, HOME_ROUTINE_PREVIEW_LIMIT);
-  const showSeeAll = routines.length > HOME_ROUTINE_PREVIEW_LIMIT;
+  const showSeeAll = routines.length > 0;
 
   const seeAll = (
     <Pressable

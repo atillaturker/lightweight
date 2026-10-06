@@ -57,6 +57,15 @@ describe('createRoutine', () => {
     expect(routine.isArchived).toBe(false);
   });
 
+  it('numbers the default name so unnamed routines stay distinct', () => {
+    newRoutine();
+    const second = newRoutine();
+    const third = newRoutine();
+
+    expect(routineById(second).name).toBe(`${DEFAULT_ROUTINE_NAME} 2`);
+    expect(routineById(third).name).toBe(`${DEFAULT_ROUTINE_NAME} 3`);
+  });
+
   it('uses the provided name', () => {
     const id = newRoutine('Push Day');
 

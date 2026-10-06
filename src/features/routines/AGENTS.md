@@ -30,10 +30,10 @@ Routine CRUD and exercise picker. Three screens.
 - Exercise picker is PICKER MODE only in this feature. The same layout
   becomes Library mode when opened from Profile — different header,
   different tap behavior.
-- Every exercise has a pictogram. Pictograms are monoline SVG paths in
-  `src/components/MuscleIcon/`, keyed by the exercise's muscle group.
-  An exercise illustration (DESIGN.md §9) replaces the pictogram where
-  one exists. Never substitute with `@expo/vector-icons`.
+- Exercise rows in the picker and the routine editor lead with
+  `ExerciseThumb`: the exercise illustration (DESIGN.md §9), or an empty
+  tile when there is none. Do not fall back to the muscle icon there.
+  Never substitute with `@expo/vector-icons`.
 
 ## Set targets
 

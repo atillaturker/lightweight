@@ -103,16 +103,15 @@ export function RoutinesScreen({ navigation }: Props): React.ReactElement {
         )}
       </ScrollView>
 
-      {!isEmpty ? (
-        <View style={styles.footer}>
-          <Button
-            fullWidth
-            label="New routine"
-            onPress={() => openEditor()}
-            testID="routines-new"
-          />
-        </View>
-      ) : null}
+      {/* Always shown: this screen is where routines are created. */}
+      <View style={styles.footer}>
+        <Button
+          fullWidth
+          label="New routine"
+          onPress={() => openEditor()}
+          testID="routines-new"
+        />
+      </View>
 
       <RoutineActionSheet
         isActive={actionRoutine?.id === activeRoutineId}

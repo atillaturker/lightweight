@@ -136,7 +136,7 @@ const PickerRow = React.memo(function PickerRow({
         onPress={() => onToggle(exercise.id)}
         style={styles.row}
       >
-        <ExerciseThumb exercise={exercise} />
+        <ExerciseThumb exerciseId={exercise.id} />
         <View style={styles.textColumn}>
           <Text numberOfLines={1} style={styles.exerciseName}>
             {exercise.name}

@@ -310,7 +310,9 @@ with `textPrimary` so they work in both themes.
 - Every media set has a recorded license. Third-party media is used only
   under a license that permits commercial redistribution in an app, and
   its attribution is shown on Profile → App → Acknowledgements.
-- An exercise without media falls back to its muscle icon.
+- An exercise without media shows an empty tile in exercise lists (picker,
+  routine editor) — never a stand-in glyph. The Technique section is
+  omitted.
 
 ---
 
