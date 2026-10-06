@@ -30,7 +30,13 @@ import { getExerciseLibrary } from "@features/workout";
 import { useHistoryFilterStore } from "@features/history";
 import { gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
-import { ExerciseDeltaRow, PRStrip, ProgressBarChart, ProgressHero } from "../components";
+import {
+  ExerciseDeltaRow,
+  MuscleMapSection,
+  PRStrip,
+  ProgressBarChart,
+  ProgressHero,
+} from "../components";
 import { useProgressData } from "../hooks";
 import type {
   ProgressMetric,
@@ -268,6 +274,10 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
               <PRStrip count={data.prCount} onPress={openPRHistory} />
             </View>
           ) : null}
+
+          <View style={styles.section}>
+            <MuscleMapSection width={chartWidth} />
+          </View>
 
           {data.exerciseRows.length > 0 ? (
             <View style={styles.section}>

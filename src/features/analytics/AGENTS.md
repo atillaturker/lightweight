@@ -16,6 +16,17 @@ analytics-specific behavior.
   timed → "Longest hold" hero, Hold. The read model returns the metrics
   offered and the one shown; display text lives in
   `utils/exerciseDetailFormat.ts`.
+- Progress → "Muscles": the muscle map over the last week / month / 3
+  months. Load per region comes from `@domain/rules/muscles` (a working
+  set adds 1 to the exercise's target region, 0.5 to secondary ones;
+  custom exercises fall back to their muscle group). Shading is relative
+  to the most-trained region on the intensity scale; tapping a region
+  shows its exact sets above the map; untrained regions are listed
+  below. The figures are drawn for this app
+  (`src/components/BodyMap/bodyMapShapes.ts`) — never copy body artwork
+  from another project. The same `BodyMap` (display-only) shows "Muscles
+  worked" on the workout summary and a routine's planned load in the
+  routine editor.
 - The "Effort" metric (average RPE, `@domain/rules/effort.ts`) appears
   only once the exercise has a rated set. Unrated sets are skipped, never
   counted as zero.

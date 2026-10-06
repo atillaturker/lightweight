@@ -32,3 +32,5 @@ export type {
   ExerciseRecordType,
   RecentExerciseSet,
 } from './exerciseDetail';
+export { buildMuscleMap, MUSCLE_WINDOW_DAYS } from './muscleMap';
+export type { MuscleMapData, MuscleWindow } from './muscleMap';

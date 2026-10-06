@@ -39,3 +39,20 @@ export {
   isTimedSet,
   sideCount,
 } from './exerciseKind';
+export {
+  BODY_REGIONS,
+  calculateMuscleLoad,
+  emptyMuscleLoad,
+  exerciseRegions,
+  intensityLevels,
+  regionOfMuscle,
+  routineMuscleLoad,
+  SECONDARY_SHARE,
+  untrainedRegions,
+} from './muscles';
+export type {
+  BodyRegion,
+  ExerciseRegions,
+  IntensityLevel,
+  MuscleLoad,
+} from './muscles';

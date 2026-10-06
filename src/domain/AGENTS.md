@@ -7,7 +7,8 @@ libraries, no network, no I/O. Imported by every other layer.
 
 - `entities/` — Exercise, Workout, Set, Routine, User
 - `value-objects/` — Weight, Volume, E1RM
-- `rules/` — volume, pr, streak, e1rm, effort (RPE), delta calculations
+- `rules/` — volume, pr, streak, e1rm, effort (RPE), exercise kinds,
+  muscle regions/load, delta calculations
 
 ## Rules
 
