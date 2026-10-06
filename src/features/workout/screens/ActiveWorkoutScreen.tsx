@@ -35,10 +35,11 @@ import { Button } from '@components/Button';
 import { EmptyState } from '@components/EmptyState';
 import { gutter, spacing, type, createStyles } from '@theme';
 import { formatClock } from '@lib/format';
-import { supersetLabels } from '@features/routines';
+import { supersetLabels, useExerciseNoteStore } from '@features/routines';
 import type { TodayStackParamList } from '@/app/navigation/types';
 
 import { ExerciseBlock } from '../components/ExerciseBlock';
+import { ExerciseToolsSheet } from '../components/ExerciseToolsSheet';
 import { KeepScreenAwake } from '../components/KeepScreenAwake';
 import { ProgressLine } from '../components/ProgressLine';
 import { TODAY_HEADER_HEIGHT, TodayWorkoutHeader } from '../components/WorkoutHeaders';
@@ -100,6 +101,9 @@ export function ActiveWorkoutScreen({
   const rest = useRestTimerLine();
   const { finish, discard } = useWorkoutActions();
   const [isExitSheetOpen, setExitSheetOpen] = useState(false);
+  /** Exercise whose options sheet is open, or `null`. */
+  const [toolsExercise, setToolsExercise] = useState<ActiveExercise | null>(null);
+  const notes = useExerciseNoteStore((state) => state.notes);
 
   const isPreview = preview !== undefined;
   // Read per render: the preference lives in the profile feature and is
@@ -294,7 +298,8 @@ export function ActiveWorkoutScreen({
                 }
                 onAddSet={() => addSet(exercise.exerciseId)}
                 onFocusCell={handleFocusCell}
-                onPressMore={noop}
+                note={notes[exercise.exerciseId]?.text ?? null}
+                onPressMore={isPreview ? noop : () => setToolsExercise(exercise)}
                 onToggleComplete={handleToggleComplete}
                 registerRowRef={reveal.registerRowRef}
                 testID={`active-workout-block-${index}`}
@@ -320,11 +325,11 @@ export function ActiveWorkoutScreen({
         />
 
         {/*
-          The primary CTA is hidden while the exit sheet is open: the sheet
-          carries its own primary action, and a screen may only ever show
-          one.
+          The primary CTA is hidden while the exit or options sheet is
+          open: the sheet carries its own primary action, and a screen may
+          only ever show one.
         */}
-        {isExitSheetOpen ? null : (
+        {isExitSheetOpen || toolsExercise !== null ? null : (
           <View style={styles.footer}>
             <Button
               disabled={isCtaDisabled}
@@ -336,6 +341,8 @@ export function ActiveWorkoutScreen({
           </View>
         )}
       </KeyboardAvoidingView>
+
+      <ExerciseToolsSheet exercise={toolsExercise} onClose={() => setToolsExercise(null)} />
 
       {isExitSheetOpen ? (
         <ExitSheet

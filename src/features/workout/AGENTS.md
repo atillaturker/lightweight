@@ -95,6 +95,21 @@ the same group is logged round by round (A1 set 1, A2 set 1, A1 set 2…):
 starts rest only after the last member of a round. Blocks show "A1",
 "A2" before the title.
 
+## Exercise options
+
+A block's "⋯" opens `ExerciseToolsSheet`, which swaps between a menu and
+one panel in the same sheet. The primary CTA hides while the sheet is
+open, so there is still only one on screen.
+
+- **Plate calculator** (barbell exercises only): plates per side for
+  the next set's weight, from `calculatePlates`
+  (`@domain/rules/plates`). Works in the user's display unit with that
+  unit's standard plates and bars, since a gym stocks plates in one
+  unit. It only reads; it never changes a set.
+- **Note**: the exercise's note (`useExerciseNoteStore` from
+  `@features/routines`), shown as "Note · …" under the block title in
+  every session.
+
 ## Set model
 
 Set types: `normal | warmup | drop | failure`.

@@ -43,6 +43,8 @@ export interface ExerciseBlockProps {
   lastTimeLine: string | null;
   /** Why the sets are prescribed as they are (routine progression). */
   prescriptionLine?: string | null;
+  /** The user's note on this exercise, shown under the title. */
+  note?: string | null;
   /** Called when a numeric cell is pressed. */
   onFocusCell: (cell: FocusedCell) => void;
   /** Called when a set's check is pressed. */
@@ -101,6 +103,7 @@ export function ExerciseBlock({
   showRpe = false,
   lastTimeLine,
   prescriptionLine = null,
+  note = null,
   onFocusCell,
   onToggleComplete,
   onAddSet,
@@ -175,6 +178,11 @@ export function ExerciseBlock({
         </Pressable>
       )}
 
+      {note !== null ? (
+        <Text style={styles.note} testID={testID ? `${testID}-note` : undefined}>
+          {`Note · ${note}`}
+        </Text>
+      ) : null}
       {lastTimeLine !== null ? (
         <Text style={styles.lastTime}>{lastTimeLine}</Text>
       ) : null}
@@ -298,6 +306,13 @@ const useStyles = createStyles((colors) => ({
     color: colors.textMuted,
   },
   /** The progression reason, one step stronger than "last time". */
+  note: {
+    ...type.label,
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+    marginTop: spacing.xs,
+    color: colors.textBody,
+  },
   prescription: {
     ...type.label,
     fontSize: 13,
