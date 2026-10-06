@@ -62,6 +62,10 @@ export interface RoutineStore {
   seedFromTemplate: (template: RoutineTemplateId) => Routine;
   /** Replace the stored routines wholesale. */
   setRoutines: (routines: Routine[]) => void;
+  /** Append routines whose ids are not stored yet; returns those added. */
+  importRoutines: (routines: Routine[]) => Routine[];
+  /** Add one-off schedule changes for dates that have none; returns how many. */
+  importScheduleOverrides: (overrides: ScheduleOverrides) => number;
   /** Remove every stored routine. */
   clear: () => void;
   /** Create an empty routine with a default name. Returns the id. */
@@ -253,6 +257,22 @@ export const useRoutineStore = create<RoutineStore>()(
         return routine;
       },
       setRoutines: (routines) => set({ routines }),
+      importRoutines: (routines) => {
+        const known = new Set(get().routines.map((routine) => routine.id));
+        const added = routines.filter((routine) => {
+          if (known.has(routine.id)) return false;
+          known.add(routine.id);
+          return true;
+        });
+        if (added.length > 0) set((state) => ({ routines: [...state.routines, ...added] }));
+        return added;
+      },
+      importScheduleOverrides: (overrides) => {
+        const current = get().scheduleOverrides;
+        const fresh = Object.entries(overrides).filter(([key]) => !Object.prototype.hasOwnProperty.call(current, key));
+        if (fresh.length > 0) set({ scheduleOverrides: { ...current, ...Object.fromEntries(fresh) } });
+        return fresh.length;
+      },
       clear: () => set({ routines: [], activeRoutineId: null, scheduleOverrides: {} }),
       createRoutine: (name) => {
         const id = createCustomRoutineId();

@@ -6,12 +6,23 @@
  * on: the active routine has no "Set as active" action, and Delete always
  * asks for confirmation before removing anything.
  */
+const mockShareJsonFile = jest.fn<Promise<void>, [string, string, string]>(async () => undefined);
+jest.mock("@infrastructure/files", () => ({
+  shareJsonFile: (...args: [string, string, string]) => mockShareJsonFile(...args),
+  pickJsonFile: async () => null,
+}));
+
+jest.mock("react-native-mmkv", () => ({
+  createMMKV: () => ({ getString: () => undefined, set: () => undefined, remove: () => undefined }),
+}));
+
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import React from "react";
 import { Alert } from "react-native";
 
 import type { Routine } from "@domain/entities";
 
+import { useRoutineStore } from "../../store";
 import { RoutineActionSheet } from "../RoutineActionSheet";
 
 /** A minimal routine for the sheet to act on. */
@@ -81,5 +92,18 @@ describe("RoutineActionSheet", () => {
 
     expect(props.onDelete).toHaveBeenCalledWith(ROUTINE.id);
     alertSpy.mockRestore();
+  });
+
+  it("shares the routine as a routine file", () => {
+    useRoutineStore.setState({ routines: [ROUTINE] });
+    const props = makeProps(false);
+    render(<RoutineActionSheet {...props} />);
+
+    fireEvent.press(screen.getByTestId("routine-action-share"));
+
+    expect(props.onClose).toHaveBeenCalled();
+    const [fileName, contents] = mockShareJsonFile.mock.calls[0];
+    expect(fileName).toBe("upper-lower.routine.json");
+    expect(JSON.parse(contents)).toMatchObject({ format: "kinetic-routines", routines: [{ id: ROUTINE.id }] });
   });
 });

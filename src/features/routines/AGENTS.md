@@ -60,6 +60,16 @@ characters, removed when saved blank. Per account (`userScope.ts`) and
 local-only for now, like routines. Edited from Active Workout's
 exercise options.
 
+## Sharing routines
+
+"Share routine" in `RoutineActionSheet` writes a routine share file
+(`services/routineShare.ts`: the routine plus the custom exercises it
+uses) and opens the share sheet. Profile → Import data reads it back
+(`useRoutineTransfer().importRoutineData`): a routine is added only if
+its id is new, so re-importing is harmless. `parseRoutine` rebuilds
+routines from known fields only — use it for any routine read from a
+file.
+
 ## Progression
 
 A routine's `progression` (No progression / Linear / Double progression)

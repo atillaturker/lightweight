@@ -25,3 +25,16 @@ describe('setNote', () => {
     expect(useExerciseNoteStore.getState().notes.squat?.text).toHaveLength(EXERCISE_NOTE_MAX_LENGTH);
   });
 });
+
+describe('importNotes', () => {
+  it('takes a note only when it is newer than the stored one', () => {
+    useExerciseNoteStore.getState().setNote('bench-press', 'Seat 4', 10);
+    const count = useExerciseNoteStore.getState().importNotes({
+      'bench-press': { text: 'Seat 3', updatedAt: 5 },
+      squat: { text: 'Wide stance', updatedAt: 1 },
+    });
+    expect(count).toBe(1);
+    expect(useExerciseNoteStore.getState().notes['bench-press']?.text).toBe('Seat 4');
+    expect(useExerciseNoteStore.getState().notes.squat?.text).toBe('Wide stance');
+  });
+});

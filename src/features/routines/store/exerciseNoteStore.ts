@@ -27,12 +27,14 @@ export interface ExerciseNoteStore {
   notes: Record<string, ExerciseNote>;
   /** Save a note; blank text removes it. Text is trimmed and capped. */
   setNote: (exerciseId: string, text: string, now?: number) => void;
+  /** Merge notes from a backup, the newer edit winning; returns how many changed. */
+  importNotes: (notes: Record<string, ExerciseNote>) => number;
 }
 
 /** Persisted exercise notes. */
 export const useExerciseNoteStore = create<ExerciseNoteStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       notes: {},
       setNote: (exerciseId, text, now = Date.now()) =>
         set((state) => {
@@ -40,6 +42,14 @@ export const useExerciseNoteStore = create<ExerciseNoteStore>()(
           const { [exerciseId]: _removed, ...rest } = state.notes;
           return { notes: trimmed === '' ? rest : { ...rest, [exerciseId]: { text: trimmed, updatedAt: now } } };
         }),
+      importNotes: (notes) => {
+        const current = get().notes;
+        const newer = Object.entries(notes).filter(
+          ([exerciseId, note]) => note.text.trim() !== '' && note.updatedAt > (current[exerciseId]?.updatedAt ?? -1),
+        );
+        if (newer.length > 0) set({ notes: { ...current, ...Object.fromEntries(newer) } });
+        return newer.length;
+      },
     }),
     {
       name: EXERCISE_NOTES_STORE_KEY,
