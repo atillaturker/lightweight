@@ -61,6 +61,8 @@ export interface ExerciseBlockProps {
   readOnly?: boolean;
   /** One-line summary shown at the right of the title when `readOnly`. */
   summary?: string;
+  /** "A1", "A2"… when the exercise is part of a superset. */
+  supersetLabel?: string;
   /**
    * Registers the block's set rows for measurement, so the screen can scroll
    * the row being edited clear of the keyboard.
@@ -103,6 +105,7 @@ export function ExerciseBlock({
   onPressHeader,
   readOnly = false,
   summary,
+  supersetLabel,
   registerRowRef,
   testID,
 }: ExerciseBlockProps): React.ReactElement {
@@ -115,6 +118,14 @@ export function ExerciseBlock({
 
   const titleRow = (
     <>
+      {supersetLabel !== undefined ? (
+        <Text
+          style={styles.supersetLabel}
+          testID={testID ? `${testID}-superset` : undefined}
+        >
+          {supersetLabel}
+        </Text>
+      ) : null}
       <Text numberOfLines={1} style={styles.title}>
         {exercise.name}
       </Text>
@@ -248,6 +259,13 @@ const useStyles = createStyles((colors) => ({
   },
   badge: {
     marginRight: spacing.xs,
+  },
+  /** Superset position before the title, e.g. "A1". */
+  supersetLabel: {
+    ...type.label,
+    marginRight: spacing.sm,
+    fontVariant: ['tabular-nums'],
+    color: colors.textMuted,
   },
   /** Read-only right-aligned "<N> sets · <volume>" summary. */
   summary: {

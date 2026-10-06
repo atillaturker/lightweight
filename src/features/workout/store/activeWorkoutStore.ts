@@ -187,6 +187,7 @@ function buildExercises(
       measure: exercise.measure ?? 'reps',
       perSide: exercise.perSide === true,
       bodyweight: isBodyweightExercise(exercise),
+      ...(slot.supersetGroup !== undefined ? { supersetGroup: slot.supersetGroup } : {}),
     });
   }
   return blocks;

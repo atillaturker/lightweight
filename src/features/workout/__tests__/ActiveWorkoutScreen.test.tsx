@@ -287,3 +287,41 @@ describe('ActiveWorkoutScreen timed exercise', () => {
     expect(useActiveWorkoutStore.getState().exercises[0].sets[0].durationSec).toBe(45);
   });
 });
+
+describe('ActiveWorkoutScreen supersets', () => {
+  function seedSuperset(): void {
+    useActiveWorkoutStore.setState({
+      ...EMPTY_WORKOUT,
+      sessionId: 'session-1',
+      routineName: 'Push',
+      startedAt: 1,
+      exercises: [
+        { ...makeExercise('bench', [makeSet('a1', false), makeSet('a2', false)]), supersetGroup: 'A' },
+        { ...makeExercise('row', [makeSet('b1', false), makeSet('b2', false)]), supersetGroup: 'A' },
+      ],
+    });
+  }
+
+  it('labels the members A1 and A2', () => {
+    seedSuperset();
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    expect(screen.getByTestId('active-workout-block-0-superset')).toHaveTextContent('A1');
+    expect(screen.getByTestId('active-workout-block-1-superset')).toHaveTextContent('A2');
+  });
+
+  it('alternates members and rests only after the round', () => {
+    seedSuperset();
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    fireEvent.press(screen.getByTestId('active-workout-cta'));
+    const afterFirst = useActiveWorkoutStore.getState().exercises;
+    expect(afterFirst[0].sets[0].completed).toBe(true);
+    expect(afterFirst[0].sets[1].completed).toBe(false);
+    expect(screen.queryByTestId('active-workout-rest')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('active-workout-cta'));
+    expect(useActiveWorkoutStore.getState().exercises[1].sets[0].completed).toBe(true);
+    expect(screen.getByTestId('active-workout-rest')).toBeTruthy();
+  });
+});

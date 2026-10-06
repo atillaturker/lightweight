@@ -42,6 +42,11 @@ export interface ActiveExercise {
   perSide?: boolean;
   /** Weight is added load on top of bodyweight ("+kg"). */
   bodyweight?: boolean;
+  /**
+   * Superset letter from the routine slot. Consecutive blocks sharing it
+   * are logged round by round, with rest only after each round.
+   */
+  supersetGroup?: string;
 }
 
 /**
