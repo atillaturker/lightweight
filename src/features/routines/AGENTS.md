@@ -52,6 +52,14 @@ Routine CRUD and exercise picker. Three screens.
   (active custom exercises first, then built-ins) and `byId` (archived
   included). Never read `EXERCISE_LIBRARY` directly in a screen.
 
+## Exercise notes
+
+One note per exercise id (not per routine slot) in
+`useExerciseNoteStore`: trimmed, at most `EXERCISE_NOTE_MAX_LENGTH`
+characters, removed when saved blank. Per account (`userScope.ts`) and
+local-only for now, like routines. Edited from Active Workout's
+exercise options.
+
 ## Progression
 
 A routine's `progression` (No progression / Linear / Double progression)

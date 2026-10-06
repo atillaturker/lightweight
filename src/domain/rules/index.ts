@@ -101,3 +101,5 @@ export {
   weekPlan,
 } from './schedule';
 export type { PlannedDay, ScheduleOverrides } from './schedule';
+export { BAR_WEIGHTS, calculatePlates, STANDARD_PLATES } from './plates';
+export type { PlateLoad } from './plates';

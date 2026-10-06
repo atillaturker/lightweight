@@ -1,8 +1,8 @@
 /**
  * Keep every user-owned store scoped to the signed-in account.
  *
- * History, routines, the active workout and preferences are persisted per
- * uid (`<key>:<uid>`), so a sign-out followed by a different sign-in on the
+ * History, routines, exercise notes, the active workout and preferences
+ * are persisted per uid (`<key>:<uid>`), so a sign-out followed by a different sign-in on the
  * same device never shows or writes the previous account's data. Nothing
  * is deleted on sign-out: routines and an unfinished workout exist only on
  * the device, so the account keeps them for when it signs back in.
@@ -16,8 +16,10 @@ import { HISTORY_STORE_KEY, useHistoryFilterStore, useHistoryStore } from '@feat
 import { PREFERENCES_STORE_KEY, usePreferencesStore } from '@features/profile/store';
 import {
   CUSTOM_EXERCISES_STORE_KEY,
+  EXERCISE_NOTES_STORE_KEY,
   ROUTINES_STORE_KEY,
   useCustomExerciseStore,
+  useExerciseNoteStore,
   useRoutineStore,
 } from '@features/routines/store';
 import {
@@ -37,6 +39,7 @@ function applyUserScope(uid: string | null): void {
   switchPersistScope(useHistoryStore, HISTORY_STORE_KEY, scope, adopt);
   switchPersistScope(useRoutineStore, ROUTINES_STORE_KEY, scope, adopt);
   switchPersistScope(useCustomExerciseStore, CUSTOM_EXERCISES_STORE_KEY, scope, adopt);
+  switchPersistScope(useExerciseNoteStore, EXERCISE_NOTES_STORE_KEY, scope, adopt);
   switchPersistScope(useBodyWeightStore, BODY_WEIGHT_STORE_KEY, scope, adopt);
   switchPersistScope(useActiveWorkoutStore, ACTIVE_WORKOUT_STORE_KEY, scope, adopt);
   switchPersistScope(usePreferencesStore, PREFERENCES_STORE_KEY, scope, adopt);

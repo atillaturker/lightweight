@@ -47,8 +47,11 @@ import type { Workout } from '@domain/entities';
 import type { TodayStackParamList } from '@/app/navigation/types';
 
 import { ActiveWorkoutScreen } from '../screens/ActiveWorkoutScreen';
+import { useExerciseNoteStore } from '@features/routines';
+
 import {
   resetSessionDataProviders,
+  setExerciseLibraryProvider,
   setRestTimerSecondsProvider,
   setRpeEnabledProvider,
 } from '../services';
@@ -104,6 +107,7 @@ beforeEach(() => {
   replace.mockClear();
   useActiveWorkoutStore.setState({ ...EMPTY_WORKOUT });
   useLastSessionStore.setState({ lastSession: null });
+  useExerciseNoteStore.setState({ notes: {} });
 });
 
 afterEach(() => {
@@ -345,5 +349,68 @@ describe('ActiveWorkoutScreen progression', () => {
     expect(screen.getByTestId('active-workout-block-0-prescription')).toHaveTextContent(
       'Next · +2.5 kg: every rep hit last time',
     );
+  });
+});
+
+describe('ActiveWorkoutScreen exercise tools', () => {
+  /** Register a library where `bench` is a barbell lift. */
+  function barbellLibrary(): void {
+    setExerciseLibraryProvider(() => [
+      {
+        id: 'bench',
+        name: 'Bench',
+        muscleGroup: 'chest',
+        equipment: 'barbell',
+        pictogramId: 'bench',
+        isCustom: false,
+        isArchived: false,
+        createdAt: 0,
+      },
+    ]);
+  }
+
+  it('saves a note from the options sheet and shows it on the block', () => {
+    seedSession([makeSet('s1', false)]);
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    fireEvent.press(screen.getByTestId('active-workout-block-0-more'));
+    fireEvent.press(screen.getByTestId('exercise-tools-note'));
+    fireEvent.changeText(screen.getByTestId('exercise-note-input'), 'Seat 4');
+    fireEvent.press(screen.getByTestId('exercise-note-save'));
+
+    expect(useExerciseNoteStore.getState().notes.bench?.text).toBe('Seat 4');
+    expect(screen.getByTestId('active-workout-block-0-note')).toHaveTextContent('Note · Seat 4');
+  });
+
+  it('hides the primary CTA while the options sheet is open', () => {
+    seedSession([makeSet('s1', false)]);
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    fireEvent.press(screen.getByTestId('active-workout-block-0-more'));
+
+    expect(screen.queryByTestId('active-workout-cta')).toBeNull();
+  });
+
+  it('offers the plate calculator only for a barbell lift', () => {
+    seedSession([makeSet('s1', false)]);
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+    fireEvent.press(screen.getByTestId('active-workout-block-0-more'));
+
+    expect(screen.queryByTestId('exercise-tools-plates')).toBeNull();
+  });
+
+  it('breaks the set weight into plates per side', () => {
+    barbellLibrary();
+    seedSession([makeSet('s1', false)]);
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    fireEvent.press(screen.getByTestId('active-workout-block-0-more'));
+    fireEvent.press(screen.getByTestId('exercise-tools-plates'));
+
+    expect(screen.getByTestId('plate-calculator-target')).toHaveTextContent('60 kg');
+    expect(screen.getByTestId('plate-calculator-per-side')).toHaveTextContent('Per side · 20 kg');
+
+    fireEvent.press(screen.getByTestId('plate-calculator-increase'));
+    expect(screen.getByTestId('plate-calculator-per-side')).toHaveTextContent('Per side · 20 + 1.25 kg');
   });
 });
