@@ -3,6 +3,7 @@ export {
   EMPTY_WORKOUT,
   countCompletedSets,
   countTotalSets,
+  toDomainSet,
   toDomainSets,
   useActiveWorkoutStore,
 } from './activeWorkoutStore';

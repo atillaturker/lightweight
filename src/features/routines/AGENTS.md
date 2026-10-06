@@ -37,7 +37,8 @@ Routine CRUD and exercise picker. Three screens.
 
 ## Set targets
 
-Target format: `<sets> × <reps>`. Freeform. Only a suggestion — Active
+Target format: `<sets> × <reps>`; timed exercises use `<sets> × <seconds>s`
+(`RoutineExercise.targetSeconds`) and per-side ones `<sets> × <reps> / side`. Freeform. Only a suggestion — Active
 Workout does not enforce it.
 
 ## Do not

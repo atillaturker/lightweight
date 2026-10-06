@@ -18,7 +18,19 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { createId } from '@lib/id';
 
-import type { Exercise, Routine, Set, SetType, Workout } from '@domain/entities';
+import type {
+  Exercise,
+  Routine,
+  RoutineExercise,
+  Set,
+  SetType,
+  Workout,
+} from '@domain/entities';
+import {
+  DEFAULT_HOLD_SECONDS,
+  isBodyweightExercise,
+  isTimedExercise,
+} from '@domain/rules';
 import { getExerciseHistory } from '@features/workout/services';
 import { zustandStorage } from '@infrastructure/storage';
 
@@ -107,11 +119,29 @@ interface SeedSet {
   weightKg: number;
   reps: number;
   type: SetType;
+  durationSec?: number;
 }
 
 /** Convert a historical domain set into the seed for a new active set. */
 function toSeed(set: Set): SeedSet {
-  return { weightKg: set.weightKg, reps: set.reps, type: set.type };
+  return { weightKg: set.weightKg, reps: set.reps, type: set.type, durationSec: set.durationSec };
+}
+
+/**
+ * A fresh, not-yet-completed set for an exercise. Timed exercises log
+ * seconds (reps stay 0); everything else logs reps.
+ */
+function newActiveSet(seed: SeedSet | undefined, timed: boolean, holdSeconds: number): ActiveSet {
+  const base: ActiveSet = {
+    id: createId(),
+    weightKg: seed?.weightKg ?? FALLBACK_WEIGHT_KG,
+    reps: timed ? 0 : (seed?.reps ?? FALLBACK_REPS),
+    type: seed?.type ?? 'normal',
+    completed: false,
+    completedAt: null,
+    isPR: false,
+  };
+  return timed ? { ...base, durationSec: seed?.durationSec ?? holdSeconds } : base;
 }
 
 /**
@@ -119,23 +149,16 @@ function toSeed(set: Set): SeedSet {
  * routine inherit the previous set's values, so only the first seed needs
  * to come from history.
  */
-function buildInitialSets(exerciseId: string, targetSets: number): ActiveSet[] {
-  const history = getExerciseHistory(exerciseId);
+function buildInitialSets(exercise: Exercise, slot: RoutineExercise): ActiveSet[] {
+  const history = getExerciseHistory(exercise.id);
   const seeds = history.length > 0 ? history.map(toSeed) : [];
-  const setCount = Math.max(targetSets, 1);
+  const setCount = Math.max(slot.targetSets, 1);
+  const timed = isTimedExercise(exercise);
+  const holdSeconds = slot.targetSeconds ?? DEFAULT_HOLD_SECONDS;
 
-  return Array.from({ length: setCount }, (_, index) => {
-    const seed = seeds[index] ?? seeds.at(-1);
-    return {
-      id: createId(),
-      weightKg: seed?.weightKg ?? FALLBACK_WEIGHT_KG,
-      reps: seed?.reps ?? FALLBACK_REPS,
-      type: seed?.type ?? 'normal',
-      completed: false,
-      completedAt: null,
-      isPR: false,
-    };
-  });
+  return Array.from({ length: setCount }, (_, index) =>
+    newActiveSet(seeds[index] ?? seeds.at(-1), timed, holdSeconds),
+  );
 }
 
 /**
@@ -160,7 +183,10 @@ function buildExercises(
       name: exercise.name,
       pictogramId: exercise.pictogramId,
       order: blocks.length,
-      sets: buildInitialSets(exercise.id, slot.targetSets),
+      sets: buildInitialSets(exercise, slot),
+      measure: exercise.measure ?? 'reps',
+      perSide: exercise.perSide === true,
+      bodyweight: isBodyweightExercise(exercise),
     });
   }
   return blocks;
@@ -192,30 +218,41 @@ export function countCompletedSets(exercises: ActiveExercise[]): number {
   );
 }
 
+/**
+ * Convert one active set into a domain set. The single conversion used by
+ * both PR detection and finishing, so new set fields cannot drift apart.
+ */
+export function toDomainSet(
+  set: ActiveSet,
+  block: Pick<ActiveExercise, 'exerciseId' | 'perSide'>,
+  workoutId: string,
+  order: number,
+): Set {
+  return {
+    id: set.id,
+    exerciseId: block.exerciseId,
+    workoutId,
+    weightKg: set.weightKg,
+    reps: set.reps,
+    type: set.type,
+    completed: set.completed,
+    rpe: set.rpe,
+    completedAt: set.completedAt,
+    order,
+    isPR: set.isPR,
+    ...(set.durationSec !== undefined ? { durationSec: set.durationSec } : {}),
+    ...(block.perSide === true ? { perSide: true } : {}),
+  };
+}
+
 /** Flatten the active session into domain sets for the finished workout. */
 export function toDomainSets(
   sessionId: string,
   exercises: ActiveExercise[],
 ): Set[] {
-  const sets: Set[] = [];
-  for (const block of exercises) {
-    block.sets.forEach((set, index) => {
-      sets.push({
-        id: set.id,
-        exerciseId: block.exerciseId,
-        workoutId: sessionId,
-        weightKg: set.weightKg,
-        reps: set.reps,
-        type: set.type,
-        completed: set.completed,
-        rpe: set.rpe,
-        completedAt: set.completedAt,
-        order: index,
-        isPR: set.isPR,
-      });
-    });
-  }
-  return sets;
+  return exercises.flatMap((block) =>
+    block.sets.map((set, index) => toDomainSet(set, block, sessionId, index)),
+  );
 }
 
 /** Read the persisted slice of the store, or the empty session. */
@@ -303,17 +340,8 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           exercises: patchExerciseSets(state.exercises, exerciseId, (sets) => {
             const last = sets.at(-1);
             if (last === undefined) {
-              return [
-                {
-                  id: createId(),
-                  weightKg: FALLBACK_WEIGHT_KG,
-                  reps: FALLBACK_REPS,
-                  type: 'normal' as SetType,
-                  completed: false,
-                  completedAt: null,
-                  isPR: false,
-                },
-              ];
+              const block = state.exercises.find((entry) => entry.exerciseId === exerciseId);
+              return [newActiveSet(undefined, block?.measure === 'time', DEFAULT_HOLD_SECONDS)];
             }
             return [
               ...sets,

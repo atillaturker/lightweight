@@ -262,3 +262,28 @@ describe('ActiveWorkoutScreen keep awake', () => {
     expect(mockUseKeepAwake).not.toHaveBeenCalled();
   });
 });
+
+describe('ActiveWorkoutScreen timed exercise', () => {
+  it('logs a hold length in the Time column', () => {
+    const plank = {
+      ...makeExercise('plank', [{ ...makeSet('h1', false), reps: 0, durationSec: 30 }]),
+      measure: 'time' as const,
+    };
+    useActiveWorkoutStore.setState({
+      ...EMPTY_WORKOUT,
+      sessionId: 'session-1',
+      routineName: 'Core',
+      startedAt: 1,
+      exercises: [plank],
+    });
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    expect(screen.getByText('Time')).toBeTruthy();
+    expect(screen.getByText('0:30')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('active-workout-block-0-set-0-reps'));
+    fireEvent.changeText(screen.getByTestId('active-workout-input'), '3045');
+    fireEvent(screen.getByTestId('active-workout-input'), 'submitEditing');
+
+    expect(useActiveWorkoutStore.getState().exercises[0].sets[0].durationSec).toBe(45);
+  });
+});

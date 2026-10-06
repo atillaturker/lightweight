@@ -1,6 +1,9 @@
 import type { Exercise } from '../entities/Exercise';
 import type { Set } from '../entities/Set';
 
+/** Hold length a timed set starts from when nothing else suggests one. */
+export const DEFAULT_HOLD_SECONDS = 30;
+
 /** Whether sets of the exercise are measured in seconds held. */
 export function isTimedExercise(exercise: Pick<Exercise, 'measure'>): boolean {
   return exercise.measure === 'time';

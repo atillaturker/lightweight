@@ -23,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import { DEFAULT_HOLD_SECONDS } from "@domain/rules";
 import { Button } from "@components/Button";
 import { ScreenHeader } from "@components/ScreenHeader";
 import { emptyStatePadding, fineSpacing, gutter, spacing, type, createStyles, useTheme } from "@theme";
@@ -44,7 +45,9 @@ interface TargetEditing {
   exerciseId: string;
   name: string;
   sets: number;
+  /** Reps, or seconds for a timed exercise. */
   reps: number;
+  measure: "reps" | "time";
 }
 
 /** 44px back chevron, matching the shared header geometry. */
@@ -101,6 +104,9 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
 
   const updateExerciseTarget = useRoutineStore(
     (state) => state.updateExerciseTarget,
+  );
+  const updateExerciseTimeTarget = useRoutineStore(
+    (state) => state.updateExerciseTimeTarget,
   );
   const setRoutineDuration = useRoutineStore(
     (state) => state.setRoutineDuration,
@@ -161,6 +167,13 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
         slot,
         name: exercise?.name ?? slot.exerciseId,
         muscleGroup: exercise?.muscleGroup,
+        measure: exercise?.measure ?? "reps",
+        perSide: exercise?.perSide ?? false,
+        // A timed slot's second target is seconds, not reps.
+        targetValue:
+          exercise?.measure === "time"
+            ? (slot.targetSeconds ?? DEFAULT_HOLD_SECONDS)
+            : slot.targetReps,
       };
     });
   }, [routine]);
@@ -312,11 +325,14 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
                     exerciseId: row.slot.exerciseId,
                     name: row.name,
                     sets: row.slot.targetSets,
-                    reps: row.slot.targetReps,
+                    reps: row.targetValue,
+                    measure: row.measure,
                   })
                 }
+                measure={row.measure}
+                perSide={row.perSide}
                 showDivider={index > 0}
-                targetReps={row.slot.targetReps}
+                targetReps={row.targetValue}
                 targetSets={row.slot.targetSets}
               />
             ))}
@@ -356,11 +372,13 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
         exerciseName={targetEditing?.name ?? ""}
         initialReps={targetEditing?.reps ?? 0}
         initialSets={targetEditing?.sets ?? 0}
+        measure={targetEditing?.measure ?? "reps"}
         onClose={() => setTargetEditing(null)}
-        onConfirm={(sets, reps) => {
-          if (targetEditing && routineId) {
-            updateExerciseTarget(routineId, targetEditing.exerciseId, sets, reps);
-          }
+        onConfirm={(sets, value) => {
+          if (!targetEditing || !routineId) return;
+          const update =
+            targetEditing.measure === "time" ? updateExerciseTimeTarget : updateExerciseTarget;
+          update(routineId, targetEditing.exerciseId, sets, value);
         }}
         onRemove={() => {
           if (targetEditing && routineId) {

@@ -287,3 +287,23 @@ describe('updateExerciseTarget', () => {
     });
   });
 });
+
+describe('updateExerciseTimeTarget', () => {
+  it('sets sets and seconds on a timed slot', () => {
+    const id = newRoutine();
+    useRoutineStore.getState().addExercisesToRoutine(id, ['weighted-front-plank']);
+
+    useRoutineStore.getState().updateExerciseTimeTarget(id, 'weighted-front-plank', 4, 45);
+
+    expect(routineById(id).exercises[0]).toMatchObject({ targetSets: 4, targetSeconds: 45 });
+  });
+
+  it('ignores an exercise that is not in the routine', () => {
+    const id = newRoutine();
+    const before = routineById(id);
+
+    useRoutineStore.getState().updateExerciseTimeTarget(id, 'missing', 4, 45);
+
+    expect(routineById(id)).toEqual(before);
+  });
+});

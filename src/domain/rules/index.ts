@@ -33,6 +33,7 @@ export {
   RPE_STEP,
 } from './effort';
 export {
+  DEFAULT_HOLD_SECONDS,
   isBodyweightExercise,
   isTimedExercise,
   isTimedSet,

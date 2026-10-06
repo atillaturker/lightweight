@@ -391,6 +391,8 @@ function cellValue(set: ActiveSet, field: NumericField): number | undefined {
       return set.weightKg;
     case 'reps':
       return set.reps;
+    case 'duration':
+      return set.durationSec;
     case 'rpe':
       return set.rpe;
   }
@@ -403,6 +405,8 @@ function cellPatch(field: NumericField, value: number): Partial<ActiveSet> {
       return { weightKg: value };
     case 'reps':
       return { reps: value };
+    case 'duration':
+      return { durationSec: value };
     case 'rpe':
       return { rpe: value };
   }

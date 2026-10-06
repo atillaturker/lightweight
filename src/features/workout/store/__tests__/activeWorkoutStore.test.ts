@@ -32,7 +32,7 @@ jest.mock('@lib/id', () => ({
 
 import type { Exercise, Routine } from '@domain/entities';
 
-import { EMPTY_WORKOUT, useActiveWorkoutStore } from '../activeWorkoutStore';
+import { EMPTY_WORKOUT, toDomainSets, useActiveWorkoutStore } from '../activeWorkoutStore';
 
 /** Build a routine with one slot per provided exercise id. */
 function makeRoutine(exerciseIds: string[]): Routine {
@@ -324,5 +324,55 @@ describe('persist', () => {
     expect(state.exercises).toHaveLength(1);
     // Transient fields are not restored — the rest, if any, already elapsed.
     expect(state.isResting).toBe(false);
+  });
+});
+
+describe('timed, per-side and bodyweight exercises', () => {
+  const plank: Exercise = {
+    ...makeExercise('plank', 'Plank'),
+    equipment: 'bodyweight',
+    measure: 'time',
+  };
+  const row: Exercise = { ...makeExercise('row', 'One Arm Row'), perSide: true };
+
+  it('seeds a timed block in seconds from the routine target', () => {
+    const routine = makeRoutine(['plank']);
+    routine.exercises[0].targetSeconds = 45;
+
+    useActiveWorkoutStore.getState().startWorkout(routine, [plank]);
+
+    const [block] = useActiveWorkoutStore.getState().exercises;
+    expect(block.measure).toBe('time');
+    expect(block.bodyweight).toBe(true);
+    expect(block.sets[0]).toMatchObject({ reps: 0, durationSec: 45, weightKg: 0 });
+  });
+
+  it('falls back to a 30 second hold without a target', () => {
+    useActiveWorkoutStore.getState().startWorkout(makeRoutine(['plank']), [plank]);
+    expect(useActiveWorkoutStore.getState().exercises[0].sets[0].durationSec).toBe(30);
+  });
+
+  it('carries durationSec and perSide into the finished sets', () => {
+    useActiveWorkoutStore.getState().startWorkout(makeRoutine(['plank', 'row']), [plank, row]);
+    const { exercises } = useActiveWorkoutStore.getState();
+
+    const sets = toDomainSets('session', exercises);
+
+    expect(sets.find((set) => set.exerciseId === 'plank')).toMatchObject({ durationSec: 30 });
+    expect(sets.find((set) => set.exerciseId === 'row')).toMatchObject({ perSide: true });
+    expect(sets.find((set) => set.exerciseId === 'row')?.durationSec).toBeUndefined();
+  });
+
+  it('adds a timed set to an empty timed block', () => {
+    useActiveWorkoutStore.getState().startWorkout(makeRoutine(['plank']), [plank]);
+    const block = useActiveWorkoutStore.getState().exercises[0];
+    useActiveWorkoutStore.setState({ exercises: [{ ...block, sets: [] }] });
+
+    useActiveWorkoutStore.getState().addSet('plank');
+
+    expect(useActiveWorkoutStore.getState().exercises[0].sets[0]).toMatchObject({
+      reps: 0,
+      durationSec: 30,
+    });
   });
 });

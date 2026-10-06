@@ -67,6 +67,13 @@ export interface RoutineStore {
   /** Move an exercise within the routine's list. */
   reorderExercise: (routineId: string, fromIndex: number, toIndex: number) => void;
   /** Update the target sets/reps for one exercise in one routine. */
+  /** Set a timed slot's suggested `sets × seconds`. */
+  updateExerciseTimeTarget: (
+    routineId: string,
+    exerciseId: string,
+    targetSets: number,
+    targetSeconds: number,
+  ) => void;
   updateExerciseTarget: (
     routineId: string,
     exerciseId: string,
@@ -91,6 +98,26 @@ export function defaultRoutineName(routines: Routine[]): string {
   let n = 2;
   while (taken.has(`${DEFAULT_ROUTINE_NAME} ${n}`)) n += 1;
   return `${DEFAULT_ROUTINE_NAME} ${n}`;
+}
+
+/**
+ * Patch one slot of one routine; returns the list unchanged when either
+ * is missing.
+ */
+function patchSlot(
+  routines: Routine[],
+  routineId: string,
+  exerciseId: string,
+  patch: Partial<RoutineExercise>,
+): Routine[] {
+  const target = routines.find((routine) => routine.id === routineId);
+  if (!target?.exercises.some((entry) => entry.exerciseId === exerciseId)) {
+    return routines;
+  }
+  const exercises = target.exercises.map((entry) =>
+    entry.exerciseId === exerciseId ? { ...entry, ...patch } : entry,
+  );
+  return patchRoutine(routines, routineId, { exercises });
 }
 
 function createRoutineId(source: string): string {
@@ -269,6 +296,13 @@ export const useRoutineStore = create<RoutineStore>()(
             }),
           };
         }),
+      updateExerciseTimeTarget: (routineId, exerciseId, targetSets, targetSeconds) =>
+        set((state) => ({
+          routines: patchSlot(state.routines, routineId, exerciseId, {
+            targetSets,
+            targetSeconds,
+          }),
+        })),
       updateExerciseTarget: (routineId, exerciseId, targetSets, targetReps) =>
         set((state) => {
           const target = state.routines.find((r) => r.id === routineId);
