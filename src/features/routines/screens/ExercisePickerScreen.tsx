@@ -11,14 +11,15 @@
  * the detail route it should push does not exist yet.
  *
  * The library holds over a thousand exercises, so the list is a
- * virtualized FlatList and each row is memoized.
+ * virtualized FlatList and each row is memoized. Filtering (search, one
+ * muscle group, any number of equipment types) lives in
+ * `utils/exerciseFilter`.
  */
 import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
@@ -30,27 +31,37 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
 import { ScreenHeader } from "@components/ScreenHeader";
-import type { Exercise, MuscleGroup as DomainMuscleGroup } from "@domain/entities";
+import type { Equipment, Exercise, MuscleGroup as DomainMuscleGroup } from "@domain/entities";
 import { emptyStatePadding, fineSpacing, gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
 import { ExerciseThumb } from "../components/ExerciseThumb";
+import { FilterChips } from "../components/FilterChips";
 import { EXERCISE_LIBRARY } from "../services";
 import { useRoutineStore } from "../store";
+import {
+  EQUIPMENT_OPTIONS,
+  filterExercises,
+  toggleEquipment,
+  visibleEquipment,
+  type ExerciseFilter,
+} from "../utils";
 
 import type { TodayStackParamList } from "@/app/navigation/types";
 
 type Props = NativeStackScreenProps<TodayStackParamList, "ExercisePicker">;
 
-/** Filter chips, in display order. `null` is the "All" chip. */
-const FILTERS: readonly { label: string; group: DomainMuscleGroup | null }[] = [
-  { label: "All", group: null },
-  { label: "Chest", group: "chest" },
-  { label: "Back", group: "back" },
-  { label: "Shoulders", group: "shoulders" },
-  { label: "Arms", group: "arms" },
-  { label: "Legs", group: "legs" },
-  { label: "Core", group: "core" },
+/** Muscle-group chips, in display order. `all` clears the group. */
+const GROUP_CHIPS: readonly { key: DomainMuscleGroup | "all"; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "chest", label: "Chest" },
+  { key: "back", label: "Back" },
+  { key: "shoulders", label: "Shoulders" },
+  { key: "arms", label: "Arms" },
+  { key: "legs", label: "Legs" },
+  { key: "core", label: "Core" },
 ];
+
+const EQUIPMENT_LABELS = new Map(EQUIPMENT_OPTIONS.map((o) => [o.value, o.label]));
 
 /** Magnifier glyph for the search field. */
 function SearchGlyph(): React.ReactElement {
@@ -182,25 +193,24 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
 
   const [query, setQuery] = useState("");
   const [groupFilter, setGroupFilter] = useState<DomainMuscleGroup | null>(null);
+  const [equipment, setEquipment] = useState<ReadonlySet<Equipment>>(() => new Set());
   const [selectedIds, setSelectedIds] = useState<string[]>(
     () => route.params.preselectedIds ?? [],
   );
 
-  const rows = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-
-    return EXERCISE_LIBRARY.filter((exercise) => {
-      if (groupFilter !== null && exercise.muscleGroup !== groupFilter) {
-        return false;
-      }
-      if (needle === "") return true;
-      return (
-        exercise.name.toLowerCase().includes(needle) ||
-        exercise.equipment.toLowerCase().includes(needle) ||
-        (exercise.targetMuscle?.toLowerCase().includes(needle) ?? false)
-      );
-    });
-  }, [groupFilter, query]);
+  const filter = useMemo(
+    (): ExerciseFilter => ({ query, group: groupFilter, equipment }),
+    [equipment, groupFilter, query],
+  );
+  const rows = useMemo(() => filterExercises(EXERCISE_LIBRARY, filter), [filter]);
+  const equipmentChips = useMemo(
+    () =>
+      visibleEquipment(EXERCISE_LIBRARY, filter).map((value) => ({
+        key: value,
+        label: EQUIPMENT_LABELS.get(value) ?? value,
+      })),
+    [filter],
+  );
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
@@ -281,31 +291,22 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
       </View>
 
       <View style={styles.chips}>
-        <ScrollView
-          contentContainerStyle={styles.chipsContent}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {FILTERS.map((filter) => {
-            const selected = filter.group === groupFilter;
-            return (
-              <Pressable
-                accessibilityLabel={filter.label}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                key={filter.label}
-                onPress={() => setGroupFilter(filter.group)}
-                style={[styles.chip, selected ? styles.chipSelected : styles.chipIdle]}
-              >
-                <Text
-                  style={[styles.chipLabel, selected && styles.chipLabelSelected]}
-                >
-                  {filter.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <FilterChips
+          accessibilityLabel="Muscle group"
+          isSelected={(key) => (key === "all" ? groupFilter === null : key === groupFilter)}
+          onPress={(key) => setGroupFilter(key === "all" ? null : key)}
+          options={GROUP_CHIPS}
+          testID="exercise-picker-groups"
+        />
+      </View>
+      <View style={styles.chipsSecondRow}>
+        <FilterChips
+          accessibilityLabel="Equipment"
+          isSelected={(key) => equipment.has(key)}
+          onPress={(key) => setEquipment((current) => toggleEquipment(current, key))}
+          options={equipmentChips}
+          testID="exercise-picker-equipment"
+        />
       </View>
 
       <FlatList
@@ -362,38 +363,9 @@ const useStyles = createStyles((colors) => ({
   },
 
   chips: { marginTop: spacing.lg },
-  chipsContent: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    paddingHorizontal: gutter,
-  },
-  chip: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 32,
-    paddingHorizontal: fineSpacing.loose,
-    borderRadius: radii.pill,
-  },
-  chipIdle: {
-    backgroundColor: colors.canvas,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  chipSelected: {
-    backgroundColor: colors.canvas,
-    borderWidth: 1,
-    borderColor: colors.accent,
-  },
-  chipLabel: {
-    ...type.label,
-    color: colors.textBody,
-  },
-  chipLabelSelected: {
-    ...type.label,
-    color: colors.accent,
-  },
+  chipsSecondRow: { marginTop: spacing.sm },
 
-  listScroll: { flex: 1, marginTop: spacing.xxl },
+  listScroll: { flex: 1, marginTop: spacing.lg },
   rowHairline: {
     height: 1,
     marginHorizontal: gutter,

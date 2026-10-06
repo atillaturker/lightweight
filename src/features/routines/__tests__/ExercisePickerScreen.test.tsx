@@ -38,6 +38,24 @@ describe("ExercisePickerScreen", () => {
     expect(screen.getAllByText(/^Core · /).length).toBeGreaterThan(0);
   });
 
+  it("narrows the list to the selected equipment", () => {
+    renderPicker();
+    fireEvent.press(screen.getByTestId("exercise-picker-equipment-barbell"));
+
+    expect(screen.getByRole("button", { name: "Bench Press" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Push-up" })).toBeNull();
+  });
+
+  it("combines several equipment types", () => {
+    renderPicker();
+    fireEvent.press(screen.getByTestId("exercise-picker-equipment-barbell"));
+    fireEvent.press(screen.getByTestId("exercise-picker-equipment-bodyweight"));
+
+    expect(screen.getByRole("button", { name: "Bench Press" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Push-up" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Dumbbell Fly" })).toBeNull();
+  });
+
   it("finds exercises by their target muscle", () => {
     renderPicker();
     fireEvent.changeText(screen.getByLabelText("Search exercises"), "lats");
