@@ -71,3 +71,13 @@ export type {
   ProgressionKind,
   ProgressionPolicy,
 } from './progression';
+export {
+  ACTIVITY_THRESHOLDS,
+  activityLevel,
+  addDays,
+  dailyActivityMinutes,
+  dayKey,
+  startOfDay,
+  UNFINISHED_SESSION_MINUTES,
+} from './activity';
+export type { ActivityLevel } from './activity';

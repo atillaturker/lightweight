@@ -29,6 +29,7 @@ import { useHistoryFilterStore } from "@features/history";
 import { gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
 import {
+  ActivitySection,
   ExerciseDeltaRow,
   MuscleMapSection,
   PRStrip,
@@ -273,6 +274,10 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
               <PRStrip count={data.prCount} onPress={openPRHistory} />
             </View>
           ) : null}
+
+          <View style={styles.section}>
+            <ActivitySection width={chartWidth} />
+          </View>
 
           <View style={styles.section}>
             <MuscleMapSection width={chartWidth} />

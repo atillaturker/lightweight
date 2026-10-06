@@ -19,6 +19,11 @@ analytics-specific behavior.
 - Progress → "By exercise": rows lead with the exercise tile; "Sort"
   cycles Improved → Volume → A–Z (`utils/exerciseSort`). The accent
   micro-bar marks the fastest-improving lift whatever the order.
+- Progress → "Activity": calendar heatmap, Monday-first week columns,
+  as many weeks as fit (≤ 53). Shades use fixed minute thresholds
+  (`@domain/rules/activity`: < 30, < 60, < 90, ≥ 90 min) so a colour
+  means the same all year; days are local calendar days (DST-safe).
+  Tapping a day shows its date, minutes and sessions above the grid.
 - Progress → "Muscles": the muscle map over the last week / month / 3
   months. Load per region comes from `@domain/rules/muscles` (a working
   set adds 1 to the exercise's target region, 0.5 to secondary ones;
