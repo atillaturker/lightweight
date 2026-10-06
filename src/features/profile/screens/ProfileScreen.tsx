@@ -8,11 +8,11 @@
  * The rest duration is read by the workout feature through its provider
  * seam, so changing it here changes the next set's rest timer.
  *
- * Export, import, and delete-all are placeholders for this batch: there is
- * no workout data source yet, so they do not move real data.
+ * The Data rows export a JSON backup, import a backup or shared routine
+ * file, and delete every workout (`useDataActions`).
  */
 import React, { useCallback, useState } from "react";
-import { Alert, ScrollView } from "react-native";
+import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -30,6 +30,7 @@ import {
   type OptionSheetOption,
 } from "../components";
 import { APP_VERSION, REST_TIMER_SECONDS_OPTIONS } from "../config";
+import { useDataActions } from "../hooks";
 import { useAppearanceStore, usePreferencesStore } from "../store";
 
 import type { ProfileStackParamList } from "@/app/navigation/types";
@@ -110,12 +111,7 @@ export function ProfileScreen({ navigation }: Props): React.ReactElement {
   const [openSheet, setOpenSheet] = useState<SheetKind | null>(null);
   const closeSheet = useCallback(() => setOpenSheet(null), []);
 
-  const handleDeleteAll = useCallback((): void => {
-    Alert.alert("Delete all workouts?", "This cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => undefined },
-    ]);
-  }, []);
+  const { onExport, onImport, onDeleteAll } = useDataActions();
 
   return (
     <SafeAreaView edges={["top"]} style={styles.container}>
@@ -163,11 +159,11 @@ export function ProfileScreen({ navigation }: Props): React.ReactElement {
         </SettingsSection>
 
         <SettingsSection icon="database" label="Data" testID="profile-data">
-          <SettingsRow label="Export data" testID="profile-export" variant="chevron" />
-          <SettingsRow label="Import data" testID="profile-import" variant="chevron" />
+          <SettingsRow label="Export data" onPress={onExport} testID="profile-export" variant="chevron" />
+          <SettingsRow label="Import data" onPress={onImport} testID="profile-import" variant="chevron" />
           <SettingsRow
             label="Delete all workouts"
-            onPress={handleDeleteAll}
+            onPress={onDeleteAll}
             testID="profile-delete"
             variant="destructive"
           />
