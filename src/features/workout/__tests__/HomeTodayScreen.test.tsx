@@ -13,6 +13,7 @@ import React from "react";
 const mockNavigate = jest.fn();
 const mockSetActiveRoutine = jest.fn();
 const mockDeleteRoutine = jest.fn();
+const mockMoveScheduledSession = jest.fn();
 
 jest.mock("react-native-mmkv", () => ({
   createMMKV: () => ({
@@ -38,6 +39,8 @@ jest.mock("@features/routines/store", () => ({
       activeRoutineId: null,
       setActiveRoutine: mockSetActiveRoutine,
       deleteRoutine: mockDeleteRoutine,
+      scheduleOverrides: {},
+      moveScheduledSession: mockMoveScheduledSession,
     }),
 }));
 
@@ -56,6 +59,14 @@ jest.mock("../hooks/useActiveWorkout", () => ({
 
 interface MockSummary {
   nextRoutine: MockRoutine | null;
+  plannedDate: number | null;
+  weekPlan: {
+    date: number;
+    routineId: string | null;
+    routineName: string | null;
+    status: "done" | "today" | "missed" | "planned" | "rest";
+    moved: boolean;
+  }[];
   nextExercises: never[];
   routines: MockRoutine[];
   activeRoutineId: string | null;
@@ -84,6 +95,7 @@ interface MockRoutine {
   createdAt: number;
   updatedAt: number;
   isArchived: boolean;
+  days?: (0 | 1 | 2 | 3 | 4 | 5 | 6)[];
 }
 
 let mockSummary: MockSummary = makeSummary();
@@ -92,6 +104,8 @@ let mockSummary: MockSummary = makeSummary();
 function makeSummary(routines: MockRoutine[] = [], hasHistory = false): MockSummary {
   return {
     nextRoutine: routines[0] ?? null,
+    plannedDate: null,
+    weekPlan: [],
     nextExercises: [],
     routines,
     activeRoutineId: null,
@@ -148,6 +162,7 @@ beforeEach(() => {
   mockNavigate.mockClear();
   mockSetActiveRoutine.mockClear();
   mockDeleteRoutine.mockClear();
+  mockMoveScheduledSession.mockClear();
   mockSummary = makeSummary();
 });
 
@@ -293,5 +308,74 @@ describe("HomeTodayScreen My Routines", () => {
 
     expect(screen.queryByTestId("routine-action-set-active")).toBeNull();
     expect(screen.getByTestId("routine-action-edit")).toBeTruthy();
+  });
+});
+
+describe("HomeTodayScreen weekly plan", () => {
+  /** Wednesday 7 October 2026, 10:00 local. */
+  const NOW = new Date(2026, 9, 7, 10).getTime();
+  const day = (date: number): number => new Date(2026, 9, date).getTime();
+
+  beforeEach(() => {
+    jest.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  /** A summary whose next routine is planned on `plannedDate`. */
+  function plannedSummary(plannedDate: number): MockSummary {
+    const pull = { ...routine("pull", "Pull"), days: [3] as MockRoutine["days"] };
+    return {
+      ...makeSummary([pull]),
+      plannedDate,
+      weekPlan: [5, 6, 7, 8, 9, 10, 11].map((date) => ({
+        date: day(date),
+        routineId: date === 7 ? "pull" : null,
+        routineName: date === 7 ? "Pull" : null,
+        status: date === 7 ? ("today" as const) : ("rest" as const),
+        moved: false,
+      })),
+    };
+  }
+
+  it("labels a session planned for today", () => {
+    mockSummary = plannedSummary(day(7));
+    render(<HomeTodayScreen />);
+
+    expect(screen.getByText("Today's session")).toBeTruthy();
+  });
+
+  it("names the weekday of a later planned session", () => {
+    mockSummary = plannedSummary(day(9));
+    render(<HomeTodayScreen />);
+
+    expect(screen.getByText("Next session · Friday")).toBeTruthy();
+  });
+
+  it("hides the week plan without a weekly plan", () => {
+    render(<HomeTodayScreen />);
+
+    expect(screen.queryByTestId("home-week-plan")).toBeNull();
+  });
+
+  it("moves today's session to the chosen day from the sheet", () => {
+    mockSummary = plannedSummary(day(7));
+    render(<HomeTodayScreen />);
+
+    fireEvent.press(screen.getByTestId("home-week-plan-day-3"));
+    fireEvent.press(screen.getByTestId("move-session-target-5"));
+
+    expect(mockMoveScheduledSession).toHaveBeenCalledWith(day(7), day(9), NOW);
+  });
+
+  it("does not open the sheet for a rest day", () => {
+    mockSummary = plannedSummary(day(7));
+    render(<HomeTodayScreen />);
+
+    fireEvent.press(screen.getByTestId("home-week-plan-day-1"));
+
+    expect(screen.queryByTestId("move-session-target-4")).toBeNull();
   });
 });

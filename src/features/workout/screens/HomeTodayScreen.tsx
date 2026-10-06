@@ -25,6 +25,7 @@ import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { Routine } from "@domain/entities";
+import { addDays, startOfDay } from "@domain/rules";
 import { RoutineActionSheet, useRoutineStore } from "@features/routines";
 import type {
   MainTabParamList,
@@ -36,7 +37,9 @@ import {
   HomeMyRoutines,
   HomeNextSession,
   HomeRecentActivity,
+  HomeWeekPlan,
   HomeWeeklyStrip,
+  MoveSessionSheet,
   TodayHeader,
 } from "../components";
 import { DEFAULT_WEEKLY_SESSION_GOAL } from "../config";
@@ -48,8 +51,13 @@ import {
   countRoutineSets,
   estimateRoutineMinutes,
   toRecentSessionRow,
+  type WeekPlanDay,
 } from "../utils";
-import { formatElapsedMinutes, formatTonnage } from "@lib/format";
+import {
+  formatElapsedMinutes,
+  formatTonnage,
+  formatWeekdayLong,
+} from "@lib/format";
 
 /** Vertical gap between the three sections, per the Home spec. */
 const SECTION_GAP = spacing.xxxl;
@@ -76,6 +84,8 @@ export function HomeTodayScreen(): React.ReactElement {
     useActiveWorkout();
   const {
     nextRoutine,
+    plannedDate,
+    weekPlan,
     nextExercises,
     routines,
     activeRoutineId,
@@ -90,6 +100,9 @@ export function HomeTodayScreen(): React.ReactElement {
 
   /** Routine whose action sheet is open, or `null` when none is. */
   const [actionRoutine, setActionRoutine] = useState<Routine | null>(null);
+
+  /** Week-plan day whose move sheet is open, or `null` when none is. */
+  const [movingDay, setMovingDay] = useState<WeekPlanDay | null>(null);
 
   /**
    * Captured once per render so every time-derived value on the screen
@@ -237,7 +250,7 @@ export function HomeTodayScreen(): React.ReactElement {
                 ? "In progress"
                 : showFirstRunCopy
                   ? "Get started"
-                  : "Next session"
+                  : nextSessionOverline(plannedDate, now)
             }
             testID="home-next-session"
             title={titleFor({
@@ -253,6 +266,16 @@ export function HomeTodayScreen(): React.ReactElement {
             }
           />
         </View>
+
+        {weekPlan.length > 0 ? (
+          <View style={styles.section}>
+            <HomeWeekPlan
+              days={weekPlan}
+              onPressDay={setMovingDay}
+              testID="home-week-plan"
+            />
+          </View>
+        ) : null}
 
         <View style={styles.section}>
           <HomeMyRoutines
@@ -292,6 +315,12 @@ export function HomeTodayScreen(): React.ReactElement {
         ) : null}
       </ScrollView>
 
+      <MoveSessionSheet
+        day={movingDay}
+        now={now}
+        onClose={() => setMovingDay(null)}
+      />
+
       <RoutineActionSheet
         isActive={actionRoutine?.id === activeRoutineId}
         onClose={() => setActionRoutine(null)}
@@ -308,6 +337,18 @@ export function HomeTodayScreen(): React.ReactElement {
 /** CTA label for the first-run state. */
 function primaryLabel(showFirstRun: boolean): string {
   return showFirstRun ? "Create Routine" : "Start Workout";
+}
+
+/**
+ * Section 1 overline outside a live session: the planned day when the
+ * next routine comes from the weekly plan, else the plain label.
+ */
+function nextSessionOverline(plannedDate: number | null, now: number): string {
+  if (plannedDate === null) return "Next session";
+  const today = startOfDay(now);
+  if (plannedDate === today) return "Today's session";
+  if (plannedDate === addDays(today, 1)) return "Next session · Tomorrow";
+  return `Next session · ${formatWeekdayLong(plannedDate)}`;
 }
 
 /** Section 1 title for the current state. */

@@ -24,7 +24,7 @@ import { Pressable, Text, View } from "react-native";
 import { Card } from "@components/Card";
 import { SectionHeader } from "@components/SectionHeader";
 import type { Routine } from "@domain/entities";
-import { RoutineRow, routineDurationMinutes } from "@features/routines";
+import { RoutineRow, routineMeta } from "@features/routines";
 import { spacing, type, createStyles } from "@theme";
 
 /** Maximum routines previewed on Home before "See all" takes over. */
@@ -137,7 +137,7 @@ export function HomeMyRoutines({
                 {index > 0 ? <View style={styles.divider} /> : null}
                 <RoutineRow
                   isActive={routine.id === activeRoutineId}
-                  meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
+                  meta={routineMeta(routine)}
                   name={routine.name}
                   onPress={() => onSelectRoutine(routine.id)}
                   onPressMore={() => onPressMore(routine)}

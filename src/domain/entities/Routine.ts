@@ -21,6 +21,9 @@ export interface RoutineExercise {
  */
 export type ProgressionPolicy = 'off' | 'linear' | 'double';
 
+/** Day of the week, as `Date.getDay()` numbers it: 0 Sunday … 6 Saturday. */
+export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
 /**
  * A reusable training template.
  */
@@ -36,6 +39,11 @@ export interface Routine {
    * sets repeat what was done last time.
    */
   progression?: ProgressionPolicy;
+  /**
+   * Weekdays the routine is planned on. Absent or empty: not on the
+   * weekly plan (Today then rotates routines instead).
+   */
+  days?: Weekday[];
   /**
    * User-set duration override in minutes. When undefined, the editor
    * uses the calculated estimate.

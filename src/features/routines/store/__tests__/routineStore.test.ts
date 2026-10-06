@@ -32,7 +32,7 @@ import { useRoutineStore } from '../routineStore';
 /** Reset both the store and the disk double between tests. */
 beforeEach(() => {
   mockMemory.clear();
-  useRoutineStore.setState({ routines: [], activeRoutineId: null });
+  useRoutineStore.setState({ routines: [], activeRoutineId: null, scheduleOverrides: {} });
 });
 
 /** Create a routine and return its id. */
@@ -353,5 +353,47 @@ describe('setRoutineProgression', () => {
     useRoutineStore.getState().setRoutineProgression(id, 'double');
 
     expect(routineById(id).progression).toBe('double');
+  });
+});
+
+describe('setRoutineDays', () => {
+  it('stores the days deduplicated and sorted', () => {
+    const id = newRoutine('Push');
+    useRoutineStore.getState().setRoutineDays(id, [4, 1, 4]);
+    expect(routineById(id).days).toEqual([1, 4]);
+  });
+
+  it('ignores an unknown routine', () => {
+    useRoutineStore.getState().setRoutineDays('missing', [1]);
+    expect(useRoutineStore.getState().routines).toEqual([]);
+  });
+});
+
+describe('moveScheduledSession', () => {
+  /** Wednesday 7 October 2026. */
+  const wednesday = new Date(2026, 9, 7).getTime();
+  const friday = new Date(2026, 9, 9).getTime();
+
+  it('records a one-off move without changing the plan', () => {
+    const id = newRoutine('Pull');
+    useRoutineStore.getState().setRoutineDays(id, [3]);
+
+    useRoutineStore.getState().moveScheduledSession(wednesday, friday, wednesday);
+
+    expect(useRoutineStore.getState().scheduleOverrides).toEqual({
+      '2026-10-07': null,
+      '2026-10-09': id,
+    });
+    expect(routineById(id).days).toEqual([3]);
+  });
+
+  it('is cleared with the routines', () => {
+    const id = newRoutine('Pull');
+    useRoutineStore.getState().setRoutineDays(id, [3]);
+    useRoutineStore.getState().moveScheduledSession(wednesday, friday, wednesday);
+
+    useRoutineStore.getState().clear();
+
+    expect(useRoutineStore.getState().scheduleOverrides).toEqual({});
   });
 });

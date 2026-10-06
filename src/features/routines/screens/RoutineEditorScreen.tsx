@@ -23,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import type { Weekday } from "@domain/entities";
 import { DEFAULT_HOLD_SECONDS } from "@domain/rules";
 import { Button } from "@components/Button";
 import { ScreenHeader } from "@components/ScreenHeader";
@@ -35,6 +36,7 @@ import { DurationSheet } from "../components/DurationSheet";
 import { RoutineEditorRow } from "../components/RoutineEditorRow";
 import { RoutineMusclesPreview } from "../components/RoutineMusclesPreview";
 import { PROGRESSION_LABELS, ProgressionSheet } from "../components/ProgressionSheet";
+import { FilterChips } from "../components/FilterChips";
 import { TargetSheet } from "../components/TargetSheet";
 import {
   calculatedRoutineMinutes,
@@ -45,6 +47,17 @@ import {
 import type { TodayStackParamList } from "@/app/navigation/types";
 
 type Props = NativeStackScreenProps<TodayStackParamList, "RoutineEditor">;
+
+/** Weekday chips, Monday first; keys are `Date.getDay()` numbers. */
+const DAY_CHIPS: readonly { key: string; label: string }[] = [
+  { key: "1", label: "Mon" },
+  { key: "2", label: "Tue" },
+  { key: "3", label: "Wed" },
+  { key: "4", label: "Thu" },
+  { key: "5", label: "Fri" },
+  { key: "6", label: "Sat" },
+  { key: "0", label: "Sun" },
+];
 
 /** The exercise currently having its targets edited, if any. */
 interface TargetEditing {
@@ -178,6 +191,7 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
   const [durationSheetVisible, setDurationSheetVisible] = useState(false);
   const [progressionSheetVisible, setProgressionSheetVisible] = useState(false);
   const setRoutineProgression = useRoutineStore((state) => state.setRoutineProgression);
+  const setRoutineDays = useRoutineStore((state) => state.setRoutineDays);
 
   const routine = useMemo(
     () => routines.find((entry) => entry.id === routineId),
@@ -369,6 +383,27 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
           </Pressable>
         </View>
 
+        <View style={styles.daysBlock}>
+          <Text style={styles.daysLabel}>DAYS</Text>
+          <View style={styles.daysChips}>
+            <FilterChips
+              accessibilityLabel="Planned days"
+              isSelected={(key) => (routine?.days ?? []).includes(Number(key) as Weekday)}
+              onPress={(key) => {
+                if (!routineId) return;
+                const day = Number(key) as Weekday;
+                const current = routine?.days ?? [];
+                setRoutineDays(
+                  routineId,
+                  current.includes(day) ? current.filter((d) => d !== day) : [...current, day],
+                );
+              }}
+              options={DAY_CHIPS}
+              testID="routine-days"
+            />
+          </View>
+        </View>
+
         {rows.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>No exercises yet</Text>
@@ -515,7 +550,17 @@ const useStyles = createStyles((colors) => ({
     marginVertical: (18 - 44) / 2,
   },
 
-  list: { marginTop: spacing.xxxl },
+  daysBlock: { marginTop: spacing.xl },
+  daysLabel: {
+    ...type.labelSmall,
+    letterSpacing: 0.66,
+    marginBottom: spacing.sm,
+    color: colors.textMuted,
+  },
+  /** FilterChips pads to the gutter itself; cancel the content padding. */
+  daysChips: { marginHorizontal: -gutter },
+
+  list: { marginTop: spacing.xxl },
   emptyState: {
     alignItems: "center",
     paddingVertical: emptyStatePadding,

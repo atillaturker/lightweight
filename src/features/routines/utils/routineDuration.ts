@@ -22,3 +22,15 @@ export function calculatedRoutineMinutes(routine: Routine): number {
 export function routineDurationMinutes(routine: Routine): number {
   return routine.estimatedMinutes ?? calculatedRoutineMinutes(routine);
 }
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+
+/**
+ * The routine's list meta line: `5 exercises · ~45 min`, plus its planned
+ * days Monday first (`· Mon, Thu`) when it is on the weekly plan.
+ */
+export function routineMeta(routine: Routine): string {
+  const base = `${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`;
+  const days = [...(routine.days ?? [])].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7));
+  return days.length === 0 ? base : `${base} · ${days.map((day) => DAY_LABELS[day]).join(', ')}`;
+}

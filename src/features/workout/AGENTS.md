@@ -55,6 +55,21 @@ the weight step (`defaultIncrementKg`). The block keeps the
 (`utils/prescriptionLine`) — a heavier bar never appears unexplained.
 Without a prescription, sets repeat the last session.
 
+## Weekly plan on Home
+
+Once any routine has planned days, `useHomeSummary` takes the next
+routine from the plan (`nextPlannedDay`): today's, unless a session was
+already logged today, else the next planned day. The overline names
+the day ("Today's session", "Next session · Thursday"). Without a plan
+(or with nothing planned in the next two weeks) the rotation
+(`selectNextRoutine`) still decides.
+
+The "This week" card (`HomeWeekPlan`, built by `utils/weekPlan`) shows
+Monday to Sunday: logged days get a check whether planned or not,
+today's planned day the accent ring, missed days a dashed ring. Tapping
+a planned day that is not yet trained opens `MoveSessionSheet`, which
+offers today and the six days after.
+
 ## Exercise kinds
 
 Each block snapshots how its exercise is logged when the session starts

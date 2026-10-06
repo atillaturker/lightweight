@@ -41,3 +41,7 @@ export type {
   TodayHeaderProps,
   TodayWorkoutHeaderProps,
 } from './WorkoutHeaders';
+export { HomeWeekPlan } from './HomeWeekPlan';
+export type { HomeWeekPlanProps } from './HomeWeekPlan';
+export { MoveSessionSheet } from './MoveSessionSheet';
+export type { MoveSessionSheetProps } from './MoveSessionSheet';

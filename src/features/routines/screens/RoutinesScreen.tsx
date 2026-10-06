@@ -24,7 +24,7 @@ import { emptyStatePadding, gutter, spacing, type, createStyles } from "@theme";
 import { RoutineActionSheet } from "../components/RoutineActionSheet";
 import { RoutineRow } from "../components/RoutineRow";
 import { useRoutineStore } from "../store";
-import { routineDurationMinutes } from "../utils";
+import { routineMeta } from "../utils";
 
 import type { TodayStackParamList } from "@/app/navigation/types";
 
@@ -90,7 +90,7 @@ export function RoutinesScreen({ navigation }: Props): React.ReactElement {
                   {index > 0 ? <View style={styles.rowHairline} /> : null}
                   <RoutineRow
                     isActive={routine.id === activeRoutineId}
-                    meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
+                    meta={routineMeta(routine)}
                     name={routine.name}
                     onPress={() => openEditor(routine.id)}
                     onPressMore={() => setActionRoutine(routine)}

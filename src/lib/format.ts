@@ -125,6 +125,11 @@ export function formatWeekdayShort(timestamp: number): string {
   return WEEKDAY_SHORT[new Date(timestamp).getDay()];
 }
 
+/** Full weekday name for a timestamp, e.g. `Tuesday`. */
+export function formatWeekdayLong(timestamp: number): string {
+  return WEEKDAY_LONG[new Date(timestamp).getDay()];
+}
+
 /** Month and year for a timestamp, e.g. `April 2026`. */
 export function formatMonthYear(timestamp: number): string {
   const date = new Date(timestamp);
