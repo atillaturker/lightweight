@@ -165,3 +165,51 @@ describe('useWorkoutActions.finish', () => {
   });
 });
 
+describe('useWorkoutActions.finish routine rotation', () => {
+  const PULL: Routine = { ...ROUTINE, id: 'routine-2', name: 'Pull' };
+  const LEGS: Routine = { ...ROUTINE, id: 'routine-3', name: 'Legs' };
+
+  /** Start and finish one session of `routine`. */
+  function trainOnce(routine: Routine): void {
+    const { result } = renderHook(() => useWorkoutActions());
+    act(() => {
+      result.current.start(routine);
+    });
+    act(() => {
+      result.current.finish();
+    });
+  }
+
+  it('makes the next routine in the list active after finishing', () => {
+    useRoutineStore.setState({
+      routines: [ROUTINE, PULL, LEGS],
+      activeRoutineId: ROUTINE.id,
+    });
+
+    trainOnce(ROUTINE);
+
+    expect(useRoutineStore.getState().activeRoutineId).toBe(PULL.id);
+  });
+
+  it('wraps from the last routine back to the first', () => {
+    useRoutineStore.setState({
+      routines: [ROUTINE, PULL, LEGS],
+      activeRoutineId: LEGS.id,
+    });
+
+    trainOnce(LEGS);
+
+    expect(useRoutineStore.getState().activeRoutineId).toBe(ROUTINE.id);
+  });
+
+  it('rotates from the routine trained, not the one marked active', () => {
+    useRoutineStore.setState({
+      routines: [ROUTINE, PULL, LEGS],
+      activeRoutineId: ROUTINE.id,
+    });
+
+    trainOnce(PULL);
+
+    expect(useRoutineStore.getState().activeRoutineId).toBe(LEGS.id);
+  });
+});

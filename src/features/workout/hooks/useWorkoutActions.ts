@@ -6,7 +6,9 @@
  *
  * `finish` closes the session, persists an authoritative `isPR` flag on
  * every set (detected against the user's full history), and hands the
- * finished workout to the history recorder seam. The recorder is what
+ * finished workout to the history recorder seam. It then rotates the
+ * active routine to the next one in the list, so Today offers the next
+ * session of the user's split (Push → Pull → Legs → Push…). The recorder is what
  * dual-writes: durable local history first, then the cloud when one is
  * registered — so the summary screen never blocks on network and this hook
  * stays unaware of auth or Firestore.
@@ -28,6 +30,7 @@ import {
 import {
   applyPRFlags,
   resolveRoutineExercises,
+  routineAfter,
   selectNextRoutine,
 } from '../utils';
 
@@ -65,6 +68,7 @@ export function useWorkoutActions(): WorkoutActions {
   const setLastSession = useLastSessionStore((state) => state.setLastSession);
   const routines = useRoutineStore((state) => state.routines);
   const activeRoutineId = useRoutineStore((state) => state.activeRoutineId);
+  const setActiveRoutine = useRoutineStore((state) => state.setActiveRoutine);
 
   const start = useCallback(
     (routine?: Routine): void => {
@@ -90,9 +94,15 @@ export function useWorkoutActions(): WorkoutActions {
     // Hand the finished session to the summary screen: the store is clear
     // by now, so this is the only copy the screen can render.
     setLastSession(annotated);
+    // Rotate relative to the routine just trained, not the active one: they
+    // differ when the user started a routine that was not marked active.
+    if (annotated.routineId !== null) {
+      const next = routineAfter(routines, annotated.routineId);
+      if (next !== null) setActiveRoutine(next.id);
+    }
 
     return annotated;
-  }, [finishWorkout, setLastSession]);
+  }, [finishWorkout, routines, setActiveRoutine, setLastSession]);
 
   const discard = useCallback((): void => {
     discardWorkout();

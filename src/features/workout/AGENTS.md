@@ -21,6 +21,8 @@ for data loss or UI blocking. A dropped set is a broken product.
   to local history first, then mirrored to Firestore through the
   history feature's cloud seam, which queues on failure. Do not throw
   to the user.
+- Finishing a session rotates the active routine to the next one in the
+  list (`useWorkoutActions.finish` → `routineAfter`). Discarding does not.
 - Leaving ActiveWorkoutScreen without finishing opens a bottom sheet:
   Finish / Discard / Keep training. Never silently close.
 

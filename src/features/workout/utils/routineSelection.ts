@@ -35,6 +35,29 @@ export function selectNextRoutine(
   );
 }
 
+/**
+ * The routine to train after finishing `finishedRoutineId`: the next
+ * non-archived routine in list order, wrapping from the last back to the
+ * first. With a single routine that is the same routine again.
+ *
+ * Returns `null` when the finished routine is no longer in the list (it was
+ * deleted mid-session) or nothing is trainable — the caller then leaves the
+ * active routine alone.
+ */
+export function routineAfter(
+  routines: Routine[],
+  finishedRoutineId: string,
+): Routine | null {
+  const index = routines.findIndex((routine) => routine.id === finishedRoutineId);
+  if (index < 0) return null;
+
+  for (let step = 1; step <= routines.length; step += 1) {
+    const candidate = routines[(index + step) % routines.length];
+    if (!candidate.isArchived) return candidate;
+  }
+  return null;
+}
+
 /** Total prescribed sets across a routine's slots. */
 export function countRoutineSets(routine: Routine): number {
   return routine.exercises.reduce((total, slot) => total + slot.targetSets, 0);
