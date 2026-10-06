@@ -14,12 +14,12 @@
  * so neither group is shown twice on the same install. `hasSeenWelcome`
  * only selects the entry screen inside the same IntroStack.
  */
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { useAuth, useAuthStore } from "@features/auth";
 import { useAppStore } from "@features/onboarding";
-import { colors } from "@theme";
+import { createStyles, useTheme } from "@theme";
 
 import { AuthStack } from "./AuthStack";
 import { IntroStack } from "./IntroStack";
@@ -31,6 +31,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /** Swaps the root stack whenever auth or onboarding state changes. */
 export function RootNavigator() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { isAuthenticated } = useAuth();
   const hasSeenWelcome = useAppStore((s) => s.hasSeenWelcome);
   const hasSeenIntro = useAppStore((s) => s.hasSeenIntro);
@@ -62,11 +64,11 @@ export function RootNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   bootstrap: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.canvas,
   },
-});
+}));

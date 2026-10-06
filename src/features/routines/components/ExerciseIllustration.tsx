@@ -11,7 +11,7 @@ import React from "react";
 import { View } from "react-native";
 import { LocalSvg } from "react-native-svg/css";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 import { EXERCISE_MEDIA } from "../data/exerciseMedia";
 
@@ -45,6 +45,7 @@ export function ExerciseIllustration({
   height,
   testID,
 }: ExerciseIllustrationProps): React.ReactElement | null {
+  const { colors } = useTheme();
   if (!hasExerciseIllustration(exerciseId)) return null;
   return (
     <View

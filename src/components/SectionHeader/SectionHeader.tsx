@@ -3,7 +3,7 @@ import { Text, View, type ViewProps } from "react-native";
 
 import { LineIcon, type LineIconName } from "../LineIcon";
 
-import { styles } from "./SectionHeader.styles";
+import { useStyles } from "./SectionHeader.styles";
 
 /**
  * Decoration of the header row (DESIGN.md §6). A header
@@ -51,6 +51,7 @@ export function SectionHeader({
   testID,
   ...rest
 }: SectionHeaderProps): React.ReactElement {
+  const styles = useStyles();
   const showRule = variant === "rule" && !action;
 
   return (

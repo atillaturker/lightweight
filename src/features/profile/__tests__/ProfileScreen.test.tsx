@@ -25,6 +25,7 @@ jest.mock("@features/auth", () => ({
   useSignInActions: () => ({ signOut: jest.fn() }),
 }));
 
+import { useAppearanceStore } from "../store";
 import { ProfileScreen } from "../screens/ProfileScreen";
 
 import type { ProfileStackParamList } from "@/app/navigation/types";
@@ -65,5 +66,15 @@ describe("ProfileScreen", () => {
     fireEvent.press(screen.getByTestId("profile-acknowledgements"));
 
     expect(navigation.navigate).toHaveBeenCalledWith("Acknowledgements");
+  });
+
+  it("switches the app to dark from the Appearance sheet", () => {
+    renderProfile();
+    expect(screen.getByText("System")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("profile-appearance"));
+    fireEvent.press(screen.getByText("Dark"));
+
+    expect(useAppearanceStore.getState().appearance).toBe("dark");
   });
 });

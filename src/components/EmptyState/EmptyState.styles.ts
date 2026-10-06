@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles } from "@theme";
 
 /** Message text size. The token scale has no 14px step, so it is set here. */
 const MESSAGE_FONT_SIZE = 14;
@@ -15,7 +14,7 @@ export const EMPTY_STATE_ACTION_GAP = spacing.xxl;
  * Static styles for EmptyState. Text-only, centered, and natural height —
  * the caller decides where in the parent it sits.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   container: {
     alignItems: "center",
     justifyContent: "center",
@@ -42,4 +41,4 @@ export const styles = StyleSheet.create({
     marginTop: EMPTY_STATE_ACTION_GAP,
     alignItems: "center",
   },
-});
+}));

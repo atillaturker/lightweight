@@ -10,7 +10,7 @@ import React from "react";
 import { Pressable, StyleSheet, View, type ViewProps } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, gutter } from "@theme";
+import { gutter, useTheme } from "@theme";
 
 import { SetupProgress, type SetupStep } from "./SetupProgress";
 
@@ -32,6 +32,7 @@ export interface SetupTopRowProps
 
 /** The 20px monoline back chevron. */
 function BackChevron(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"

@@ -8,11 +8,11 @@
  * one row, but only one of them navigates.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Card } from '@components/Card';
 import { SectionHeader } from '@components/SectionHeader';
-import { colors, fineSpacing, spacing, type } from '@theme';
+import { fineSpacing, spacing, type, createStyles } from '@theme';
 
 import { ChevronGlyph } from './Glyphs';
 
@@ -51,6 +51,7 @@ function SessionRow({
   session: RecentSessionRow;
   onPress: () => void;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={session.title}
@@ -87,6 +88,7 @@ export function HomeRecentActivity({
   onPressSeeAll,
   testID,
 }: HomeRecentActivityProps): React.ReactElement | null {
+  const styles = useStyles();
   if (sessions.length === 0) return null;
 
   return (
@@ -126,7 +128,7 @@ export function HomeRecentActivity({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   header: {
     paddingHorizontal: spacing.xl,
   },
@@ -175,4 +177,4 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: spacing.sm,
   },
-});
+}));

@@ -7,9 +7,9 @@
  * a hairline or a shadow — the session bar below supplies the separation.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, gutter, spacing, type } from '@theme';
+import { gutter, spacing, type, createStyles } from '@theme';
 
 import { CalendarGlyph, CloseGlyph } from './Glyphs';
 
@@ -54,6 +54,7 @@ export function TodayHeader({
   onPressCalendar,
   testID,
 }: TodayHeaderProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.header} testID={testID}>
       <Text style={styles.title}>Today</Text>
@@ -81,6 +82,7 @@ export function TodayWorkoutHeader({
   onFinish,
   testID,
 }: TodayWorkoutHeaderProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.header} testID={testID}>
       <Pressable
@@ -111,7 +113,7 @@ export function TodayWorkoutHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   header: {
     height: TODAY_HEADER_HEIGHT,
     paddingHorizontal: gutter,
@@ -155,4 +157,4 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.textPrimary,
   },
-});
+}));

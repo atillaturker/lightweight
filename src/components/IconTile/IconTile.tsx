@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, View, type ViewProps } from "react-native";
 
-import { styles } from "./IconTile.styles";
+import { useStyles } from "./IconTile.styles";
 
 /** Content of the tile: a centered glyph, or the first letter of a name. */
 type IconTileContent =
@@ -35,6 +35,7 @@ export function toMonogram(text: string): string {
  * - `letter` — shows the first letter of `text` in Inter 16px / 600.
  */
 export function IconTile(props: IconTileProps): React.ReactElement {
+  const styles = useStyles();
   if (props.variant === "icon") {
     const { variant: _variant, icon, testID, ...rest } = props;
     return (

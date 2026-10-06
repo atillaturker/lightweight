@@ -11,7 +11,6 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -29,7 +28,7 @@ import { TextTabs } from "@components/TextTabs";
 import type { MuscleGroup } from "@domain/entities";
 import { getExerciseLibrary } from "@features/workout";
 import { useHistoryFilterStore } from "@features/history";
-import { colors, gutter, radii, spacing, type } from "@theme";
+import { gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
 import { ExerciseDeltaRow, PRStrip, ProgressBarChart, ProgressHero } from "../components";
 import { useProgressData } from "../hooks";
@@ -91,6 +90,7 @@ function noop(): void {
 
 /** 20px monoline filter (funnel) glyph for the header action. */
 function FilterGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -109,6 +109,7 @@ function FilterGlyph(): React.ReactElement {
 
 /** 12px monoline sort glyph shown beside the "Sort" action. */
 function SortGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -126,6 +127,7 @@ function SortGlyph(): React.ReactElement {
 
 /** Left-aligned title with the circular filter action on the right. */
 function ProgressHeader({ onFilter }: { onFilter: () => void }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Progress</Text>
@@ -145,6 +147,7 @@ function ProgressHeader({ onFilter }: { onFilter: () => void }): React.ReactElem
 
 /** Centered first-run state, shown when no session exists at all. */
 function ProgressEmptyState(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.empty} testID="progress-empty">
       <LineIcon name="trend" size={EMPTY_GLYPH_SIZE} />
@@ -158,6 +161,7 @@ function ProgressEmptyState(): React.ReactElement {
 
 /** Root screen of the Progress tab. */
 export function ProgressScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const [range, setRange] = useState<ProgressRange>("12W");
   const [metric, setMetric] = useState<ProgressMetric>("volume");
   const data = useProgressData(range, metric);
@@ -319,7 +323,7 @@ const EMPTY_TOTALS: ProgressTotals = {
   sessions: 0,
 };
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
 
   header: {
@@ -407,4 +411,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
   },
-});
+}));

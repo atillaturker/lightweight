@@ -1,7 +1,7 @@
 import React from "react";
 import Svg, { Path } from "react-native-svg";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 /** Names of the shared monoline glyphs. */
 export type LineIconName =
@@ -60,9 +60,11 @@ export interface LineIconProps {
 export function LineIcon({
   name,
   size = 16,
-  color = colors.textMuted,
+  color: colorProp,
   testID,
 }: LineIconProps): React.ReactElement {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.textMuted;
   return (
     <Svg
       fill="none"

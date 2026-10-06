@@ -13,7 +13,6 @@ import {
   Alert,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -29,7 +28,7 @@ import { EmptyState } from "@components/EmptyState";
 import { ScreenHeader } from "@components/ScreenHeader";
 import { SectionHeader } from "@components/SectionHeader";
 import { TextTabs } from "@components/TextTabs";
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles } from "@theme";
 import {
   formatDecimal,
   formatInteger,
@@ -137,6 +136,7 @@ function badgeRecordType(
 
 /** Pushed per-exercise analytics screen, shared by the Progress and History tabs. */
 export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactElement {
+  const styles = useStyles();
   const { exerciseId } = route.params;
   const [metric, setMetric] = useState<ExerciseMetric>("1rm");
   const { exercise, unit, data } = useExerciseDetail(exerciseId, metric);
@@ -319,7 +319,7 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
   centered: { flex: 1, justifyContent: "center" },
 
@@ -389,4 +389,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: colors.textMuted,
   },
-});
+}));

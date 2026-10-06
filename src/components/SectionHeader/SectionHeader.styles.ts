@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, fineSpacing, fonts, spacing, type } from "@theme";
+import { fineSpacing, fonts, spacing, type, createStyles } from "@theme";
 
 /**
  * Static styles for SectionHeader. The row is a plain label baseline —
@@ -11,7 +10,7 @@ import { colors, fineSpacing, fonts, spacing, type } from "@theme";
  * tracking in the muted color. The label may follow a 16px glyph
  * (6px gap) or run into a hairline rule.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -45,4 +44,4 @@ export const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: colors.textMuted,
   },
-});
+}));

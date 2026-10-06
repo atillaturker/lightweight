@@ -1,7 +1,7 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
-import { colors, radii } from "@theme";
+import { radii, createStyles } from "@theme";
 
 /** Height of the strength bar in pixels. */
 const BAR_HEIGHT = 2;
@@ -24,6 +24,7 @@ export function PasswordStrengthBar({
   strength,
   testID,
 }: PasswordStrengthBarProps): React.ReactElement {
+  const styles = useStyles();
   const clamped = Math.min(1, Math.max(0, strength));
 
   return (
@@ -41,7 +42,7 @@ export function PasswordStrengthBar({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   track: {
     width: "100%",
     height: BAR_HEIGHT,
@@ -54,4 +55,4 @@ const styles = StyleSheet.create({
     borderRadius: radii.control,
     backgroundColor: colors.primary,
   },
-});
+}));

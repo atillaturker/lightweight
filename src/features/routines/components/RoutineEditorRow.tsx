@@ -4,11 +4,11 @@
  * tappable `sets × reps` target, and the drag grip.
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import type { MuscleGroup } from "@domain/entities";
-import { colors, fineSpacing, spacing, type } from "@theme";
+import { fineSpacing, spacing, type, createStyles, useTheme } from "@theme";
 
 import { ExerciseThumb } from "./ExerciseThumb";
 
@@ -27,6 +27,7 @@ export interface RoutineEditorRowProps {
 
 /** Three-line grip glyph; visual-only until drag ships. */
 function GripGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -53,6 +54,7 @@ export function RoutineEditorRow({
   showDivider,
   onEditTarget,
 }: RoutineEditorRowProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View>
       {showDivider ? <View style={styles.rowHairline} /> : null}
@@ -87,7 +89,7 @@ export function RoutineEditorRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   rowHairline: { height: 1, backgroundColor: colors.hairline },
 
   row: {
@@ -131,4 +133,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginLeft: spacing.md,
   },
-});
+}));

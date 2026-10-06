@@ -7,10 +7,10 @@
  * drift.
  */
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { LineIcon, type LineIconName } from '@components/LineIcon';
-import { colors, fineSpacing, spacing, type } from '@theme';
+import { fineSpacing, spacing, type, createStyles } from '@theme';
 
 /** Props for {@link StatColumn}. */
 export interface StatColumnProps {
@@ -42,6 +42,7 @@ export function StatColumn({
   captionColor,
   testID,
 }: StatColumnProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.column} testID={testID}>
       <View style={styles.labelRow}>
@@ -72,6 +73,7 @@ export function StatColumn({
  * drawn between columns only — never on the outer edges.
  */
 export function StatStrip({ children }: { children: React.ReactNode }): React.ReactElement {
+  const styles = useStyles();
   return <View style={styles.strip}>{children}</View>;
 }
 
@@ -83,7 +85,7 @@ function captionStyle(color: string | undefined): { color: string } | null {
   return color === undefined ? null : { color };
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   strip: {
     flexDirection: 'row',
     alignItems: 'stretch',
@@ -118,4 +120,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     color: colors.textMuted,
   },
-});
+}));

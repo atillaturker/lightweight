@@ -8,12 +8,12 @@
  * above the first row of a month or below the last.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { IconTile } from '@components/IconTile';
 import type { Workout } from '@domain/entities';
-import { colors, fineSpacing, gutter, spacing, type } from '@theme';
+import { fineSpacing, gutter, spacing, type, createStyles, useTheme } from '@theme';
 
 import { toHistoryRow } from '../utils';
 
@@ -42,6 +42,8 @@ export function SessionRow({
   onPress,
   testID,
 }: SessionRowProps): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const row = toHistoryRow(session, now);
 
   return (
@@ -87,7 +89,7 @@ export function SessionRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   row: {
     minHeight: 56,
     justifyContent: 'center',
@@ -132,4 +134,4 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
-});
+}));

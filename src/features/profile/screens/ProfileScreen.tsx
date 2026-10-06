@@ -3,7 +3,7 @@
  * settings.
  *
  * Every setting writes straight to the persisted preferences store — there
- * is no primary CTA and no "Save". Units, week start, and rest timer each
+ * is no primary CTA and no "Save". Units, week start, rest timer, and appearance each
  * open a single-select sheet; RPE and notifications are inline toggles.
  * The rest duration is read by the workout feature through its provider
  * seam, so changing it here changes the next set's rest timer.
@@ -12,16 +12,16 @@
  * no workout data source yet, so they do not move real data.
  */
 import React, { useCallback, useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { ScreenHeader } from "@components/ScreenHeader";
 import { SettingsRow } from "@components/SettingsRow";
-import type { WeekStart, WeightUnit } from "@domain/entities";
+import type { Appearance, WeekStart, WeightUnit } from "@domain/entities";
 import { useAuthStore, useSignInActions } from "@features/auth";
 import { formatClock } from "@lib/format";
-import { colors, gutter, spacing } from "@theme";
+import { gutter, spacing, createStyles } from "@theme";
 
 import {
   IdentityBlock,
@@ -30,7 +30,7 @@ import {
   type OptionSheetOption,
 } from "../components";
 import { APP_VERSION, REST_TIMER_SECONDS_OPTIONS } from "../config";
-import { usePreferencesStore } from "../store";
+import { useAppearanceStore, usePreferencesStore } from "../store";
 
 import type { ProfileStackParamList } from "@/app/navigation/types";
 
@@ -38,7 +38,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, "Profile">;
 
 
 /** Which preference sheet is open, if any. */
-type SheetKind = "units" | "weekStart" | "rest";
+type SheetKind = "units" | "weekStart" | "rest" | "appearance";
 
 /** Unit choices shown in the Units sheet. */
 const UNIT_OPTIONS: readonly OptionSheetOption<WeightUnit>[] = [
@@ -58,6 +58,20 @@ const WEEK_START_LABELS: Record<WeekStart, string> = {
   sunday: "Sunday",
 };
 
+/** Theme choices shown in the Appearance sheet. */
+const APPEARANCE_OPTIONS: readonly OptionSheetOption<Appearance>[] = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+/** Human labels for the Appearance row value. */
+const APPEARANCE_LABELS: Record<Appearance, string> = {
+  system: "System",
+  light: "Light",
+  dark: "Dark",
+};
+
 /** Rest durations, labelled as `m:ss`. */
 const REST_OPTIONS: readonly OptionSheetOption<number>[] =
   REST_TIMER_SECONDS_OPTIONS.map((value) => ({
@@ -67,6 +81,7 @@ const REST_OPTIONS: readonly OptionSheetOption<number>[] =
 
 /** Root screen of the Profile tab. */
 export function ProfileScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const user = useAuthStore((state) => state.user);
   const { signOut } = useSignInActions();
 
@@ -88,6 +103,9 @@ export function ProfileScreen({ navigation }: Props): React.ReactElement {
   const setNotificationsEnabled = usePreferencesStore(
     (state) => state.setNotificationsEnabled,
   );
+
+  const appearance = useAppearanceStore((state) => state.appearance);
+  const setAppearance = useAppearanceStore((state) => state.setAppearance);
 
   const [openSheet, setOpenSheet] = useState<SheetKind | null>(null);
   const closeSheet = useCallback(() => setOpenSheet(null), []);
@@ -157,6 +175,13 @@ export function ProfileScreen({ navigation }: Props): React.ReactElement {
 
         <SettingsSection icon="device" label="App" testID="profile-app">
           <SettingsRow
+            label="Appearance"
+            onPress={() => setOpenSheet("appearance")}
+            testID="profile-appearance"
+            value={APPEARANCE_LABELS[appearance]}
+            variant="value"
+          />
+          <SettingsRow
             label="Notifications"
             onToggleChange={setNotificationsEnabled}
             testID="profile-notifications"
@@ -214,15 +239,25 @@ export function ProfileScreen({ navigation }: Props): React.ReactElement {
         title="Rest timer"
         visible={openSheet === "rest"}
       />
+      <OptionSheet
+        onClose={closeSheet}
+        onSelect={setAppearance}
+        options={APPEARANCE_OPTIONS}
+        sectionLabel="Theme"
+        selectedValue={appearance}
+        testID="profile-appearance-sheet"
+        title="Appearance"
+        visible={openSheet === "appearance"}
+      />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
   content: {
     paddingHorizontal: gutter,
     paddingTop: spacing.xxl,
     paddingBottom: spacing.xxl,
   },
-});
+}));

@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, View, type ViewProps } from "react-native";
 
-import { styles } from "./Badge.styles";
+import { useStyles } from "./Badge.styles";
 
 /**
  * Badge variants:
@@ -27,6 +27,7 @@ export function Badge({
   testID,
   ...rest
 }: BadgeProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View
       accessibilityLabel={label}

@@ -15,7 +15,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -26,7 +25,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
 import { ScreenHeader } from "@components/ScreenHeader";
-import { colors, emptyStatePadding, fineSpacing, gutter, spacing, type } from "@theme";
+import { emptyStatePadding, fineSpacing, gutter, spacing, type, createStyles, useTheme } from "@theme";
 
 import { DEFAULT_ROUTINE_NAME, estimateDurationMinutes } from "../config";
 import { EXERCISE_LIBRARY } from "../services";
@@ -50,6 +49,7 @@ interface TargetEditing {
 
 /** 44px back chevron, matching the shared header geometry. */
 function PencilGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -68,6 +68,7 @@ function PencilGlyph(): React.ReactElement {
 
 /** Plus glyph for the "Add exercise" action. */
 function PlusGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -90,6 +91,8 @@ function PlusGlyph(): React.ReactElement {
  * `route.params.routineId`.
  */
 export function RoutineEditorScreen({ navigation, route }: Props): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const routines = useRoutineStore((state) => state.routines);
   const createRoutine = useRoutineStore((state) => state.createRoutine);
   const renameRoutine = useRoutineStore((state) => state.renameRoutine);
@@ -370,7 +373,7 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
 
   content: {
@@ -454,4 +457,4 @@ const styles = StyleSheet.create({
     borderTopColor: colors.hairline,
     backgroundColor: colors.canvas,
   },
-});
+}));

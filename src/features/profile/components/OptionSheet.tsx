@@ -18,7 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Pill } from '@components/Pill';
-import { colors, gutter, radii, spacing, type } from '@theme';
+import { gutter, radii, spacing, type, createStyles } from '@theme';
 
 /** One selectable option. `value` is what gets committed. */
 export interface OptionSheetOption<T extends string | number> {
@@ -54,6 +54,7 @@ export function OptionSheet<T extends string | number>({
   onClose,
   testID,
 }: OptionSheetProps<T>): React.ReactElement {
+  const styles = useStyles();
   const handleSelect = (value: T): void => {
     onSelect(value);
     onClose();
@@ -102,7 +103,7 @@ export function OptionSheet<T extends string | number>({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.backdrop,
@@ -144,4 +145,4 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.sm,
   },
-});
+}));

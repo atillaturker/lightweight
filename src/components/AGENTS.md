@@ -10,8 +10,9 @@ inside that feature's `components/` folder.
   `variant: 'primary' | 'secondary'` — NOT `isPrimary`.
 - Root element spreads `...rest`.
 - No screen-specific logic. No navigation. No store access.
-- Styles via `StyleSheet.create`. Inline objects only for dynamic
-  values (width, transform).
+- Styles via `createStyles` from `@theme` (theme-aware; see "Theming" in
+  the root `AGENTS.md`), or `StyleSheet.create` when no color is
+  involved. Inline objects only for dynamic values (width, transform).
 - Every component has an `index.ts` that re-exports the public API.
 - Every component has a JSDoc block describing its variants and props.
 

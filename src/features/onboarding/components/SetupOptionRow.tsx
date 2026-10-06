@@ -9,10 +9,10 @@
  * which also keeps the first and last rows unbounded.
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Radio } from "@components/Radio";
-import { colors, fineSpacing, spacing } from "@theme";
+import { fineSpacing, spacing, createStyles } from "@theme";
 
 /** Row height when the option has a single line of text. */
 export const OPTION_ROW_HEIGHT = 64;
@@ -42,6 +42,7 @@ export function SetupOptionRow({
   onPress,
   testID,
 }: SetupOptionRowProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={title}
@@ -67,7 +68,7 @@ export function SetupOptionRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -91,4 +92,4 @@ const styles = StyleSheet.create({
     marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
-});
+}));

@@ -20,7 +20,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@components/Card';
 import { RingChart } from '@components/RingChart';
-import { colors, spacing } from '@theme';
+import { spacing, useTheme } from '@theme';
 import { formatDeltaLabel } from '@lib/format';
 
 import { StatColumn, StatStrip } from './StatColumn';
@@ -59,6 +59,7 @@ export function HomeWeeklyStrip({
   streakWeeks,
   testID,
 }: HomeWeeklyStripProps): React.ReactElement {
+  const { colors } = useTheme();
   const deltaLabel = formatDeltaLabel(volumeDeltaPercent);
   const isRise = volumeDeltaPercent !== null && volumeDeltaPercent > 0;
   const goalMet = sessionsThisWeek >= goal;

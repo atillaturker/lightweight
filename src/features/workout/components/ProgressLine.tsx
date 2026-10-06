@@ -7,9 +7,9 @@
  * session bar, per the design system's "never an overlay" rule.
  */
 import React from 'react';
-import { StyleSheet, View, type ViewProps } from 'react-native';
+import { View, type ViewProps } from 'react-native';
 
-import { colors } from '@theme';
+import { createStyles, useTheme } from '@theme';
 
 /** Height of the full-bleed session progress bar. */
 export const SESSION_BAR_HEIGHT = 2;
@@ -38,10 +38,13 @@ export function clampRatio(ratio: number): number {
  */
 export function ProgressLine({
   ratio,
-  fillColor = colors.primary,
+  fillColor: fillColorProp,
   testID,
   ...rest
 }: ProgressLineProps): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const fillColor = fillColorProp ?? colors.primary;
   return (
     <View
       accessibilityRole="progressbar"
@@ -60,7 +63,7 @@ export function ProgressLine({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   track: {
     height: SESSION_BAR_HEIGHT,
     backgroundColor: colors.hairline,
@@ -68,4 +71,4 @@ const styles = StyleSheet.create({
   fill: {
     height: SESSION_BAR_HEIGHT,
   },
-});
+}));

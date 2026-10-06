@@ -7,9 +7,9 @@
  * pixel-identical.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
-import { colors, radii, type } from '@theme';
+import { radii, type, createStyles } from '@theme';
 
 /** Props for {@link ValuePill}. */
 export interface ValuePillProps {
@@ -24,6 +24,7 @@ export function ValuePill({
   selected,
   onPress,
 }: ValuePillProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={String(value)}
@@ -39,7 +40,7 @@ export function ValuePill({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   pill: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -61,6 +62,6 @@ const styles = StyleSheet.create({
   },
   pillLabelSelected: {
     ...type.label,
-    color: colors.textInverse,
+    color: colors.onPrimary,
   },
-});
+}));

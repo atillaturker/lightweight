@@ -12,9 +12,9 @@
  * pressable without inflating the table.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radii, spacing, type } from '@theme';
+import { radii, spacing, type, createStyles } from '@theme';
 
 import { CheckGlyph } from './Glyphs';
 import type { ActiveSet } from '../types';
@@ -98,6 +98,7 @@ function NumericCell({
   readOnly?: boolean;
   testID?: string;
 }): React.ReactElement {
+  const styles = useStyles();
   const label = (
     <Text style={styles.value}>
       {value}
@@ -146,6 +147,7 @@ export function SetRow({
   rowRef,
   testID,
 }: SetRowProps): React.ReactElement {
+  const styles = useStyles();
   const isCompleted = !readOnly && state === 'completed';
   const isActive = !readOnly && state === 'active';
 
@@ -205,7 +207,7 @@ export function SetRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   row: {
     height: SET_ROW_HEIGHT,
     flexDirection: 'row',
@@ -237,7 +239,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   labelInverse: {
-    color: colors.textInverse,
+    color: colors.onPrimary,
   },
   numerics: {
     flex: 1,
@@ -283,7 +285,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));
 
 /** Corner radius shared by the circles, exported for tests and layout math. */
 export const SET_CIRCLE_RADIUS = radii.pill;

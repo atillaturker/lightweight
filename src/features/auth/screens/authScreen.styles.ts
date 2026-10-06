@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, spacing, type } from "@theme";
+import { spacing, type, createStyles } from "@theme";
 
 /**
  * Static styles shared by the sign-up and log-in screens.
@@ -9,7 +8,7 @@ import { colors, spacing, type } from "@theme";
  * card, no surface fill, and no shadow. Vertical rhythm is composed from
  * the spacing scale only.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
@@ -104,4 +103,4 @@ export const styles = StyleSheet.create({
     ...type.label,
     color: colors.textPrimary,
   },
-});
+}));

@@ -10,10 +10,10 @@
  * it unconditionally and the section disappears on an ordinary session.
  */
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
-import { colors, fineSpacing, spacing, type } from '@theme';
+import { fineSpacing, spacing, type, createStyles } from '@theme';
 
 import type { PRSummaryRow } from '../utils/prSummary';
 
@@ -36,6 +36,7 @@ export function PRSection({
   rows,
   testID,
 }: PRSectionProps): React.ReactElement | null {
+  const styles = useStyles();
   if (rows.length === 0) return null;
 
   return (
@@ -72,7 +73,7 @@ export function PRSection({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   headerRow: {
     height: 44,
     flexDirection: 'row',
@@ -115,4 +116,4 @@ const styles = StyleSheet.create({
     marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
-});
+}));

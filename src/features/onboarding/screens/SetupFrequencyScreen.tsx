@@ -16,7 +16,7 @@ import { SetupOptionRow } from "../components/SetupOptionRow";
 import { SetupTopRow } from "../components/SetupTopRow";
 import { useOnboardingStore } from "../store/onboardingStore";
 import type { TrainingFrequency } from "../types";
-import { styles } from "./onboardingScreen.styles";
+import { useStyles } from "./onboardingScreen.styles";
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, "SetupFrequency">;
 
@@ -35,6 +35,7 @@ const FREQUENCY_OPTIONS: readonly {
 export function SetupFrequencyScreen({
   navigation,
 }: Props): React.ReactElement {
+  const styles = useStyles();
   const frequency = useOnboardingStore((state) => state.frequency);
   const setFrequency = useOnboardingStore((state) => state.setFrequency);
 

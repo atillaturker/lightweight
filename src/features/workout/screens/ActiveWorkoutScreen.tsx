@@ -33,7 +33,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Button } from '@components/Button';
 import { EmptyState } from '@components/EmptyState';
-import { colors, gutter, spacing, type } from '@theme';
+import { gutter, spacing, type, createStyles } from '@theme';
 import { formatClock } from '@lib/format';
 import type { TodayStackParamList } from '@/app/navigation/types';
 
@@ -88,6 +88,7 @@ export function ActiveWorkoutScreen({
   navigation,
   preview,
 }: ActiveWorkoutScreenProps): React.ReactElement {
+  const styles = useStyles();
   const { routineName, startedAt, exercises: liveExercises, hasActiveSession } =
     useActiveWorkout();
   const { completeSet, updateSet, addSet } = useSetLogger();
@@ -389,6 +390,7 @@ function NoActiveSession({
 }: {
   navigation: Props['navigation'];
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
       <TodayWorkoutHeader
@@ -437,6 +439,7 @@ function ExitSheet({
   startedAt,
   testID,
 }: ExitSheetProps): React.ReactElement {
+  const styles = useStyles();
   const elapsed =
     startedAt === null
       ? ''
@@ -487,7 +490,7 @@ function ExitSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
@@ -574,4 +577,4 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.textPrimary,
   },
-});
+}));

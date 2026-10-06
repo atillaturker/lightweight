@@ -4,12 +4,12 @@
  * rather than one more metric (DESIGN.md §8).
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { Card } from "@components/Card";
 import { LineIcon } from "@components/LineIcon";
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles, useTheme } from "@theme";
 
 /** PR strip geometry. */
 const PR_STRIP_HEIGHT = 40;
@@ -24,6 +24,8 @@ export interface PRStripProps {
 
 /** Single tappable row linking to the History PR filter. */
 export function PRStrip({ count, onPress }: PRStripProps): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
       <Card>
@@ -58,7 +60,7 @@ export function PRStrip({ count, onPress }: PRStripProps): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   wrap: { marginHorizontal: gutter },
   prStrip: {
     height: PR_STRIP_HEIGHT,
@@ -72,4 +74,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textPrimary,
   },
-});
+}));

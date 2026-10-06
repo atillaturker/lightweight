@@ -2,4 +2,4 @@ export type { Exercise, ExerciseSource, MuscleGroup, Equipment } from './Exercis
 export type { Set, SetType } from './Set';
 export type { Workout } from './Workout';
 export type { Routine, RoutineExercise } from './Routine';
-export type { User, UserPreferences, WeightUnit, WeekStart } from './User';
+export type { Appearance, User, UserPreferences, WeightUnit, WeekStart } from './User';

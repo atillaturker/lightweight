@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing, type } from "@theme";
+import { radii, spacing, type, createStyles } from "@theme";
 
 /** Space reserved on the right of the text input for an accessory. */
 export const ACCESSORY_RIGHT_PADDING = 44;
@@ -10,7 +9,7 @@ export const ACCESSORY_RIGHT_PADDING = 44;
  * as style arrays inside the component so no inline layout objects leak
  * into the tree.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   container: {
     width: "100%",
   },
@@ -73,4 +72,4 @@ export const styles = StyleSheet.create({
   error: {
     color: colors.error,
   },
-});
+}));

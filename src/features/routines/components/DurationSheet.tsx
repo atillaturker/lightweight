@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, gutter, radii, spacing, type } from '@theme';
+import { gutter, radii, spacing, type, createStyles } from '@theme';
 
 import { ValuePill } from './ValuePill';
 
@@ -48,6 +48,7 @@ export function DurationSheet({
   onClear,
   onClose,
 }: DurationSheetProps): React.ReactElement {
+  const styles = useStyles();
   const handleSelect = (minutes: number): void => {
     onSelect(minutes);
     onClose();
@@ -110,7 +111,7 @@ export function DurationSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.backdrop,
@@ -164,4 +165,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
   },
-});
+}));

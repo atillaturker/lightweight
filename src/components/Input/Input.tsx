@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Text, TextInput, View, type TextInputProps } from "react-native";
 
-import { styles } from "./Input.styles";
+import { useStyles } from "./Input.styles";
 
 /**
  * Input variants/states:
@@ -47,6 +47,7 @@ export function Input({
   onBlur,
   ...rest
 }: InputProps): React.ReactElement {
+  const styles = useStyles();
   const [focused, setFocused] = useState(false);
 
   const handleFocus = useCallback<NonNullable<TextInputProps["onFocus"]>>(

@@ -12,10 +12,10 @@
  * uses.
  */
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Button } from '@components/Button';
-import { colors, fonts, radii, spacing, type } from '@theme';
+import { fonts, radii, spacing, type, createStyles } from '@theme';
 
 /** Rendered diameter of the live-session indicator dot. */
 const LIVE_DOT_SIZE = 6;
@@ -62,6 +62,7 @@ export function HomeNextSession({
   footnote,
   testID,
 }: HomeNextSessionProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.block} testID={testID}>
       <Text style={styles.overline}>{overline}</Text>
@@ -94,7 +95,7 @@ export function HomeNextSession({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   block: {
     paddingHorizontal: spacing.xl,
   },
@@ -154,4 +155,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.textMuted,
   },
-});
+}));

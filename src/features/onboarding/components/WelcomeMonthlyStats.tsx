@@ -15,7 +15,7 @@ import { RingChart } from "@components/RingChart";
 
 import {
   BAR_PLOT_HEIGHT,
-  styles,
+  useStyles,
 } from "./WelcomeMonthlyStats.styles";
 import {
   WELCOME_GOAL_LABEL,
@@ -38,6 +38,7 @@ const AXIS_TICKS: readonly string[] = ["W1", "W4", "W8"];
  * height is the only inline style — everything else is static.
  */
 function VolumeBar({ bar }: { bar: WelcomeVolumeBar }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View
       accessibilityLabel={bar.label}
@@ -52,6 +53,7 @@ function VolumeBar({ bar }: { bar: WelcomeVolumeBar }): React.ReactElement {
  * Welcome screen entirely.
  */
 export function WelcomeMonthlyStats(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.row} testID="welcome-monthly-stats">
       <View style={styles.ringBlock}>

@@ -7,10 +7,10 @@
  * the error red.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { MuscleIcon, type MuscleGroup } from '@components/MuscleIcon';
-import { colors, gutter, spacing, type } from '@theme';
+import { gutter, spacing, type, createStyles, useTheme, type ColorPalette } from '@theme';
 import { formatDecimal } from '@lib/format';
 
 import type { ExerciseProgressRow } from '../utils';
@@ -44,7 +44,10 @@ export interface ExerciseDeltaRowProps {
 }
 
 /** Arrow, value and color for a delta. `null` renders a muted placeholder. */
-function toDeltaLabel(delta: number | null): { text: string; color: string } {
+function toDeltaLabel(
+  delta: number | null,
+  colors: ColorPalette,
+): { text: string; color: string } {
   if (delta === null) return { text: '—', color: colors.textMuted };
   const arrow = delta > 0 ? '▲' : '▼';
   return {
@@ -63,7 +66,9 @@ export function ExerciseDeltaRow({
   onPress,
   testID,
 }: ExerciseDeltaRowProps): React.ReactElement {
-  const delta = toDeltaLabel(row.deltaPercent);
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const delta = toDeltaLabel(row.deltaPercent, colors);
   const share = Math.min(Math.max(row.volumeShare, 0), 1);
 
   return (
@@ -111,7 +116,7 @@ export function ExerciseDeltaRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   row: {
     minHeight: ROW_HEIGHT,
     justifyContent: 'center',
@@ -162,4 +167,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontVariant: ['tabular-nums'],
   },
-});
+}));

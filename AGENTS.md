@@ -67,8 +67,9 @@ never re-implement it.
 1. Does a type already exist in `@domain/entities/`? Reuse it.
 2. Does a util, hook or rule already do this? Check `@lib/`,
    `@domain/rules/`, `@features/*/utils/` and `@features/*/hooks/`.
-3. Are all colors, spacings and type styles coming from `@theme`? Does
-   every new color token have both a light and a dark value?
+3. Are all colors, spacings and type styles coming from `@theme`, through
+   `createStyles` / `useTheme`? Does every new color token have both a
+   light and a dark value?
 4. Which layer does this file belong to? (table above)
 5. Does the change touch a synced document shape? Then `firestore.rules`
    and `firestore/rules.emulator.ts` change with it (see "Sync").
@@ -141,41 +142,43 @@ export its base key.
 
 ## Theming
 
-The app has a light and a dark theme; the palettes and rules are in
-`/DESIGN.md` sections 2–5. The user chooses `system` (default),
-`light` or `dark`.
+The app has a light and a dark theme; palettes and rules are in
+`/DESIGN.md` sections 2–5. The user picks System (default), Light or Dark
+in Profile → App → Appearance.
 
-**Status: dark mode is specified, not yet wired.** Today `colors` in
-`src/theme/colors.ts` is the light palette, imported statically into
-`StyleSheet.create` calls, and `app.json` pins
-`userInterfaceStyle: "light"`. The migration, in order:
+How it is wired:
 
-1. `src/theme/colors.ts` exports `lightColors` and `darkColors` with
-   identical keys (type `ColorPalette`), including the tokens DESIGN.md
-   adds (`canvasRaised`, `onPrimary`, `controlSelected`, `trackOff`,
-   `shadow`, `chartSeries2`, `intensity0–4`). `textInverse` becomes
-   `onPrimary`.
-2. `src/theme/` adds `ThemeContext`, `useTheme()` (returns
-   `{ colors, scheme }`) and `createStyles((colors) => ({ ... }))`,
-   which memoizes a `StyleSheet` per palette.
-3. `UserPreferences` gains `appearance: 'system' | 'light' | 'dark'`
-   (preferences store, profile document, `firestore.rules`).
-4. `src/app/providers/ThemeProvider.tsx` resolves `appearance` against
-   `useColorScheme()` and provides the palette; the status bar and
-   navigation theme follow it. `app.json` → `"automatic"`.
-5. Screens and components move from static `colors` to
-   `createStyles`, feature by feature. The static `colors` export is
-   removed when nothing imports it.
+- `src/theme/colors.ts` exports `lightColors` and `darkColors` (same keys,
+  type `ColorPalette`). There is no static `colors` export.
+- `src/theme/ThemeContext.tsx` provides `useTheme()` → `{ scheme, colors }`
+  and `createStyles((colors) => ({ ... }))`, which returns a `useStyles()`
+  hook with one cached stylesheet per scheme.
+- `src/app/providers/ThemeProvider.tsx` resolves the scheme from the
+  appearance choice and the OS, provides it, sets the status bar, the
+  root background (`expo-system-ui`) and the native appearance
+  (`Appearance.setColorScheme`) so alerts and the keyboard match.
+- The appearance choice lives in `useAppearanceStore`
+  (`features/profile/store`). It is device-level: not scoped per account
+  in `userScope.ts` and not synced to Firestore.
 
-Rules, now and after the migration:
+Rules:
 
-- Never hard-code a color. Never branch on the scheme to pick a color;
-  add or use a token. The only scheme check allowed is choosing between
-  a third-party asset's light and dark variants.
-- Every new color token gets a light and a dark value that meet the
-  contrast rules in DESIGN.md §12.
-- Until step 2 lands, keep importing `colors` from `@theme` as today,
-  and only use tokens that exist in `colors.ts`.
+- Styles that use a color are built with `createStyles`, and every
+  component that reads them calls `const styles = useStyles();` first.
+  Colors outside a stylesheet (SVG strokes, placeholder colors) come from
+  `const { colors } = useTheme();`.
+- No color in module-level constants or default parameter values — they
+  are evaluated once, outside the theme. Store a `ColorToken` name and
+  resolve it with `colors[token]` inside the component, or resolve a
+  default after `useTheme()` (`const color = colorProp ?? colors.x`).
+- Pure helpers that need a color take the palette as an argument; never
+  call `useTheme()` outside a component or hook.
+- Never hard-code a color or branch on the scheme to pick one; add or use
+  a token. The only scheme check allowed is choosing between a
+  third-party asset's light and dark variants.
+- Every new token gets a light and a dark value that meet DESIGN.md §12.
+- Tests render without a provider, i.e. in light; assert against
+  `lightColors`.
 
 ---
 
@@ -332,7 +335,7 @@ Never create a screen before its types, service and hook exist.
 - **Exercise library**: 1,170 exercises from exercises-dataset (MIT),
   106 with Everkinetic illustrations (CC BY-SA 4.0). See
   `THIRD_PARTY_NOTICES.md`.
-- **Theming**: light theme only; dark mode specified, migration pending
+- **Theming**: light and dark themes, System / Light / Dark choice
   (see "Theming").
 - **Language**: English only.
 - **Not released yet.** Data migrations may assume development

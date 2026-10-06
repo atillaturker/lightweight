@@ -8,17 +8,17 @@
  * swap straight to the auth stack.
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
-import { colors, fineSpacing, spacing } from "@theme";
+import { fineSpacing, spacing, createStyles, useTheme } from "@theme";
 
 import type { IntroStackParamList } from "@/app/navigation/types";
 import { useAppStore } from "../store/appStore";
-import { styles } from "./onboardingScreen.styles";
+import { useStyles } from "./onboardingScreen.styles";
 
 type Props = NativeStackScreenProps<IntroStackParamList, "Intro1">;
 
@@ -40,6 +40,8 @@ interface SetRowProps {
 
 /** A single 44px set row: number badge, weight, reps, and check state. */
 function SetRow({ index, completed }: SetRowProps): React.ReactElement {
+  const rowStyles = useRowStyles();
+  const { colors } = useTheme();
   return (
     <View style={rowStyles.row}>
       <View style={rowStyles.cellSet}>
@@ -84,7 +86,7 @@ function SetRow({ index, completed }: SetRowProps): React.ReactElement {
             >
               <Path
                 d="M1 5L4.5 8.5L11 1.5"
-                stroke={colors.textInverse}
+                stroke={colors.onPrimary}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.8}
@@ -102,6 +104,9 @@ function SetRow({ index, completed }: SetRowProps): React.ReactElement {
  * "Skip" is the only way out besides the primary CTA.
  */
 export function Intro1Screen({ navigation }: Props): React.ReactElement {
+  const fragmentStyles = useFragmentStyles();
+  const rowStyles = useRowStyles();
+  const styles = useStyles();
   const markIntroSeen = useAppStore((state) => state.markIntroSeen);
 
   return (
@@ -168,7 +173,7 @@ export function Intro1Screen({ navigation }: Props): React.ReactElement {
   );
 }
 
-const fragmentStyles = StyleSheet.create({
+const useFragmentStyles = createStyles((colors) => ({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -201,9 +206,9 @@ const fragmentStyles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.hairline,
   },
-});
+}));
 
-const rowStyles = StyleSheet.create({
+const useRowStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -242,7 +247,7 @@ const rowStyles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   badgeLabelInverse: {
-    color: colors.textInverse,
+    color: colors.onPrimary,
   },
   badgeLabelBase: {
     color: colors.textPrimary,
@@ -272,4 +277,4 @@ const rowStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primary,
   },
-});
+}));

@@ -22,7 +22,7 @@ import { SetupOptionRow } from "../components/SetupOptionRow";
 import { SetupTopRow } from "../components/SetupTopRow";
 import { useOnboardingStore } from "../store/onboardingStore";
 import type { RoutineChoice } from "../types";
-import { styles } from "./onboardingScreen.styles";
+import { useStyles } from "./onboardingScreen.styles";
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, "SetupRoutine">;
 
@@ -56,6 +56,7 @@ const ROUTINE_OPTIONS: readonly {
 
 /** First-routine step and the flow's completion point. */
 export function SetupRoutineScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const routineChoice = useOnboardingStore((state) => state.routineChoice);
   const setRoutineChoice = useOnboardingStore((state) => state.setRoutineChoice);
   const resetDraft = useOnboardingStore((state) => state.reset);

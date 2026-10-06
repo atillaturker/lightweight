@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing, type } from "@theme";
+import { radii, spacing, type, createStyles } from "@theme";
 
 /** Rendered pill height. */
 export const PILL_HEIGHT = 32;
@@ -10,7 +9,7 @@ export const PILL_HEIGHT = 32;
  * inside the component — selected is a solid primary fill, unselected is
  * a white chip with a hairline border.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   base: {
     alignItems: "center",
     justifyContent: "center",
@@ -34,6 +33,6 @@ export const styles = StyleSheet.create({
   },
   labelSelected: {
     ...type.label,
-    color: colors.textInverse,
+    color: colors.onPrimary,
   },
-});
+}));

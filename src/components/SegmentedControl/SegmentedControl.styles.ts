@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing, type } from "@theme";
+import { radii, spacing, type, createStyles } from "@theme";
 
 /** Height of a single segment row, inside the track padding. */
 export const SEGMENT_HEIGHT = 32;
@@ -9,7 +8,7 @@ export const SEGMENT_HEIGHT = 32;
  * Static styles for SegmentedControl. Selection state is composed as a
  * style array inside the component.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   track: {
     flexDirection: "row",
     alignItems: "center",
@@ -42,4 +41,4 @@ export const styles = StyleSheet.create({
     ...type.label,
     color: colors.textPrimary,
   },
-});
+}));

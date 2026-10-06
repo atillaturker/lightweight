@@ -9,10 +9,10 @@
  * the carousel uses it.
  */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Circle, Line, Polyline, Svg, Text as SvgText } from "react-native-svg";
 
-import { colors, spacing } from "@theme";
+import { spacing, createStyles, useTheme } from "@theme";
 
 import {
   WELCOME_CHART_CARD_WIDTH,
@@ -26,11 +26,6 @@ import {
 /** Rendered height of the chart box, matching the SVG viewBox. */
 const CHART_HEIGHT = WELCOME_CHART_SIZE.height;
 
-/** Fill of the 2px vertex dots and the trend line. */
-const SERIES_COLOR = colors.chartLine;
-
-/** Fill of the week labels and the y-axis values. */
-const AXIS_COLOR = colors.textMuted;
 
 /** SVG text needs plain numbers, not RN style objects. */
 const AXIS_LABEL_SIZE = 10;
@@ -66,6 +61,12 @@ export interface WelcomeChartCardProps {
 export function WelcomeChartCard({
   series,
 }: WelcomeChartCardProps): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  /** Fill of the 2px vertex dots and the trend line. */
+  const seriesColor = colors.chartLine;
+  /** Fill of the week labels and the y-axis values. */
+  const axisColor = colors.textMuted;
   const points = WELCOME_CHART_POINT_X.map(
     (x, index) => `${x},${series.points[index]}`,
   ).join(" ");
@@ -96,7 +97,7 @@ export function WelcomeChartCard({
               y2={y}
             />
             <SvgText
-              fill={AXIS_COLOR}
+              fill={axisColor}
               fontSize={AXIS_LABEL_SIZE}
               fontWeight="500"
               textAnchor="end"
@@ -111,7 +112,7 @@ export function WelcomeChartCard({
         <Polyline
           fill="none"
           points={points}
-          stroke={SERIES_COLOR}
+          stroke={seriesColor}
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={1.5}
@@ -121,7 +122,7 @@ export function WelcomeChartCard({
           <Circle
             cx={x}
             cy={series.points[index]}
-            fill={SERIES_COLOR}
+            fill={seriesColor}
             key={x}
             r={2}
           />
@@ -129,7 +130,7 @@ export function WelcomeChartCard({
 
         {WELCOME_CHART_X_TICKS.map((tick) => (
           <SvgText
-            fill={AXIS_COLOR}
+            fill={axisColor}
             fontSize={AXIS_LABEL_SIZE}
             fontWeight="500"
             key={tick.label}
@@ -145,7 +146,7 @@ export function WelcomeChartCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   card: {
     width: WELCOME_CHART_CARD_WIDTH,
   },
@@ -168,4 +169,4 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
     color: colors.textPrimary,
   },
-});
+}));

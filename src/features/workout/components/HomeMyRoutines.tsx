@@ -19,13 +19,13 @@
  * group, so they sit in a single Card (DESIGN.md §7.2).
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Card } from "@components/Card";
 import { SectionHeader } from "@components/SectionHeader";
 import type { Routine } from "@domain/entities";
 import { RoutineRow, routineDurationMinutes } from "@features/routines";
-import { colors, spacing, type } from "@theme";
+import { spacing, type, createStyles } from "@theme";
 
 /** Maximum routines previewed on Home before "See all" takes over. */
 export const HOME_ROUTINE_PREVIEW_LIMIT = 3;
@@ -62,6 +62,7 @@ function EmptyRoutines({
   showCreateAction: boolean;
   testID?: string;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.empty} testID={testID}>
       <Text style={styles.emptyTitle}>No routines yet</Text>
@@ -95,6 +96,7 @@ export function HomeMyRoutines({
   showCreateAction,
   testID,
 }: HomeMyRoutinesProps): React.ReactElement {
+  const styles = useStyles();
   const shown = routines.slice(0, HOME_ROUTINE_PREVIEW_LIMIT);
   const showSeeAll = routines.length > 0;
 
@@ -151,7 +153,7 @@ export function HomeMyRoutines({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   header: {
     paddingHorizontal: spacing.xl,
   },
@@ -203,4 +205,4 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.hairline,
   },
-});
+}));

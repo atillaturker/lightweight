@@ -19,7 +19,6 @@ import {
   FlatList,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -32,7 +31,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "@components/Button";
 import { ScreenHeader } from "@components/ScreenHeader";
 import type { Exercise, MuscleGroup as DomainMuscleGroup } from "@domain/entities";
-import { colors, emptyStatePadding, fineSpacing, gutter, radii, spacing, type } from "@theme";
+import { emptyStatePadding, fineSpacing, gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
 import { ExerciseThumb } from "../components/ExerciseThumb";
 import { EXERCISE_LIBRARY } from "../services";
@@ -55,6 +54,7 @@ const FILTERS: readonly { label: string; group: DomainMuscleGroup | null }[] = [
 
 /** Magnifier glyph for the search field. */
 function SearchGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -73,6 +73,7 @@ function SearchGlyph(): React.ReactElement {
 
 /** Plus glyph shown on unselected rows. */
 function PlusGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -91,6 +92,7 @@ function PlusGlyph(): React.ReactElement {
 
 /** Check glyph shown on selected rows. */
 function CheckGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -126,6 +128,7 @@ const PickerRow = React.memo(function PickerRow({
   showDivider,
   onToggle,
 }: PickerRowProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View>
       {showDivider ? <View style={styles.rowHairline} /> : null}
@@ -155,6 +158,7 @@ const PickerRow = React.memo(function PickerRow({
 
 /** Shown when search and filter leave no rows. */
 function NoResults(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.emptyState}>
       <Text style={styles.emptyTitle}>No exercises found</Text>
@@ -168,6 +172,8 @@ function NoResults(): React.ReactElement {
  * confirm.
  */
 export function ExercisePickerScreen({ navigation, route }: Props): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { mode, routineId } = route.params;
 
   const addExercisesToRoutine = useRoutineStore(
@@ -328,7 +334,7 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
 
   searchWrap: {
@@ -447,4 +453,4 @@ const styles = StyleSheet.create({
     borderTopColor: colors.hairline,
     backgroundColor: colors.canvas,
   },
-});
+}));

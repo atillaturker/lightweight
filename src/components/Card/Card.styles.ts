@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing } from "@theme";
+import { radii, spacing, createStyles } from "@theme";
 
 /** Border width of the outlined card. */
 const CARD_BORDER = 1;
@@ -9,7 +8,7 @@ const CARD_BORDER = 1;
  * Static styles for Card. Both variants share the 12px radius and 16px
  * padding; they differ only in fill and border. No shadow on either.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   outlined: {
     padding: spacing.lg,
     borderRadius: radii.card,
@@ -22,4 +21,4 @@ export const styles = StyleSheet.create({
     borderRadius: radii.card,
     backgroundColor: colors.surface,
   },
-});
+}));

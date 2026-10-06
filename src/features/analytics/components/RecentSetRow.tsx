@@ -4,9 +4,9 @@
  * horizontal padding; hairline separators are drawn as the row's top edge.
  */
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { colors, spacing, type } from '@theme';
+import { spacing, type, createStyles } from '@theme';
 
 /** Minimum row height. */
 const ROW_HEIGHT = 44;
@@ -27,6 +27,7 @@ export function RecentSetRow({
   dividerTop,
   testID,
 }: RecentSetRowProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.wrap} testID={testID}>
       {dividerTop ? <View style={styles.divider} /> : null}
@@ -43,7 +44,7 @@ export function RecentSetRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   wrap: {
     minHeight: ROW_HEIGHT,
     justifyContent: 'center',
@@ -72,4 +73,4 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     color: colors.textPrimary,
   },
-});
+}));

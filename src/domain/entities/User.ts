@@ -30,3 +30,10 @@ export interface User {
   hasOnboarded: boolean;
   createdAt: number;
 }
+
+/**
+ * Color theme choice. `system` follows the OS setting. A device-level
+ * setting, deliberately not part of the synced {@link UserPreferences}:
+ * it applies before sign-in and may differ between a user's devices.
+ */
+export type Appearance = 'system' | 'light' | 'dark';

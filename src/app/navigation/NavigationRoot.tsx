@@ -1,28 +1,39 @@
 /**
  * Navigation container and theme. Mounted once at the app root; maps the
- * design-system color tokens onto React Navigation's theme so screen
- * backgrounds and transitions match the canvas.
+ * active palette onto React Navigation's theme so screen backgrounds and
+ * transitions match the canvas in both light and dark.
  */
-import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
+import { useMemo } from "react";
+import {
+  DarkTheme,
+  DefaultTheme,
+  NavigationContainer,
+  type Theme as NavigationTheme,
+} from "@react-navigation/native";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 import { RootNavigator } from "./RootNavigator";
 
-const navTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: colors.canvas,
-    card: colors.canvas,
-    text: colors.textPrimary,
-    border: colors.hairline,
-    primary: colors.primary,
-  },
-};
-
 /** App-wide navigation root. */
 export function NavigationRoot() {
+  const { scheme, colors } = useTheme();
+
+  const navTheme = useMemo((): NavigationTheme => {
+    const base = scheme === "dark" ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: colors.canvas,
+        card: colors.canvas,
+        text: colors.textPrimary,
+        border: colors.hairline,
+        primary: colors.primary,
+      },
+    };
+  }, [scheme, colors]);
+
   return (
     <NavigationContainer theme={navTheme}>
       <RootNavigator />

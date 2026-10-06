@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react-native";
 import React from "react";
 
-import { colors } from "@theme";
+import { lightColors as colors } from "@theme";
 
 import { LineIcon, type LineIconName } from "./LineIcon";
 

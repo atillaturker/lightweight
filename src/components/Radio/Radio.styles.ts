@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing, type } from "@theme";
+import { radii, spacing, type, createStyles } from "@theme";
 
 /** Diameter of the radio indicator. */
 export const RADIO_SIZE = 22;
@@ -18,7 +17,7 @@ export const RADIO_MIN_HEIGHT = 44;
  * Static styles for Radio. Selection is a color flip plus a check glyph;
  * there is no shadow, ring, or animation.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -54,4 +53,4 @@ export const styles = StyleSheet.create({
   disabled: {
     opacity: 0.4,
   },
-});
+}));

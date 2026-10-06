@@ -13,7 +13,7 @@
  * offers the only destructive action.
  */
 import React, { useCallback } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -22,7 +22,7 @@ import { Button } from "@components/Button";
 import { Card } from "@components/Card";
 import { EmptyState } from "@components/EmptyState";
 import { ScreenHeader } from "@components/ScreenHeader";
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles } from "@theme";
 import {
   formatInteger,
   formatLongDateTime,
@@ -66,6 +66,7 @@ export function SessionDetailScreen({
   navigation,
   route,
 }: Props): React.ReactElement {
+  const styles = useStyles();
   const { sessionId } = route.params;
   const { session, volumeKg, sets, reps, minutes, exercises, personalRecords } =
     useSessionDetail(sessionId);
@@ -239,7 +240,7 @@ export function SessionDetailScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
@@ -285,4 +286,4 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
   },
-});
+}));

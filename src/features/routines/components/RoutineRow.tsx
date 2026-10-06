@@ -13,11 +13,11 @@
  * The `inset` variant drops the gutter padding for rows grouped in a Card.
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 import { IconTile } from "@components/IconTile";
-import { colors, fineSpacing, gutter, spacing, type } from "@theme";
+import { fineSpacing, gutter, spacing, type, createStyles, useTheme } from "@theme";
 
 /** Rendered edge length of the overflow glyph. */
 const MORE_GLYPH_SIZE = 20;
@@ -50,6 +50,7 @@ export interface RoutineRowProps {
 
 /** Three-dot overflow glyph drawn on react-native-svg. */
 function MoreGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg height={MORE_GLYPH_SIZE} viewBox="0 0 24 24" width={MORE_GLYPH_SIZE}>
       <Circle cx={5} cy={12} fill={colors.textMuted} r={1.5} />
@@ -61,6 +62,8 @@ function MoreGlyph(): React.ReactElement {
 
 /** 6px accent dot marking the active routine. */
 function ActiveDot(): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <Svg
       height={ACTIVE_DOT_SIZE}
@@ -84,6 +87,7 @@ export function RoutineRow({
   variant = "list",
   testID,
 }: RoutineRowProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={name}
@@ -116,7 +120,7 @@ export function RoutineRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -155,4 +159,4 @@ const styles = StyleSheet.create({
   activeDot: {
     marginRight: spacing.sm,
   },
-});
+}));

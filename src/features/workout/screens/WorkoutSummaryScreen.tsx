@@ -17,13 +17,13 @@
  * refetch, then returns to the top of the Today stack.
  */
 import React, { useCallback } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Button } from '@components/Button';
 import { EmptyState } from '@components/EmptyState';
-import { colors, gutter, spacing, type } from '@theme';
+import { gutter, spacing, type, createStyles, useTheme } from '@theme';
 import {
   formatDeltaLabel,
   formatInteger,
@@ -54,6 +54,8 @@ export function WorkoutSummaryScreen({
   navigation,
   route,
 }: Props): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { sessionId } = route.params;
   const { session, minutes, volumeKg, sets, reps, volumeDeltaPercent, personalRecords, isEmpty } =
     useSessionSummary(sessionId);
@@ -198,6 +200,7 @@ function SummaryShell({
   children: React.ReactNode;
   testID?: string;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.container} testID={testID}>
       {children}
@@ -205,7 +208,7 @@ function SummaryShell({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
@@ -278,4 +281,4 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     gap: spacing.sm,
   },
-});
+}));

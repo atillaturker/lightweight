@@ -1,11 +1,11 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
 
 import { NavigationRoot } from "@/app/navigation";
 import { registerDataProviders } from "@/app/providers";
 import { registerCloudSync } from "@/app/providers/cloudSync";
 import { CloudSync } from "@/app/providers/useCloudSync";
+import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { registerUserScope } from "@/app/providers/userScope";
 
 // Scope user-owned stores to the signed-in account before anything reads
@@ -21,9 +21,10 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <CloudSync />
-        <NavigationRoot />
-        <StatusBar style="auto" />
+        <ThemeProvider>
+          <CloudSync />
+          <NavigationRoot />
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

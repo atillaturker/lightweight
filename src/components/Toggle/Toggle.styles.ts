@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing } from "@theme";
+import { radii, spacing, createStyles } from "@theme";
 
 /** Rendered track size. Kept as constants so the knob math stays exact. */
 export const TRACK_WIDTH = 44;
@@ -15,7 +14,7 @@ export const KNOB_TRAVEL = TRACK_WIDTH - KNOB_SIZE - KNOB_INSET * 2;
  * Static styles for Toggle. Animated values (knob translate, track
  * color) are applied inline inside the component.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   /**
    * Pressable wrapper. Stretches the touch target to the 44px minimum
    * without changing the 24px track box that is actually drawn.
@@ -38,10 +37,10 @@ export const styles = StyleSheet.create({
     width: KNOB_SIZE,
     height: KNOB_SIZE,
     borderRadius: radii.pill,
-    backgroundColor: colors.canvas,
+    backgroundColor: colors.onPrimary,
   },
 
   disabled: {
     opacity: 0.4,
   },
-});
+}));

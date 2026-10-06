@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, View } from "react-native";
 
-import { styles } from "./AuthDivider.styles";
+import { useStyles } from "./AuthDivider.styles";
 
 /**
  * Hairline separator with a centred "or" pill riding over it.
@@ -11,6 +11,7 @@ import { styles } from "./AuthDivider.styles";
  * it, and it uses the badge radius (pill), never a control radius.
  */
 export function AuthDivider(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View
       accessibilityRole="none"

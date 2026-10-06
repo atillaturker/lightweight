@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, gutter, type } from "@theme";
+import { gutter, type, createStyles } from "@theme";
 
 /** Header height, matching the platform-navigation convention. */
 export const HEADER_HEIGHT = 44;
@@ -16,7 +15,7 @@ export const HEADER_CHEVRON_SIZE = 20;
  * optically centered no matter which slots are filled; there is no bottom
  * border and no shadow.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   container: {
     flexDirection: "row",
     alignItems: "center",
@@ -54,4 +53,4 @@ export const styles = StyleSheet.create({
   titleSpacer: {
     flex: 1,
   },
-});
+}));

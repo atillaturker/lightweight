@@ -50,8 +50,8 @@ supplies the value. The only legitimate scheme check is for third-party
 assets that ship separate light/dark variants (e.g. the Apple sign-in
 mark).
 
-**Status:** the dark palette is specified here; theme switching is not
-wired yet. See `AGENTS.md` → "Theming" for the migration.
+The choice is stored per device, so it applies on the sign-in screens
+too. Implementation: `AGENTS.md` → "Theming".
 
 ---
 

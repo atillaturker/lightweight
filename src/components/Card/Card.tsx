@@ -1,7 +1,7 @@
 import React from "react";
 import { View, type ViewProps } from "react-native";
 
-import { styles } from "./Card.styles";
+import { useStyles } from "./Card.styles";
 
 /** Props for {@link Card}. */
 export interface CardProps extends Omit<ViewProps, "style"> {
@@ -27,6 +27,7 @@ export function Card({
   testID,
   ...rest
 }: CardProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View
       style={variant === "well" ? styles.well : styles.outlined}

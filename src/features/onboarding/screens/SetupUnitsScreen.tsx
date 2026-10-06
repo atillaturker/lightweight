@@ -17,7 +17,7 @@ import type { OnboardingStackParamList } from "@/app/navigation/types";
 import { SetupOptionRow } from "../components/SetupOptionRow";
 import { SetupTopRow } from "../components/SetupTopRow";
 import { useOnboardingStore } from "../store/onboardingStore";
-import { styles } from "./onboardingScreen.styles";
+import { useStyles } from "./onboardingScreen.styles";
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, "SetupUnits">;
 
@@ -32,6 +32,7 @@ const UNIT_OPTIONS: readonly { value: WeightUnit; label: string }[] = [
  * under every row keeps the list unbounded at both ends.
  */
 export function SetupUnitsScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const unit = useOnboardingStore((state) => state.unit);
   const setUnit = useOnboardingStore((state) => state.setUnit);
 

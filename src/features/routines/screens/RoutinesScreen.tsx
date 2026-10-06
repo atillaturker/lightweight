@@ -10,7 +10,7 @@
  * are one list group, so they share a single Card (DESIGN.md §7.2).
  */
 import React, { useCallback, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -19,7 +19,7 @@ import { Card } from "@components/Card";
 import { LineIcon } from "@components/LineIcon";
 import { ScreenHeader } from "@components/ScreenHeader";
 import type { Routine } from "@domain/entities";
-import { colors, emptyStatePadding, gutter, spacing, type } from "@theme";
+import { emptyStatePadding, gutter, spacing, type, createStyles } from "@theme";
 
 import { RoutineActionSheet } from "../components/RoutineActionSheet";
 import { RoutineRow } from "../components/RoutineRow";
@@ -35,6 +35,7 @@ const EMPTY_GLYPH_SIZE = 32;
 
 /** Routines list, owned by the Today stack since routines live on Home. */
 export function RoutinesScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const routines = useRoutineStore((state) => state.routines);
   const activeRoutineId = useRoutineStore((state) => state.activeRoutineId);
   const setActiveRoutine = useRoutineStore((state) => state.setActiveRoutine);
@@ -126,7 +127,7 @@ export function RoutinesScreen({ navigation }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
 
   content: {
@@ -167,4 +168,4 @@ const styles = StyleSheet.create({
     borderTopColor: colors.hairline,
     backgroundColor: colors.canvas,
   },
-});
+}));

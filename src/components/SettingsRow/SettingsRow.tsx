@@ -9,11 +9,11 @@ import {
 
 import { Toggle } from "@components/Toggle";
 import { svgIcon, svgToDataUri } from "@lib/svg";
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 import {
   SETTINGS_ROW_CHEVRON_SIZE,
-  styles,
+  useStyles,
 } from "./SettingsRow.styles";
 
 /**
@@ -54,6 +54,7 @@ const CHEVRON_STYLE = {
 
 /** The 16px monoline chevron that marks a navigating row. */
 function Chevron({ testID }: { testID?: string }): React.ReactElement {
+  const { colors } = useTheme();
   const uri = svgToDataUri(
     svgIcon(
       SETTINGS_ROW_CHEVRON_SIZE,
@@ -89,6 +90,7 @@ function RightAccessory({
   onToggleChange?: (value: boolean) => void;
   testID?: string;
 }): React.ReactElement | null {
+  const styles = useStyles();
   const chevron = <Chevron testID={testID ? `${testID}-chevron` : undefined} />;
 
   switch (variant) {
@@ -139,6 +141,7 @@ export function SettingsRow({
   testID,
   ...rest
 }: SettingsRowProps): React.ReactElement {
+  const styles = useStyles();
   const labelStyle = [
     styles.label,
     variant === "destructive" && styles.labelDestructive,

@@ -1,7 +1,7 @@
 import type { Insets } from "react-native";
 import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing, type } from "@theme";
+import { radii, spacing, type, createStyles } from "@theme";
 
 /**
  * Expands the touch target of every button by 4px on each edge without
@@ -18,7 +18,7 @@ export const hitSlop: Insets = {
  * Static styles for Button. Dynamic values (variant, pressed, disabled)
  * are composed as style arrays inside the component.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   base: {
     alignSelf: "flex-start",
     flexDirection: "row",
@@ -72,7 +72,7 @@ export const styles = StyleSheet.create({
   },
   labelPrimary: {
     ...type.button,
-    color: colors.textInverse,
+    color: colors.onPrimary,
   },
   labelSecondary: {
     ...type.button,
@@ -94,25 +94,25 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));
 
-/** Pressed style per variant, keyed for lookup in the component. */
+/** Pressed style key per variant, for lookup in the themed stylesheet. */
 export const pressedStyles = {
-  primary: styles.primaryPressed,
-  secondary: styles.secondaryPressed,
-  text: styles.textPressed,
+  primary: "primaryPressed",
+  secondary: "secondaryPressed",
+  text: "textPressed",
 } as const;
 
-/** Label style per variant, keyed for lookup in the component. */
+/** Label style key per variant, for lookup in the themed stylesheet. */
 export const labelStyles = {
-  primary: styles.labelPrimary,
-  secondary: styles.labelSecondary,
-  text: styles.labelText,
+  primary: "labelPrimary",
+  secondary: "labelSecondary",
+  text: "labelText",
 } as const;
 
-/** Variant style per variant, keyed for lookup in the component. */
+/** Variant style key per variant, for lookup in the themed stylesheet. */
 export const variantStyles = {
-  primary: styles.primary,
-  secondary: styles.secondary,
-  text: styles.text,
+  primary: "primary",
+  secondary: "secondary",
+  text: "text",
 } as const;

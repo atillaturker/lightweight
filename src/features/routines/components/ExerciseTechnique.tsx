@@ -5,11 +5,11 @@
  * The caller owns the spacing above the section.
  */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import type { Exercise } from "@domain/entities";
 import { SectionHeader } from "@components/SectionHeader";
-import { colors, spacing, type } from "@theme";
+import { spacing, type, createStyles } from "@theme";
 
 import {
   ExerciseIllustration,
@@ -37,6 +37,7 @@ export function ExerciseTechnique({
   exercise,
   contentWidth,
 }: ExerciseTechniqueProps): React.ReactElement | null {
+  const styles = useStyles();
   const steps = exercise.instructions ?? [];
   const illustrated = hasExerciseIllustration(exercise.id);
   if (!illustrated && steps.length === 0) return null;
@@ -73,7 +74,7 @@ export function ExerciseTechnique({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   frames: {
     flexDirection: "row",
     gap: FRAME_GAP,
@@ -90,4 +91,4 @@ const styles = StyleSheet.create({
     minWidth: spacing.lg,
   },
   stepText: { ...type.body, color: colors.textBody, flex: 1 },
-});
+}));

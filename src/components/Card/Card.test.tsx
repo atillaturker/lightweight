@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet, Text } from "react-native";
 
-import { colors } from "@theme";
+import { lightColors as colors } from "@theme";
 
 import { Card } from "./Card";
 

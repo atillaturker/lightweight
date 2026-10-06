@@ -4,13 +4,13 @@
  * open in the browser.
  */
 import React from "react";
-import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { ScreenHeader } from "@components/ScreenHeader";
 import { SectionHeader } from "@components/SectionHeader";
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles } from "@theme";
 
 import { ACKNOWLEDGEMENTS, type Acknowledgement } from "../acknowledgements";
 
@@ -20,6 +20,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, "Acknowledgements">;
 
 /** A tappable URL line. */
 function LinkLine({ label, url }: { label: string; url: string }): React.ReactElement {
+  const styles = useStyles();
   return (
     <Text
       accessibilityRole="link"
@@ -33,6 +34,7 @@ function LinkLine({ label, url }: { label: string; url: string }): React.ReactEl
 
 /** One source: what we use, the notice, the license and any changes. */
 function AcknowledgementBlock({ item }: { item: Acknowledgement }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.block} testID={`acknowledgement-${item.id}`}>
       <SectionHeader label={item.title} variant="rule" />
@@ -48,6 +50,7 @@ function AcknowledgementBlock({ item }: { item: Acknowledgement }): React.ReactE
 
 /** Attribution for every third-party source the app ships. */
 export function AcknowledgementsScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   return (
     <SafeAreaView edges={["top"]} style={styles.container}>
       <ScreenHeader onBack={navigation.goBack} showBack title="Acknowledgements" />
@@ -60,7 +63,7 @@ export function AcknowledgementsScreen({ navigation }: Props): React.ReactElemen
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
   content: { paddingHorizontal: gutter, paddingBottom: spacing.huge },
   block: { marginTop: spacing.xxl, gap: spacing.sm },
@@ -69,4 +72,4 @@ const styles = StyleSheet.create({
   link: { ...type.bodySmall, color: colors.textPrimary, textDecorationLine: "underline" },
   muted: { ...type.bodySmall, color: colors.textMuted },
   licenseText: { ...type.caption, color: colors.textMuted },
-});
+}));

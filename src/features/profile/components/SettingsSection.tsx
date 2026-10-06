@@ -7,11 +7,11 @@
  * stay uncarded (profile rules); the header may carry a glyph (DESIGN.md §6).
  */
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import type { LineIconName } from '@components/LineIcon';
 import { SectionHeader } from '@components/SectionHeader';
-import { colors, spacing } from '@theme';
+import { spacing, createStyles } from '@theme';
 
 /** Props for {@link SettingsSection}. */
 export interface SettingsSectionProps {
@@ -30,6 +30,7 @@ export function SettingsSection({
   children,
   testID,
 }: SettingsSectionProps): React.ReactElement {
+  const styles = useStyles();
   const rows = React.Children.toArray(children);
 
   return (
@@ -52,7 +53,7 @@ export function SettingsSection({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   section: {
     marginTop: spacing.xxl,
   },
@@ -63,4 +64,4 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.hairline,
   },
-});
+}));

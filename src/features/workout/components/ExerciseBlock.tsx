@@ -8,11 +8,11 @@
  * set rows keep their internal hairlines.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
 import { Card } from '@components/Card';
-import { colors, spacing, type } from '@theme';
+import { spacing, type, createStyles } from '@theme';
 
 import { MoreGlyph } from './Glyphs';
 import { NUMERIC_COLUMN_WIDTH, SetRow, type SetRowState } from './SetRow';
@@ -90,6 +90,7 @@ export function ExerciseBlock({
   registerRowRef,
   testID,
 }: ExerciseBlockProps): React.ReactElement {
+  const styles = useStyles();
   const hasPR = exercise.sets.some((set) => set.isPR);
 
   const titleRow = (
@@ -203,7 +204,7 @@ export function ExerciseBlock({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   titleRow: {
     height: MORE_TARGET,
     flexDirection: 'row',
@@ -299,4 +300,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: colors.textPrimary,
   },
-});
+}));

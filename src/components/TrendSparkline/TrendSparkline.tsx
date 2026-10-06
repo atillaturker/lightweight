@@ -2,7 +2,7 @@ import React from "react";
 import { View, type ViewProps } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 /** Height of the sparkline, per DESIGN.md §6. */
 export const SPARKLINE_HEIGHT = 30;
@@ -66,6 +66,7 @@ export function TrendSparkline({
   testID,
   ...rest
 }: TrendSparklineProps): React.ReactElement {
+  const { colors } = useTheme();
   const path = calculateSparklinePath(points, width, SPARKLINE_HEIGHT);
 
   return (

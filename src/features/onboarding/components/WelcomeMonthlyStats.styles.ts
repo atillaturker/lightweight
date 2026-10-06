@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, fineSpacing, spacing, type } from "@theme";
+import { fineSpacing, spacing, type, createStyles } from "@theme";
 
 /** Height of the bar plot area, excluding the label row and x-axis. */
 export const BAR_PLOT_HEIGHT = 96;
@@ -16,7 +15,7 @@ export const BAR_RADIUS = 1;
  * miniature weekly-volume bar chart. The row sits directly on the white
  * canvas — no card, border, or background fill.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -86,4 +85,4 @@ export const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.textMuted,
   },
-});
+}));

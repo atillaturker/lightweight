@@ -18,7 +18,7 @@
  * what renders today, and states 2 and 3 are what render once data exists.
  */
 import React, { useCallback, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -30,7 +30,7 @@ import type {
   MainTabParamList,
   TodayStackParamList,
 } from "@/app/navigation/types";
-import { colors, spacing } from "@theme";
+import { spacing, createStyles } from "@theme";
 
 import {
   HomeMyRoutines,
@@ -68,6 +68,7 @@ type TabNavigation = BottomTabNavigationProp<MainTabParamList>;
  * active session.
  */
 export function HomeTodayScreen(): React.ReactElement {
+  const styles = useStyles();
   type HomeNav = TodayNavigation & TabNavigation;
   const navigation = useNavigation<HomeNav>();
 
@@ -349,7 +350,7 @@ function nextSessionMeta(input: {
   return `${input.nextRoutineExercises} exercises · ~${input.nextRoutineMinutes} min`;
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
@@ -361,4 +362,4 @@ const styles = StyleSheet.create({
   section: {
     marginTop: SECTION_GAP,
   },
-});
+}));

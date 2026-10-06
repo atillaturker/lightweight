@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, type PressableProps } from "react-native";
 
-import { styles } from "./Pill.styles";
+import { useStyles } from "./Pill.styles";
 
 /** Props for {@link Pill}. */
 export interface PillProps
@@ -25,6 +25,7 @@ export function Pill({
   testID,
   ...rest
 }: PillProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={label}
