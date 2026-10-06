@@ -4,6 +4,9 @@
  */
 import { useCallback } from 'react';
 
+import type { BodyWeightEntry } from '@domain/entities';
+import { mergeBodyWeight } from '@domain/rules';
+
 import { syncBodyWeightToCloud } from '../services';
 import { useBodyWeightStore } from '../store';
 
@@ -13,6 +16,11 @@ export interface BodyWeightActions {
   logWeight: (weightKg: number) => void;
   /** Remove one day's entry. */
   removeEntry: (date: string) => void;
+  /**
+   * Merge entries from a backup, the newer edit winning per day, and
+   * mirror the changed days to the cloud. Returns how many days changed.
+   */
+  importEntries: (entries: BodyWeightEntry[]) => number;
 }
 
 /** Body-weight writes, mirrored to the cloud. */
@@ -27,5 +35,13 @@ export function useBodyWeightActions(): BodyWeightActions {
     },
     [remove],
   );
-  return { logWeight, removeEntry };
+  const importEntries = useCallback((entries: BodyWeightEntry[]): number => {
+    const store = useBodyWeightStore.getState();
+    const merge = mergeBodyWeight(entries, store.entries);
+    if (merge.toUpload.length === 0) return 0;
+    store.setEntries(merge.entries);
+    merge.toUpload.forEach(syncBodyWeightToCloud);
+    return merge.toUpload.length;
+  }, []);
+  return { logWeight, removeEntry, importEntries };
 }

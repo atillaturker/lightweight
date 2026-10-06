@@ -32,6 +32,11 @@ export interface HistoryStore {
   removeSession: (sessionId: string) => void;
   /** Drop every stored session. */
   clearAll: () => void;
+  /**
+   * Add the workouts whose ids are not stored yet, keeping newest-first
+   * order and the cap. Returns the ones added.
+   */
+  mergeSessions: (workouts: Workout[]) => Workout[];
 }
 
 /**
@@ -40,7 +45,7 @@ export interface HistoryStore {
  */
 export const useHistoryStore = create<HistoryStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       sessions: [],
       addSession: (workout) =>
         set((state) => ({
@@ -51,6 +56,21 @@ export const useHistoryStore = create<HistoryStore>()(
           sessions: state.sessions.filter((session) => session.id !== sessionId),
         })),
       clearAll: () => set({ sessions: [] }),
+      mergeSessions: (workouts) => {
+        const known = new Set(get().sessions.map((session) => session.id));
+        const added = workouts.filter((workout) => {
+          if (known.has(workout.id)) return false;
+          known.add(workout.id);
+          return true;
+        });
+        if (added.length === 0) return [];
+        const sessions = [...get().sessions, ...added]
+          .sort((a, b) => b.startedAt - a.startedAt)
+          .slice(0, MAX_HISTORY_SESSIONS);
+        set({ sessions });
+        const kept = new Set(sessions.map((session) => session.id));
+        return added.filter((workout) => kept.has(workout.id));
+      },
     }),
     {
       name: HISTORY_STORE_KEY,

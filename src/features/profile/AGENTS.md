@@ -27,6 +27,10 @@ Account, settings, and preferences. Two screens.
 
 `TRAINING` — Units, Week starts on, RPE field (toggle), Rest timer.
 `DATA` — Export data, Import data, Delete all workouts (destructive).
+Export and import are the backup feature's (`useBackupActions`); delete
+all removes every local session and tombstones each in the cloud
+(`useSessionActions().removeAllSessions`). `hooks/useDataActions` wires
+the rows and reports outcomes in system alerts.
 `APP` — Appearance (System / Light / Dark, opens a sheet),
 Notifications (toggle), About (with version), Acknowledgements,
 Sign out.

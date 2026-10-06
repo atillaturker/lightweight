@@ -25,6 +25,11 @@ jest.mock("@features/auth", () => ({
   useSignInActions: () => ({ signOut: jest.fn() }),
 }));
 
+import { Alert, type AlertButton } from "react-native";
+
+import { useHistoryStore } from "@features/history";
+import { resetCloudSyncSeams, setCloudWorkoutDeleter } from "@features/history/services";
+
 import { useAppearanceStore } from "../store";
 import { ProfileScreen } from "../screens/ProfileScreen";
 
@@ -76,5 +81,23 @@ describe("ProfileScreen", () => {
     fireEvent.press(screen.getByText("Dark"));
 
     expect(useAppearanceStore.getState().appearance).toBe("dark");
+  });
+
+  it("deletes every workout and tombstones each after confirming", () => {
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    const deleteWorkoutFromCloud = jest.fn();
+    setCloudWorkoutDeleter(deleteWorkoutFromCloud);
+    const session = { id: "w1", routineId: null, routineName: "Push", startedAt: 5, finishedAt: 6, sets: [] };
+    useHistoryStore.setState({ sessions: [session] });
+    renderProfile();
+
+    fireEvent.press(screen.getByTestId("profile-delete"));
+    const buttons = alert.mock.calls[0][2] as AlertButton[];
+    buttons.find((button) => button.style === "destructive")?.onPress?.();
+
+    expect(useHistoryStore.getState().sessions).toEqual([]);
+    expect(deleteWorkoutFromCloud).toHaveBeenCalledWith("w1", 5);
+    alert.mockRestore();
+    resetCloudSyncSeams();
   });
 });

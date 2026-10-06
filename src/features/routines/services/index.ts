@@ -16,3 +16,12 @@ export {
   syncCustomExerciseToCloud,
 } from './customExerciseCloud';
 export type { CloudCustomExerciseWriter, CustomExerciseQueueBody } from './customExerciseCloud';
+export {
+  buildRoutineShare,
+  parseRoutine,
+  parseRoutineShare,
+  ROUTINE_SHARE_FORMAT,
+  ROUTINE_SHARE_VERSION,
+  routineShareFileName,
+} from './routineShare';
+export type { ParsedRoutineShare, RoutineShareFile } from './routineShare';

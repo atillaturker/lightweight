@@ -17,6 +17,7 @@ import { formatDecimal } from "@lib/format";
 
 import { useMuscleMap } from "../hooks";
 import type { MuscleMapData, MuscleWindow } from "../utils";
+import { SECTION_CONTENT_GAP, SECTION_HEADER_HEIGHT } from "./sectionLayout";
 
 const WINDOW_OPTIONS = [
   { value: "week", label: "Week" },
@@ -66,7 +67,9 @@ export function MuscleMapSection({ width }: MuscleMapSectionProps): React.ReactE
 
   return (
     <View testID="muscle-map-section">
-      <SectionHeader label="Muscles" variant="rule" />
+      <View style={styles.header}>
+        <SectionHeader label="Muscles" variant="rule" />
+      </View>
       <View style={styles.control}>
         <SegmentedControl
           onChange={(value) => setSpan(value as MuscleWindow)}
@@ -96,7 +99,8 @@ export function MuscleMapSection({ width }: MuscleMapSectionProps): React.ReactE
 }
 
 const useStyles = createStyles((colors) => ({
-  control: { marginTop: spacing.md },
+  header: { height: SECTION_HEADER_HEIGHT, justifyContent: "center" },
+  control: { marginTop: SECTION_CONTENT_GAP },
   readout: {
     ...type.label,
     marginTop: spacing.lg,

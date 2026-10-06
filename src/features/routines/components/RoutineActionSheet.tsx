@@ -1,7 +1,9 @@
 /**
  * Bottom action sheet for one routine, opened from the "⋯" on a routine row.
  *
- * The active routine's sheet omits "Set as active" — it already is. "Delete"
+ * The active routine's sheet omits "Set as active" — it already is. "Share
+ * routine" writes the routine (and the custom exercises it uses) to a file
+ * and opens the share sheet, so the plan can be imported elsewhere. "Delete"
  * is destructive: it uses the error color and shows a confirmation alert
  * before the routine is removed. Every action closes the sheet.
  *
@@ -22,6 +24,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { Routine } from "@domain/entities";
 import { fineSpacing, gutter, radii, spacing, type, createStyles } from "@theme";
+
+import { useRoutineTransfer } from "../hooks/useRoutineTransfer";
 
 /** Props for {@link RoutineActionSheet}. */
 export interface RoutineActionSheetProps {
@@ -84,6 +88,7 @@ export function RoutineActionSheet({
   onClose,
 }: RoutineActionSheetProps): React.ReactElement {
   const styles = useStyles();
+  const { shareRoutine } = useRoutineTransfer();
   const handleSetActive = (): void => {
     if (routine) onSetActive(routine.id);
     onClose();
@@ -92,6 +97,16 @@ export function RoutineActionSheet({
   const handleEdit = (): void => {
     if (routine) onEdit(routine.id);
     onClose();
+  };
+
+  const handleShare = (): void => {
+    if (!routine) return;
+    const routineId = routine.id;
+    // Close first so the share sheet is not stacked on a live modal.
+    onClose();
+    shareRoutine(routineId).catch(() => {
+      Alert.alert("Sharing failed", "The routine file could not be shared. Try again.");
+    });
   };
 
   const handleDelete = (): void => {
@@ -155,6 +170,11 @@ export function RoutineActionSheet({
               label="Edit routine"
               onPress={handleEdit}
               testID="routine-action-edit"
+            />
+            <ActionRow
+              label="Share routine"
+              onPress={handleShare}
+              testID="routine-action-share"
             />
             <ActionRow
               destructive

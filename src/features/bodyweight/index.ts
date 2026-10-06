@@ -10,6 +10,12 @@ export type { BodyWeightActions } from './hooks';
 export { LogWeightSheet, parseWeightInput } from './components';
 export type { LogWeightSheetProps } from './components';
 export {
+  fromBodyWeightDocument,
+  isBodyWeightDocument,
+  toBodyWeightDocument,
+} from './services';
+export type { BodyWeightDocument } from './services';
+export {
   enqueueBodyWeightSave,
   isBodyWeightQueueBody,
   resetBodyWeightCloud,

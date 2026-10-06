@@ -397,3 +397,25 @@ describe('moveScheduledSession', () => {
     expect(useRoutineStore.getState().scheduleOverrides).toEqual({});
   });
 });
+
+describe('importRoutines', () => {
+  it('adds only routines whose ids are new', () => {
+    const id = newRoutine('Push');
+    const existing = routineById(id);
+    const added = useRoutineStore.getState().importRoutines([
+      { ...existing, name: 'Changed' },
+      { ...existing, id: 'imported', name: 'Pull' },
+    ]);
+    expect(added.map((routine) => routine.id)).toEqual(['imported']);
+    expect(useRoutineStore.getState().routines.map((routine) => routine.name)).toEqual(['Push', 'Pull']);
+  });
+});
+
+describe('importScheduleOverrides', () => {
+  it('keeps the changes already stored for a date', () => {
+    useRoutineStore.setState({ scheduleOverrides: { '2026-10-07': null } });
+    const count = useRoutineStore.getState().importScheduleOverrides({ '2026-10-07': 'a', '2026-10-08': 'b' });
+    expect(count).toBe(1);
+    expect(useRoutineStore.getState().scheduleOverrides).toEqual({ '2026-10-07': null, '2026-10-08': 'b' });
+  });
+});

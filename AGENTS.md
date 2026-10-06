@@ -24,8 +24,9 @@ Per-area rules live in the `AGENTS.md` files listed at the end.
 
 Do not add libraries for state, navigation, UI kits, charts or icons.
 Charts and components are hand-built. Expo SDK modules for device
-capabilities (keep-awake, haptics, notifications) are fine when a
-feature needs one; name it in the PR.
+capabilities (keep-awake, haptics, notifications, file system, sharing,
+document picker) are fine when a feature needs one; name it in the PR.
+Native file access goes through `@infrastructure/files` only.
 
 Path aliases: `@theme`, `@components`, `@domain`, `@features`,
 `@infrastructure`, `@lib`, `@/*` (root src). Always use aliases.
@@ -367,6 +368,7 @@ Never create a screen before its types, service and hook exist.
 | Working on history         | `/src/features/history/AGENTS.md`    |
 | Working on profile         | `/src/features/profile/AGENTS.md`    |
 | Working on body weight     | `/src/features/bodyweight/AGENTS.md` |
+| Working on export/import   | `/src/features/backup/AGENTS.md`     |
 
 ---
 

@@ -8,13 +8,22 @@
  */
 import { useCallback } from 'react';
 
-import { deleteWorkoutFromCloud } from '../services/cloudSync';
+import type { Workout } from '@domain/entities';
+
+import { deleteWorkoutFromCloud, syncWorkoutToCloud } from '../services/cloudSync';
 import { useHistoryStore } from '../store';
 
 /** Actions returned by {@link useSessionActions}. */
 export interface SessionActions {
   /** Remove a session locally and mirror the delete to the cloud. */
   removeSession: (sessionId: string) => void;
+  /**
+   * Add workouts not stored yet (e.g. from a backup) and mirror each to
+   * the cloud. Returns how many were added.
+   */
+  importSessions: (workouts: Workout[]) => number;
+  /** Remove every stored session, leaving a cloud tombstone for each. */
+  removeAllSessions: () => void;
 }
 
 /** Bound history write actions for screens. */
@@ -33,5 +42,17 @@ export function useSessionActions(): SessionActions {
     [removeSessionLocal],
   );
 
-  return { removeSession };
+  const importSessions = useCallback((workouts: Workout[]): number => {
+    const added = useHistoryStore.getState().mergeSessions(workouts);
+    added.forEach(syncWorkoutToCloud);
+    return added.length;
+  }, []);
+
+  const removeAllSessions = useCallback((): void => {
+    const { sessions, clearAll } = useHistoryStore.getState();
+    clearAll();
+    sessions.forEach((session) => deleteWorkoutFromCloud(session.id, session.startedAt));
+  }, []);
+
+  return { removeSession, importSessions, removeAllSessions };
 }

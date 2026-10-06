@@ -12,7 +12,18 @@ export {
   useExerciseNoteStore,
   useRoutineStore,
 } from './store';
-export { useSetCustomExerciseArchived } from './hooks';
+export { useRoutineTransfer, useSetCustomExerciseArchived } from './hooks';
+export type { RoutineImport, RoutineImportResult, RoutineTransfer } from './hooks';
+export type { ExerciseNote } from './store';
+export {
+  fromCustomExerciseDocument,
+  isCustomExerciseDocument,
+  parseRoutine,
+  parseRoutineShare,
+  ROUTINE_SHARE_FORMAT,
+  toCustomExerciseDocument,
+} from './services';
+export type { CustomExerciseDocument, ParsedRoutineShare, RoutineShareFile } from './services';
 export type { RoutineStore } from './store';
 
 export {

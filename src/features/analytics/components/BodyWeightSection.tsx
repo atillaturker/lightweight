@@ -15,6 +15,7 @@ import { formatDecimal, formatShortDate } from "@lib/format";
 import { LogWeightSheet, useBodyWeightActions, useBodyWeightStore } from "@features/bodyweight";
 
 import { ExerciseLineChart } from "./ExerciseLineChart";
+import { SECTION_CONTENT_GAP, SECTION_HEADER_HEIGHT } from "./sectionLayout";
 
 const CHART_WEEKS = 12;
 const CHANGE_DAYS = 30;
@@ -53,14 +54,22 @@ export function BodyWeightSection({ unit, width }: BodyWeightSectionProps): Reac
 
   return (
     <View testID="body-weight-section">
-      <SectionHeader
-        action={
-          <Pressable accessibilityRole="button" onPress={() => setSheetOpen(true)} style={styles.action} testID="body-weight-log">
-            <Text style={styles.actionLabel}>Log</Text>
-          </Pressable>
-        }
-        label="Body weight"
-      />
+      <View style={styles.header}>
+        <SectionHeader
+          action={
+            <Pressable
+              accessibilityLabel="Log body weight"
+              accessibilityRole="button"
+              onPress={() => setSheetOpen(true)}
+              style={styles.action}
+              testID="body-weight-log"
+            >
+              <Text style={styles.actionLabel}>Log</Text>
+            </Pressable>
+          }
+          label="Body weight"
+        />
+      </View>
       {view.latest === null ? (
         <Text style={styles.empty}>Log your weight to see the trend.</Text>
       ) : (
@@ -101,12 +110,13 @@ export function BodyWeightSection({ unit, width }: BodyWeightSectionProps): Reac
 }
 
 const useStyles = createStyles((colors) => ({
-  action: { minHeight: 44, justifyContent: "center" },
-  actionLabel: { ...type.label, color: colors.textPrimary },
-  valueRow: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm, marginTop: spacing.md },
+  header: { height: SECTION_HEADER_HEIGHT, justifyContent: "center" },
+  action: { minHeight: SECTION_HEADER_HEIGHT, justifyContent: "center" },
+  actionLabel: { ...type.label, color: colors.textMuted },
+  valueRow: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm, marginTop: SECTION_CONTENT_GAP },
   value: { ...type.metricLarge, fontVariant: ["tabular-nums"], color: colors.textPrimary },
   unit: { ...type.label, color: colors.textMuted },
   meta: { ...type.bodySmall, marginTop: spacing.xs, fontVariant: ["tabular-nums"], color: colors.textMuted },
   chart: { marginTop: spacing.lg },
-  empty: { ...type.bodySmall, marginTop: spacing.md, color: colors.textMuted },
+  empty: { ...type.bodySmall, marginTop: SECTION_CONTENT_GAP, color: colors.textMuted },
 }));

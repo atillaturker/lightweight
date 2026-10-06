@@ -14,6 +14,7 @@ import { formatShortDate, formatWeekdayShort } from "@lib/format";
 import { useActivityGrid } from "../hooks";
 import type { ActivityDay } from "../utils";
 import { ActivityHeatmap, heatmapWeeksFor, intensityFill } from "./ActivityHeatmap";
+import { SECTION_CONTENT_GAP, SECTION_HEADER_HEIGHT } from "./sectionLayout";
 
 const LEVELS: readonly ActivityLevel[] = [0, 1, 2, 3, 4];
 const LEGEND_CELL = 10;
@@ -41,7 +42,9 @@ export function ActivitySection({ width }: ActivitySectionProps): React.ReactEle
 
   return (
     <View testID="activity-section">
-      <SectionHeader label="Activity" variant="rule" />
+      <View style={styles.header}>
+        <SectionHeader label="Activity" variant="rule" />
+      </View>
       <Text style={styles.readout} testID="activity-readout">
         {selected === null ? summary : dayText(selected)}
       </Text>
@@ -64,9 +67,10 @@ export function ActivitySection({ width }: ActivitySectionProps): React.ReactEle
 }
 
 const useStyles = createStyles((colors) => ({
+  header: { height: SECTION_HEADER_HEIGHT, justifyContent: "center" },
   readout: {
     ...type.label,
-    marginTop: spacing.lg,
+    marginTop: SECTION_CONTENT_GAP,
     marginBottom: spacing.sm,
     fontVariant: ["tabular-nums"],
     color: colors.textPrimary,

@@ -28,3 +28,4 @@ export { ActivitySection } from './ActivitySection';
 export type { ActivitySectionProps } from './ActivitySection';
 export { BodyWeightSection } from './BodyWeightSection';
 export type { BodyWeightSectionProps } from './BodyWeightSection';
+export { SECTION_CONTENT_GAP, SECTION_HEADER_HEIGHT } from './sectionLayout';
