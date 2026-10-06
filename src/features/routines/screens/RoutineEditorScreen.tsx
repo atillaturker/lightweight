@@ -34,6 +34,7 @@ import { useRoutineStore } from "../store";
 import { DurationSheet } from "../components/DurationSheet";
 import { RoutineEditorRow } from "../components/RoutineEditorRow";
 import { RoutineMusclesPreview } from "../components/RoutineMusclesPreview";
+import { PROGRESSION_LABELS, ProgressionSheet } from "../components/ProgressionSheet";
 import { TargetSheet } from "../components/TargetSheet";
 import {
   calculatedRoutineMinutes,
@@ -175,6 +176,8 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
   const [nameDraft, setNameDraft] = useState("");
   const [targetEditing, setTargetEditing] = useState<TargetEditing | null>(null);
   const [durationSheetVisible, setDurationSheetVisible] = useState(false);
+  const [progressionSheetVisible, setProgressionSheetVisible] = useState(false);
+  const setRoutineProgression = useRoutineStore((state) => state.setRoutineProgression);
 
   const routine = useMemo(
     () => routines.find((entry) => entry.id === routineId),
@@ -285,6 +288,7 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
   }, [routineId, setRoutineDuration]);
 
   const exerciseCount = routine?.exercises.length ?? 0;
+  const progression = routine?.progression ?? "off";
   const routineName = routine?.name ?? DEFAULT_ROUTINE_NAME;
   const calculatedMinutes = routine
     ? calculatedRoutineMinutes(routine)
@@ -353,6 +357,16 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
               {`~${durationMinutes} min`}
             </Text>
           </Pressable>
+          <Text style={styles.meta}>{" · "}</Text>
+          <Pressable
+            accessibilityLabel={`Progression: ${PROGRESSION_LABELS[progression]}`}
+            accessibilityRole="button"
+            onPress={() => setProgressionSheetVisible(true)}
+            style={styles.durationTarget}
+            testID="routine-progression-target"
+          >
+            <Text style={styles.meta}>{PROGRESSION_LABELS[progression]}</Text>
+          </Pressable>
         </View>
 
         {rows.length === 0 ? (
@@ -411,6 +425,15 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
           testID="routine-editor-submit"
         />
       </View>
+
+      <ProgressionSheet
+        current={progression}
+        onClose={() => setProgressionSheetVisible(false)}
+        onSelect={(policy) => {
+          if (routineId) setRoutineProgression(routineId, policy);
+        }}
+        visible={progressionSheetVisible}
+      />
 
       <DurationSheet
         calculatedMinutes={calculatedMinutes}

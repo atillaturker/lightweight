@@ -16,6 +16,12 @@ export interface RoutineExercise {
 }
 
 /**
+ * How a routine moves exercises forward between sessions; the rules live
+ * in `@domain/rules/progression`.
+ */
+export type ProgressionPolicy = 'off' | 'linear' | 'double';
+
+/**
  * A reusable training template.
  */
 export interface Routine {
@@ -25,6 +31,11 @@ export interface Routine {
   createdAt: number;
   updatedAt: number;
   isArchived: boolean;
+  /**
+   * How exercises move forward between sessions. Absent means `off`:
+   * sets repeat what was done last time.
+   */
+  progression?: ProgressionPolicy;
   /**
    * User-set duration override in minutes. When undefined, the editor
    * uses the calculated estimate.

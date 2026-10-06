@@ -1,4 +1,5 @@
 import type { Equipment } from '../entities/Exercise';
+import type { ProgressionPolicy } from '../entities/Routine';
 import type { Set } from '../entities/Set';
 import type { WeightUnit } from '../entities/User';
 
@@ -15,7 +16,7 @@ import type { WeightUnit } from '../entities/User';
  *   otherwise aim one rep more than the weakest set managed.
  * - `off`: no prescription; sets repeat what was done last time.
  */
-export type ProgressionPolicy = 'off' | 'linear' | 'double';
+export type { ProgressionPolicy };
 
 /** What the exercise loads: a weight, the body, or time held. */
 export type ProgressionKind = 'load' | 'bodyweight' | 'timed';

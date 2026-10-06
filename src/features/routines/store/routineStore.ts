@@ -10,6 +10,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Routine, RoutineExercise } from '@domain/entities';
+import type { ProgressionPolicy } from '@domain/rules';
 import { zustandStorage } from '@infrastructure/storage';
 
 import type { RoutineTemplateId } from '../types';
@@ -69,6 +70,8 @@ export interface RoutineStore {
   addExercisesToRoutine: (routineId: string, exerciseIds: string[]) => void;
   /** Remove one exercise from a routine. */
   removeExercise: (routineId: string, exerciseId: string) => void;
+  /** Set how the routine progresses its exercises between sessions. */
+  setRoutineProgression: (routineId: string, policy: ProgressionPolicy) => void;
   /** Join a slot and the one after it into a superset. */
   linkWithNext: (routineId: string, exerciseId: string) => void;
   /** Take a slot out of its superset. */
@@ -300,6 +303,12 @@ export const useRoutineStore = create<RoutineStore>()(
             }),
           };
         }),
+      setRoutineProgression: (routineId, policy) =>
+        set((state) =>
+          state.routines.some((routine) => routine.id === routineId)
+            ? { routines: patchRoutine(state.routines, routineId, { progression: policy }) }
+            : {},
+        ),
       linkWithNext: (routineId, exerciseId) =>
         set((state) => updateSlots(state.routines, routineId, (slots) =>
           linkSlotWithNext(slots, exerciseId),
