@@ -10,11 +10,10 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 
-import type { Set } from '@domain/entities';
 import { detectPRs } from '@domain/rules';
 
 import { getExerciseHistory } from '../services';
-import { useActiveWorkoutStore, type NewActiveSet } from '../store';
+import { toDomainSet, useActiveWorkoutStore, type NewActiveSet } from '../store';
 import type { ActiveSet } from '../types';
 
 /** Actions returned by {@link useSetLogger}. */
@@ -35,27 +34,6 @@ export interface SetLoggerActions {
   addSet: (exerciseId: string) => void;
 }
 
-/** Convert an active set into the domain `Set` PR detection expects. */
-function toDomainSet(
-  set: ActiveSet,
-  exerciseId: string,
-  workoutId: string,
-  order: number,
-): Set {
-  return {
-    id: set.id,
-    exerciseId,
-    workoutId,
-    weightKg: set.weightKg,
-    reps: set.reps,
-    type: set.type,
-    completed: set.completed,
-    rpe: set.rpe,
-    completedAt: set.completedAt,
-    order,
-  };
-}
-
 /**
  * Compare one completed set against the exercise's history and flag it
  * when it sets a record. Runs after interactions settle; never throws,
@@ -74,12 +52,7 @@ function detectAndFlagPR(exerciseId: string, setId: string): void {
       const active = block.sets[index];
       if (!active.completed || active.type === 'warmup') return;
 
-      const candidate = toDomainSet(
-        active,
-        exerciseId,
-        state.sessionId ?? '',
-        index,
-      );
+      const candidate = toDomainSet(active, block, state.sessionId ?? '', index);
       const history = getExerciseHistory(exerciseId);
       if (detectPRs(history, candidate).length === 0) return;
 

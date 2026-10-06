@@ -128,3 +128,25 @@ describe('ExerciseDetailScreen e1RM source and effort', () => {
     expect(screen.getByText('Effort')).toBeTruthy();
   });
 });
+
+describe('ExerciseDetailScreen for a timed exercise', () => {
+  it('leads with the longest hold and charts holds', () => {
+    const session = recentSession();
+    session.sets[0] = {
+      ...session.sets[0],
+      exerciseId: 'weighted-front-plank',
+      weightKg: 0,
+      reps: 0,
+      durationSec: 65,
+    };
+    useHistoryStore.setState({ sessions: [session] });
+    const plankRoute = { params: { exerciseId: 'weighted-front-plank' } } as Props['route'];
+
+    render(<ExerciseDetailScreen navigation={navigation} route={plankRoute} />);
+
+    expect(screen.getByText('LONGEST HOLD')).toBeTruthy();
+    expect(screen.getByTestId('exercise-detail-hero-value')).toHaveTextContent('1:05');
+    expect(screen.getByText('Hold')).toBeTruthy();
+    expect(screen.queryByText('1RM')).toBeNull();
+  });
+});

@@ -34,7 +34,16 @@ import {
   saveUserPreferences,
 } from '@features/profile/services/firestoreProfile';
 
-import { pendingWorkoutIds, queueWorkoutUploads, resumeQueue } from './cloudSync';
+import { mergeCustomExercises } from '@features/routines/services';
+import { fetchCustomExercisesFromFirestore } from '@features/routines/services/firestoreCustomExercises';
+import { useCustomExerciseStore } from '@features/routines/store';
+
+import {
+  pendingWorkoutIds,
+  queueCustomExerciseUploads,
+  queueWorkoutUploads,
+  resumeQueue,
+} from './cloudSync';
 
 /** Preferences still to be pushed, debounced by this much. */
 const PREFERENCES_DEBOUNCE_MS = 500;
@@ -120,9 +129,31 @@ async function syncOnSignIn(uid: string): Promise<void> {
   const remote = await readRemoteHistory(uid);
   if (!isStillSignedIn(uid)) return;
   if (remote !== null) reconcileHistory(uid, remote);
+
+  await syncCustomExercises(uid);
+  if (!isStillSignedIn(uid)) return;
   lastSyncedAt = Date.now();
   // Deliver anything this account left queued, including parked writes.
   resumeQueue();
+}
+
+/**
+ * Merge the cloud's custom exercises with the device's and queue what the
+ * cloud lacks. A failed read changes nothing: merging against an empty
+ * list would only re-upload everything.
+ */
+async function syncCustomExercises(uid: string): Promise<void> {
+  let remote;
+  try {
+    remote = await fetchCustomExercisesFromFirestore(uid);
+  } catch (error: unknown) {
+    console.warn('[firestore] failed to read custom exercises', error);
+    return;
+  }
+  if (!isStillSignedIn(uid)) return;
+  const merge = mergeCustomExercises(useCustomExerciseStore.getState().exercises, remote);
+  useCustomExerciseStore.getState().setExercises(merge.exercises);
+  queueCustomExerciseUploads(uid, merge.toUpload);
 }
 
 /** Read the cloud history, or `null` when the read failed. */

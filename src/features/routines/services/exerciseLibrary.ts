@@ -55,7 +55,9 @@ function isStringArray(value: unknown): value is string[] {
 
 /** Whether every optional catalog field has the shape the entity expects. */
 function hasValidExtras(entry: Record<string, unknown>): boolean {
-  const { targetMuscle, secondaryMuscles, instructions, source } = entry;
+  const { targetMuscle, secondaryMuscles, instructions, source, measure, perSide } = entry;
+  if (measure !== undefined && measure !== 'reps' && measure !== 'time') return false;
+  if (perSide !== undefined && typeof perSide !== 'boolean') return false;
   if (targetMuscle !== undefined && typeof targetMuscle !== 'string') return false;
   if (secondaryMuscles !== undefined && !isStringArray(secondaryMuscles)) return false;
   if (instructions !== undefined && !isStringArray(instructions)) return false;

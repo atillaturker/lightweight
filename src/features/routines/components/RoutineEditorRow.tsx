@@ -19,7 +19,14 @@ export interface RoutineEditorRowProps {
   /** `undefined` for an exercise missing from the library. */
   muscleGroup: MuscleGroup | undefined;
   targetSets: number;
+  /** Reps, or seconds for a timed exercise. */
   targetReps: number;
+  /** `time` shows the target as seconds ("3 × 30s"). */
+  measure?: "reps" | "time";
+  /** Reps are per side ("3 × 8 / side"). */
+  perSide?: boolean;
+  /** "A1", "A2"… when the slot is in a superset. */
+  supersetLabel?: string;
   /** Draw the hairline above the row (every row but the first). */
   showDivider: boolean;
   onEditTarget: () => void;
@@ -51,6 +58,9 @@ export function RoutineEditorRow({
   muscleGroup,
   targetSets,
   targetReps,
+  measure = "reps",
+  perSide = false,
+  supersetLabel,
   showDivider,
   onEditTarget,
 }: RoutineEditorRowProps): React.ReactElement {
@@ -66,6 +76,7 @@ export function RoutineEditorRow({
             {name}
           </Text>
           <Text style={styles.muscleLabel}>
+            {supersetLabel !== undefined ? `Superset ${supersetLabel} · ` : ""}
             {muscleGroup
               ? muscleGroup.charAt(0).toUpperCase() + muscleGroup.slice(1)
               : "Other"}
@@ -73,12 +84,18 @@ export function RoutineEditorRow({
         </View>
 
         <Pressable
-          accessibilityLabel={`Target ${targetSets} by ${targetReps}`}
+          accessibilityLabel={`Target ${targetSets} by ${targetReps}${
+            measure === "time" ? " seconds" : perSide ? " per side" : ""
+          }`}
           accessibilityRole="button"
           onPress={onEditTarget}
           style={styles.targetCell}
         >
-          <Text style={styles.targetText}>{`${targetSets} × ${targetReps}`}</Text>
+          <Text style={styles.targetText}>
+            {`${targetSets} × ${targetReps}${
+              measure === "time" ? "s" : perSide ? " / side" : ""
+            }`}
+          </Text>
         </Pressable>
 
         <View style={styles.gripColumn}>

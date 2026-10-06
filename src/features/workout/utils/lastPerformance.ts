@@ -7,7 +7,8 @@
  * history, so the caller hides the line rather than printing a placeholder.
  */
 import type { Set } from '@domain/entities';
-import { formatWeightKg } from '@lib/format';
+import { isTimedSet } from '@domain/rules';
+import { formatClock, formatWeightKg } from '@lib/format';
 
 /** Reps performed, in order, for one exercise in one session. */
 const HISTORY_LIMIT = 24;
@@ -26,18 +27,30 @@ function lastSessionSets(sets: Set[]): Set[] {
   return completed.filter((set) => set.workoutId === lastWorkoutId);
 }
 
+/** `0:45, 0:40`, prefixed with any added load: `+10kg · 0:45, 0:40`. */
+function summarizeHolds(sets: Set[], weightKg: number): string {
+  const holds = sets.map((set) => formatClock(set.durationSec ?? 0)).join(', ');
+  return weightKg > 0 ? `+${formatWeightKg(weightKg)}kg · ${holds}` : holds;
+}
+
 /**
  * `80kg × 8, 8, 7` for the last session, or `null` when there is no
  * history. Warmup sets are included here — this line describes what was
  * actually performed, not what counted toward volume.
+ *
+ * Unloaded sets read `8, 8, 7 reps`, per-side sets add `per side`, and
+ * timed sets list their holds.
  */
 export function summarizeLastPerformance(history: Set[]): string | null {
   const sets = lastSessionSets(history);
   const first = sets[0];
   if (first === undefined) return null;
+  if (isTimedSet(first)) return summarizeHolds(sets, first.weightKg);
 
   const reps = sets.map((set) => String(set.reps)).join(', ');
-  return `${formatWeightKg(first.weightKg)}kg × ${reps}`;
+  const side = first.perSide === true ? ' per side' : '';
+  if (first.weightKg === 0) return `${reps} reps${side}`;
+  return `${formatWeightKg(first.weightKg)}kg × ${reps}${side}`;
 }
 
 /** The full line under an exercise title, or `null` with no history. */

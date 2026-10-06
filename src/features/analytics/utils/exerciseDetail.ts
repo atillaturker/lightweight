@@ -7,7 +7,7 @@
  * Every metric comes from `@domain/rules`; the caller supplies the sessions,
  * the exercise id, the selected metric, and the current time.
  */
-import type { Set as DomainSet, Workout } from '@domain/entities';
+import type { Exercise, Set as DomainSet, Workout } from '@domain/entities';
 import {
   addWeeks,
   averageRpe,
@@ -15,19 +15,57 @@ import {
   bestRecordsForExercise,
   calculateVolume,
   hasRpeData,
+  isBodyweightExercise,
+  isTimedExercise,
+  isTimedSet,
   isWorkingSet,
   startOfWeek,
+  totalReps,
   type PRRecord,
   type PRType,
 } from '@domain/rules';
 
+/**
+ * How an exercise is measured, for the screen's purposes: external load
+ * (e1RM is meaningful), bodyweight (reps are the progress), or timed
+ * (hold length is the progress).
+ */
+export type ExerciseKind = 'load' | 'bodyweight' | 'timed';
+
 /** The chart metrics. `rpe` is offered only when the exercise has ratings. */
-export type ExerciseMetric = '1rm' | 'volume' | 'reps' | 'rpe';
+export type ExerciseMetric = '1rm' | 'volume' | 'reps' | 'hold' | 'rpe';
+
+/** Metrics each kind offers, default first. `rpe` is added when rated. */
+const KIND_METRICS: Record<ExerciseKind, readonly ExerciseMetric[]> = {
+  load: ['1rm', 'volume', 'reps'],
+  bodyweight: ['reps'],
+  timed: ['hold'],
+};
+
+/** The kind of a library exercise; unknown exercises count as load. */
+export function exerciseKind(
+  exercise: Pick<Exercise, 'measure' | 'equipment'> | null,
+): ExerciseKind {
+  if (exercise === null) return 'load';
+  if (isTimedExercise(exercise)) return 'timed';
+  return isBodyweightExercise(exercise) ? 'bodyweight' : 'load';
+}
+
+/** The hero: the one number that says whether the exercise is progressing. */
+export interface ExerciseHeroData {
+  kind: ExerciseKind;
+  /** e1RM (kg), most reps in a set, or longest hold (s); `null` without data. */
+  value: number | null;
+  /** Change vs the previous 8 weeks, same unit as `value`, or `null`. */
+  delta: number | null;
+  /** For `load`: the set the e1RM is estimated from. */
+  source: { weightKg: number; reps: number } | null;
+}
 
 /** The record types the screen renders, in order. */
 export type ExerciseRecordType = Extract<
   PRType,
-  'heaviest_set' | 'best_1rm' | 'most_reps'
+  'heaviest_set' | 'best_1rm' | 'most_reps' | 'longest_hold'
 >;
 
 /** One row of the Personal records section. */
@@ -39,6 +77,8 @@ export interface ExerciseRecordRow {
   weightKg: number;
   /** Reps achieved; 0 when the record does not carry a rep count. */
   reps: number;
+  /** Seconds held, for `longest_hold`; 0 otherwise. */
+  seconds: number;
 }
 
 /** One row of the Recent sets section. */
@@ -50,20 +90,19 @@ export interface RecentExerciseSet {
   reps: number;
   /** Completed working sets for this exercise in that session. */
   sets: number;
+  /** Longest hold of the session, for a timed exercise. */
+  durationSec?: number;
 }
 
 /** Everything the Exercise Detail screen renders. */
 export interface ExerciseDetailData {
   /** True when the exercise has at least one completed working set. */
   hasHistory: boolean;
-  /** Best estimated 1RM over the last 8 weeks, in kg, or `null`. */
-  heroE1RMKg: number | null;
-  /** Change in best e1RM vs the previous 8 weeks, in kg, or `null`. */
-  heroDeltaKg: number | null;
-  /** The set the hero e1RM is estimated from, or `null`. */
-  heroSource: { weightKg: number; reps: number } | null;
-  /** True when any working set of the exercise carries an RPE rating. */
-  hasEffortData: boolean;
+  hero: ExerciseHeroData;
+  /** The metric the series was built for (falls back to the kind's default). */
+  metric: ExerciseMetric;
+  /** Metrics the screen offers for this exercise, default first. */
+  metrics: ExerciseMetric[];
   /** Eight weekly values for the selected metric; `null` where no data. */
   points: (number | null)[];
   /** Change vs the previous 8 weeks for the selected metric, or `null`. */
@@ -84,12 +123,14 @@ const RECORD_LABELS: Record<ExerciseRecordType, string> = {
   heaviest_set: 'Heaviest set',
   best_1rm: 'Best 1RM',
   most_reps: 'Most reps',
+  longest_hold: 'Longest hold',
 };
 
 const RECORD_ORDER: ExerciseRecordType[] = [
   'heaviest_set',
   'best_1rm',
   'most_reps',
+  'longest_hold',
 ];
 
 /** The exercise's completed working sets within one session. */
@@ -116,6 +157,30 @@ function setsInWindow(
     .flatMap((session) => workingSetsFor(session, exerciseId));
 }
 
+/** Longest timed hold among the sets, in seconds, or `null` when none. */
+function longestHold(sets: DomainSet[]): number | null {
+  const holds = sets.filter(isTimedSet).map((set) => set.durationSec ?? 0);
+  return holds.length === 0 ? null : Math.max(...holds);
+}
+
+/** Most reps in a single set, or `null` when there are no rep sets. */
+function mostReps(sets: DomainSet[]): number | null {
+  const reps = sets.filter((set) => !isTimedSet(set)).map((set) => set.reps);
+  return reps.length === 0 ? null : Math.max(...reps);
+}
+
+/** The hero number of one window for an exercise kind. */
+function heroValue(sets: DomainSet[], kind: ExerciseKind): number | null {
+  switch (kind) {
+    case 'load':
+      return bestE1RM(sets)?.value ?? null;
+    case 'bodyweight':
+      return mostReps(sets);
+    case 'timed':
+      return longestHold(sets);
+  }
+}
+
 /** One aggregate for the selected metric, or `null` when there are no sets. */
 function metricValue(sets: DomainSet[], metric: ExerciseMetric): number | null {
   if (sets.length === 0) return null;
@@ -125,7 +190,9 @@ function metricValue(sets: DomainSet[], metric: ExerciseMetric): number | null {
     case 'volume':
       return calculateVolume(sets);
     case 'reps':
-      return sets.reduce((total, set) => total + set.reps, 0);
+      return sets.reduce((total, set) => total + totalReps(set), 0);
+    case 'hold':
+      return longestHold(sets);
     case 'rpe':
       return averageRpe(sets);
   }
@@ -146,7 +213,24 @@ function heaviestWeightForReps(sets: DomainSet[], reps: number): number {
   return heaviest;
 }
 
-/** Collapse the domain records into the screen's three rows, in order. */
+/** One records row; what `value` means depends on the record type. */
+function toRecordRow(
+  type: ExerciseRecordType,
+  record: PRRecord,
+  sets: DomainSet[],
+): ExerciseRecordRow {
+  const base = { type, label: RECORD_LABELS[type], achievedAt: record.achievedAt };
+  switch (type) {
+    case 'most_reps':
+      return { ...base, weightKg: heaviestWeightForReps(sets, record.value), reps: record.value, seconds: 0 };
+    case 'longest_hold':
+      return { ...base, weightKg: 0, reps: 0, seconds: record.value };
+    default:
+      return { ...base, weightKg: record.value, reps: record.repsAtWeight ?? 0, seconds: 0 };
+  }
+}
+
+/** Collapse the domain records into the screen's rows, in order. */
 function buildRecords(sets: DomainSet[]): ExerciseRecordRow[] {
   const records = bestRecordsForExercise(sets);
   const byType = new Map<PRType, PRRecord>(
@@ -158,24 +242,7 @@ function buildRecords(sets: DomainSet[]): ExerciseRecordRow[] {
     const record = byType.get(type);
     if (record === undefined) continue;
 
-    if (type === 'most_reps') {
-      rows.push({
-        type,
-        label: RECORD_LABELS[type],
-        achievedAt: record.achievedAt,
-        weightKg: heaviestWeightForReps(sets, record.value),
-        reps: record.value,
-      });
-      continue;
-    }
-
-    rows.push({
-      type,
-      label: RECORD_LABELS[type],
-      achievedAt: record.achievedAt,
-      weightKg: record.value,
-      reps: record.repsAtWeight ?? 0,
-    });
+    rows.push(toRecordRow(type, record, sets));
   }
   return rows;
 }
@@ -197,12 +264,14 @@ function buildRecentSets(
           ? set
           : best,
       );
+      const hold = longestHold(sets);
       return {
         sessionId: session.id,
         startedAt: session.startedAt,
         weightKg: representative.weightKg,
         reps: representative.reps,
         sets: sets.length,
+        ...(hold !== null ? { durationSec: hold } : {}),
       };
     });
 }
@@ -238,12 +307,26 @@ function currentWindowSessions(
   );
 }
 
-/** Build the Exercise Detail read model for one exercise and metric. */
+/** The kind's metrics plus `rpe` when rated; the requested one if offered. */
+function resolveMetrics(
+  kind: ExerciseKind,
+  rated: boolean,
+  requested: ExerciseMetric,
+): { metric: ExerciseMetric; metrics: ExerciseMetric[] } {
+  const metrics = rated ? [...KIND_METRICS[kind], 'rpe' as const] : [...KIND_METRICS[kind]];
+  return { metric: metrics.includes(requested) ? requested : metrics[0], metrics };
+}
+
+/**
+ * Build the Exercise Detail read model for one exercise and metric. A
+ * metric the exercise does not offer falls back to its kind's default.
+ */
 export function buildExerciseDetail(
   sessions: Workout[],
   exerciseId: string,
-  metric: ExerciseMetric,
+  requestedMetric: ExerciseMetric,
   now: number,
+  kind: ExerciseKind = 'load',
 ): ExerciseDetailData {
   const anchor = startOfWeek(now, WEEK_START);
   const currentStart = addWeeks(anchor, -(WEEKS - 1));
@@ -258,15 +341,19 @@ export function buildExerciseDetail(
     previousStart,
     currentStart,
   );
-  const currentBest = bestE1RM(currentSets);
-  const currentE1RM = currentBest?.value ?? null;
+  const { metric, metrics } = resolveMetrics(kind, hasRpeData(allSets), requestedMetric);
+  const heroNow = heroValue(currentSets, kind);
 
   return {
     hasHistory: allSets.length > 0,
-    heroE1RMKg: currentE1RM,
-    heroDeltaKg: difference(currentE1RM, metricValue(previousSets, '1rm')),
-    heroSource: currentBest?.sourceSet ?? null,
-    hasEffortData: hasRpeData(allSets),
+    hero: {
+      kind,
+      value: heroNow,
+      delta: difference(heroNow, heroValue(previousSets, kind)),
+      source: kind === 'load' ? (bestE1RM(currentSets)?.sourceSet ?? null) : null,
+    },
+    metric,
+    metrics,
     points: buildPoints(sessions, exerciseId, metric, currentStart),
     delta: difference(
       metricValue(currentSets, metric),

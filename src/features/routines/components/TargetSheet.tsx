@@ -20,19 +20,32 @@ const SET_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 /** Selectable reps, 1..20. */
 const REP_OPTIONS = Array.from({ length: 20 }, (_, index) => index + 1);
 
+/** Selectable hold lengths, in seconds, for timed exercises. */
+const SECOND_OPTIONS = [10, 15, 20, 30, 45, 60, 90, 120] as const;
+
 /** Props for {@link TargetSheet}. */
 export interface TargetSheetProps {
   visible: boolean;
   exerciseName: string;
   initialSets: number;
+  /** Reps, or seconds when `measure` is `time`. */
   initialReps: number;
-  onConfirm: (sets: number, reps: number) => void;
+  /** `time` edits seconds per set instead of reps. Defaults to `reps`. */
+  measure?: "reps" | "time";
+  /** Receives reps, or seconds for a timed exercise. */
+  onConfirm: (sets: number, repsOrSeconds: number) => void;
   onRemove: () => void;
   onClose: () => void;
+  /**
+   * Superset actions for this slot ("Superset with next", "Remove from
+   * superset"); empty when none applies.
+   */
+  supersetActions?: readonly { label: string; onPress: () => void }[];
 }
 
 /**
- * Bottom sheet for editing one routine slot's suggested `sets × reps`.
+ * Bottom sheet for editing one routine slot's suggested `sets × reps`
+ * (or `sets × seconds` for a timed exercise).
  *
  * Both rows of pills are single-select. Values are held locally while the
  * sheet is open and committed only on "Save", so the routine list never
@@ -44,11 +57,15 @@ export function TargetSheet({
   exerciseName,
   initialSets,
   initialReps,
+  measure = "reps",
   onConfirm,
   onRemove,
   onClose,
+  supersetActions = [],
 }: TargetSheetProps): React.ReactElement {
   const styles = useStyles();
+  const isTimed = measure === "time";
+  const valueOptions: readonly number[] = isTimed ? SECOND_OPTIONS : REP_OPTIONS;
   const [sets, setSets] = useState(initialSets);
   const [reps, setReps] = useState(initialReps);
 
@@ -107,15 +124,32 @@ export function TargetSheet({
             ))}
           </View>
 
-          <Text style={styles.groupLabel}>REPS</Text>
+          <Text style={styles.groupLabel}>{isTimed ? "SECONDS" : "REPS"}</Text>
           <View style={styles.pillRow}>
-            {REP_OPTIONS.map((value) => (
+            {valueOptions.map((value) => (
               <ValuePill
                 key={value}
                 onPress={() => setReps(value)}
                 selected={value === reps}
                 value={value}
               />
+            ))}
+          </View>
+
+          <View style={styles.supersetActions}>
+            {supersetActions.map((action) => (
+              <Pressable
+                accessibilityLabel={action.label}
+                accessibilityRole="button"
+                key={action.label}
+                onPress={() => {
+                  action.onPress();
+                  onClose();
+                }}
+                style={styles.supersetAction}
+              >
+                <Text style={styles.supersetLabel}>{action.label}</Text>
+              </Pressable>
             ))}
           </View>
 
@@ -183,10 +217,19 @@ const useStyles = createStyles((colors) => ({
     marginTop: spacing.sm,
   },
 
+  supersetActions: { marginTop: spacing.xxl },
+  supersetAction: {
+    justifyContent: "center",
+    height: 44,
+  },
+  supersetLabel: {
+    ...type.button,
+    color: colors.textPrimary,
+  },
   removeAction: {
     justifyContent: "center",
     height: 44,
-    marginTop: spacing.xxl,
+    marginTop: spacing.sm,
   },
   removeLabel: {
     ...type.button,

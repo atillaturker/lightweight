@@ -20,8 +20,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import type { WeightUnit } from "@domain/entities";
-import { Weight } from "@domain/value-objects";
 import { Button } from "@components/Button";
 import { Card } from "@components/Card";
 import { EmptyState } from "@components/EmptyState";
@@ -29,11 +27,7 @@ import { ScreenHeader } from "@components/ScreenHeader";
 import { SectionHeader } from "@components/SectionHeader";
 import { TextTabs } from "@components/TextTabs";
 import { gutter, spacing, type, createStyles } from "@theme";
-import {
-  formatDecimal,
-  formatInteger,
-  formatShortDate,
-} from "@lib/format";
+import { formatShortDate } from "@lib/format";
 import { ExerciseTechnique } from "@features/routines";
 import { MoreGlyph } from "@features/workout";
 
@@ -44,9 +38,15 @@ import {
   RecordRow,
 } from "../components";
 import { useExerciseDetail } from "../hooks";
-import type {
-  ExerciseMetric,
-  ExerciseRecordRow,
+import {
+  CHART_TITLES,
+  formatChartValue,
+  heroTexts,
+  METRIC_LABELS,
+  recentSummaryText,
+  recordValueText,
+  type ExerciseMetric,
+  type ExerciseRecordRow,
 } from "../utils";
 
 import type {
@@ -73,57 +73,6 @@ const MORE_GLYPH_SIZE = 20;
 
 /** A record is "new" when achieved within this window. */
 const RECENT_RECORD_MS = 30 * 24 * 60 * 60 * 1000;
-
-const METRIC_OPTIONS: readonly { value: ExerciseMetric; label: string }[] = [
-  { value: "1rm", label: "1RM" },
-  { value: "volume", label: "Volume" },
-  { value: "reps", label: "Reps" },
-  { value: "rpe", label: "Effort" },
-];
-
-/** Chart title per metric. */
-const CHART_TITLES: Record<ExerciseMetric, string> = {
-  "1rm": "ESTIMATED 1RM · LAST 8 WEEKS",
-  volume: "VOLUME · LAST 8 WEEKS",
-  reps: "TOTAL REPS · LAST 8 WEEKS",
-  rpe: "AVERAGE RPE · LAST 8 WEEKS",
-};
-
-/** Convert a stored kilogram value to a display figure for the unit. */
-function formatWeightText(kg: number, unit: WeightUnit): string {
-  const weight = Weight.fromKg(Math.max(0, kg));
-  return formatDecimal(unit === "kg" ? weight.toKg() : weight.toLb(), 1);
-}
-
-/** Y-axis value formatter for the selected metric. */
-function formatChartValue(metric: ExerciseMetric, value: number): string {
-  // RPE is 1–10 in half steps: one decimal is exact enough.
-  return metric === "reps" ? formatInteger(value) : formatDecimal(value, 1);
-}
-
-/** Right-hand value text for a record row, in the user's unit. */
-function recordValueText(row: ExerciseRecordRow, unit: WeightUnit): string {
-  const weight = `${formatWeightText(row.weightKg, unit)} ${unit}`;
-  switch (row.type) {
-    case "heaviest_set":
-      return `${weight} × ${row.reps}`;
-    case "best_1rm":
-      return weight;
-    case "most_reps":
-      return `${row.reps} reps · ${weight}`;
-  }
-}
-
-/** Set summary for a recent-session row. */
-function recentSummaryText(
-  weightKg: number,
-  reps: number,
-  sets: number,
-  unit: WeightUnit,
-): string {
-  const base = `${formatWeightText(weightKg, unit)} ${unit} × ${reps}`;
-  return sets > 1 ? `${base} × ${sets}` : base;
-}
 
 /** The most recently achieved record within 30 days, or `null`. */
 function badgeRecordType(
@@ -181,10 +130,10 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
   }
 
   const hasChart = data.points.some((value) => value !== null);
-  // "Effort" appears only once the exercise has RPE ratings to chart.
-  const metricOptions = METRIC_OPTIONS.filter(
-    (option) => option.value !== "rpe" || data.hasEffortData,
-  );
+  // The read model decides which metrics this exercise offers (by kind,
+  // plus "Effort" once a set is rated) and which one is shown.
+  const metricOptions = data.metrics.map((value) => ({ value, label: METRIC_LABELS[value] }));
+  const hero = heroTexts(data.hero, unit);
   const badgeType = badgeRecordType(data.records, Date.now());
   const chartWidth = width - gutter * 2;
 
@@ -214,24 +163,12 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
         testID="exercise-detail-scroll"
       >
         <ExerciseHero
-          deltaPositive={data.heroDeltaKg !== null && data.heroDeltaKg > 0}
-          deltaText={
-            data.heroDeltaKg === null
-              ? null
-              : `${data.heroDeltaKg > 0 ? "▲" : "▼"} ${formatWeightText(
-                  Math.abs(data.heroDeltaKg),
-                  unit,
-                )} ${unit} over 8 weeks`
-          }
-          sourceText={
-            data.heroSource === null
-              ? null
-              : `From ${formatWeightText(data.heroSource.weightKg, unit)} ${unit} × ${data.heroSource.reps}`
-          }
-          unit={unit}
-          valueText={
-            data.heroE1RMKg === null ? null : formatWeightText(data.heroE1RMKg, unit)
-          }
+          deltaPositive={hero.deltaPositive}
+          deltaText={hero.deltaText}
+          label={hero.label}
+          sourceText={hero.sourceText}
+          unit={hero.unit}
+          valueText={hero.valueText}
         />
 
         <View style={styles.tabBlock}>
@@ -239,16 +176,16 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
             onChange={(value) => setMetric(value as ExerciseMetric)}
             options={metricOptions}
             testID="exercise-detail-metric"
-            value={metric}
+            value={data.metric}
           />
         </View>
 
-        <Text style={styles.chartTitle}>{CHART_TITLES[metric]}</Text>
+        <Text style={styles.chartTitle}>{CHART_TITLES[data.metric]}</Text>
 
         {hasChart ? (
           <View style={styles.chartBlock}>
             <ExerciseLineChart
-              formatValue={(value) => formatChartValue(metric, value)}
+              formatValue={(value) => formatChartValue(data.metric, value)}
               points={data.points}
               testID="exercise-detail-chart"
               width={chartWidth}
@@ -299,12 +236,7 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
                     dateText={formatShortDate(row.startedAt)}
                     dividerTop={index > 0}
                     key={row.sessionId}
-                    summaryText={recentSummaryText(
-                      row.weightKg,
-                      row.reps,
-                      row.sets,
-                      unit,
-                    )}
+                    summaryText={recentSummaryText(row, unit)}
                     testID={`exercise-detail-recent-${row.sessionId}`}
                   />
                 ))}

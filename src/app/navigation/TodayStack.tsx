@@ -1,11 +1,12 @@
 /**
  * Today tab stack: daily brief → active workout → summary, plus the routine
- * stack (list → editor → exercise picker) that Home manages. Every screen
+ * stack (list → editor → exercise picker → new exercise) that Home manages. Every screen
  * draws its own header, so the native header is disabled for the stack.
  */
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import {
+  CustomExerciseScreen,
   ExercisePickerScreen,
   RoutineEditorScreen,
   RoutinesScreen,
@@ -30,6 +31,7 @@ export function TodayStack() {
       <Stack.Screen name="Routines" component={RoutinesScreen} />
       <Stack.Screen name="RoutineEditor" component={RoutineEditorScreen} />
       <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} />
+      <Stack.Screen name="CustomExercise" component={CustomExerciseScreen} />
     </Stack.Navigator>
   );
 }

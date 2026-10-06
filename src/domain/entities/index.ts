@@ -1,4 +1,10 @@
-export type { Exercise, ExerciseSource, MuscleGroup, Equipment } from './Exercise';
+export type {
+  Equipment,
+  Exercise,
+  ExerciseMeasure,
+  ExerciseSource,
+  MuscleGroup,
+} from './Exercise';
 export type { Set, SetType } from './Set';
 export type { Workout } from './Workout';
 export type { Routine, RoutineExercise } from './Routine';

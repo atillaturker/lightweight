@@ -12,6 +12,7 @@ import { Keyboard, type TextInput } from 'react-native';
 import type { ActiveExercise, ActiveSet, FocusedCell } from '../../types';
 import {
   EMPTY_CELL,
+  formatCellValue,
   firstIncompleteSet,
   listCells,
   nextCell,
@@ -276,6 +277,25 @@ describe('useSetTableDraft RPE', () => {
     act(() => harness.hook.commit());
 
     expect(harness.writes).toEqual([]);
+  });
+});
+
+describe('duration cells', () => {
+  it('accepts whole seconds from 1 to an hour', () => {
+    expect(parseDraftValue('45', 'duration')).toBe(45);
+    expect(parseDraftValue('0', 'duration')).toBeNull();
+    expect(parseDraftValue('4.5', 'duration')).toBeNull();
+    expect(parseDraftValue('3601', 'duration')).toBeNull();
+  });
+
+  it('shows an idle duration as a clock', () => {
+    expect(formatCellValue('duration', 75)).toBe('1:15');
+    expect(formatCellValue('reps', 8)).toBe('8');
+  });
+
+  it('walks weight then duration in a timed block', () => {
+    const timed = [{ ...makeExercise('plank', [makeSet('p', false)]), measure: 'time' as const }];
+    expect(listCells(timed).map((cell) => cell.field)).toEqual(['weight', 'duration']);
   });
 });
 

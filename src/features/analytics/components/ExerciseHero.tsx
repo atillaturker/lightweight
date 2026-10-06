@@ -1,7 +1,8 @@
 /**
- * Exercise Detail hero: the current estimated 1RM, its 8-week change, and
- * the set it was estimated from — so the number is never a black box.
- * Receives display-ready text; unit conversion stays in the screen.
+ * Exercise Detail hero: the one number that says whether the exercise is
+ * progressing — estimated 1RM, most reps, or longest hold — its 8-week
+ * change, and for e1RM the set it was estimated from, so the number is
+ * never a black box. Receives display-ready text.
  */
 import React from "react";
 import { Text, View } from "react-native";
@@ -10,8 +11,11 @@ import { createStyles, spacing, type } from "@theme";
 
 /** Props for {@link ExerciseHero}. */
 export interface ExerciseHeroProps {
-  /** The e1RM in the user's unit, or `null` when there is none. */
+  /** e.g. "ESTIMATED 1RM", "LONGEST HOLD". */
+  label: string;
+  /** The value in display form, or `null` when there is none. */
   valueText: string | null;
+  /** Unit beside the value; empty for none (a clock). */
   unit: string;
   /** "▲ 5 kg over 8 weeks", or `null` without a comparison. */
   deltaText: string | null;
@@ -23,6 +27,7 @@ export interface ExerciseHeroProps {
 
 /** The dominant number of Exercise Detail and its supporting lines. */
 export function ExerciseHero({
+  label,
   valueText,
   unit,
   deltaText,
@@ -32,12 +37,12 @@ export function ExerciseHero({
   const styles = useStyles();
   return (
     <View>
-      <Text style={styles.label}>ESTIMATED 1RM</Text>
+      <Text style={styles.label}>{label}</Text>
       <View style={styles.valueRow}>
         <Text style={styles.value} testID="exercise-detail-hero-value">
           {valueText ?? "—"}
         </Text>
-        {valueText === null ? null : <Text style={styles.unit}>{unit}</Text>}
+        {valueText === null || unit === "" ? null : <Text style={styles.unit}>{unit}</Text>}
       </View>
       {sourceText !== null ? (
         <Text style={styles.source} testID="exercise-detail-hero-source">

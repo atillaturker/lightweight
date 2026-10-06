@@ -23,6 +23,12 @@ export type Equipment =
   | 'band';
 
 /**
+ * How a set of the exercise is measured: repetitions (default) or time
+ * held. Bodyweight-ness is not a measure — it follows from `equipment`.
+ */
+export type ExerciseMeasure = 'reps' | 'time';
+
+/**
  * Where a built-in exercise's data came from, so it can be traced back
  * to (and refreshed from) its dataset.
  */
@@ -44,10 +50,16 @@ export interface Exercise {
   secondaryMuscles?: string[];
   /** Ordered how-to steps, in English. */
   instructions?: string[];
+  /** Absent means `reps`. */
+  measure?: ExerciseMeasure;
+  /** One arm or leg at a time; reps are logged per side. */
+  perSide?: boolean;
   source?: ExerciseSource;
   /** Key for the SVG sprite, e.g. "ex-bench-press". */
   pictogramId: string;
   isCustom: boolean;
   isArchived: boolean;
   createdAt: number;
+  /** Last edit, for user-created exercises; resolves sync conflicts. */
+  updatedAt?: number;
 }

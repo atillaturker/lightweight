@@ -15,6 +15,7 @@ import { Card } from '@components/Card';
 import { spacing, type, createStyles } from '@theme';
 
 import { MoreGlyph } from './Glyphs';
+import { secondField } from '../hooks/useSetTableDraft';
 import { numericColumnWidth, SetRow, type SetRowState } from './SetRow';
 import type { ActiveExercise, FocusedCell } from '../types';
 
@@ -60,6 +61,8 @@ export interface ExerciseBlockProps {
   readOnly?: boolean;
   /** One-line summary shown at the right of the title when `readOnly`. */
   summary?: string;
+  /** "A1", "A2"… when the exercise is part of a superset. */
+  supersetLabel?: string;
   /**
    * Registers the block's set rows for measurement, so the screen can scroll
    * the row being edited clear of the keyboard.
@@ -68,9 +71,20 @@ export interface ExerciseBlockProps {
   testID?: string;
 }
 
-/** Numeric column headings, in table order. Values are centered under them. */
-const NUMERIC_COLUMNS: readonly string[] = ['kg', 'Reps'];
-const NUMERIC_COLUMNS_WITH_RPE: readonly string[] = ['kg', 'Reps', 'RPE'];
+/**
+ * Numeric column headings, in table order; values are centered under
+ * them. Bodyweight and timed blocks log added load ("+kg"); timed blocks
+ * log time where others log reps.
+ */
+export function numericColumns(
+  exercise: Pick<ActiveExercise, 'measure' | 'perSide' | 'bodyweight'>,
+  showRpe: boolean,
+): string[] {
+  const timed = exercise.measure === 'time';
+  const weight = timed || exercise.bodyweight === true ? '+kg' : 'kg';
+  const second = timed ? 'Time' : exercise.perSide === true ? 'Reps/side' : 'Reps';
+  return showRpe ? [weight, second, 'RPE'] : [weight, second];
+}
 
 /**
  * The full set table for one exercise. Renders the "PR" pill in the title
@@ -91,17 +105,27 @@ export function ExerciseBlock({
   onPressHeader,
   readOnly = false,
   summary,
+  supersetLabel,
   registerRowRef,
   testID,
 }: ExerciseBlockProps): React.ReactElement {
   const styles = useStyles();
   const hasPR = exercise.sets.some((set) => set.isPR);
   const columnWidth = numericColumnWidth(showRpe);
+  const second = secondField(exercise);
   const isFocused = (setId: string, field: FocusedCell['field']): boolean =>
     focusedCell?.setId === setId && focusedCell.field === field;
 
   const titleRow = (
     <>
+      {supersetLabel !== undefined ? (
+        <Text
+          style={styles.supersetLabel}
+          testID={testID ? `${testID}-superset` : undefined}
+        >
+          {supersetLabel}
+        </Text>
+      ) : null}
       <Text numberOfLines={1} style={styles.title}>
         {exercise.name}
       </Text>
@@ -155,7 +179,7 @@ export function ExerciseBlock({
       <View style={styles.columnHeader}>
         <Text style={styles.columnLabelSet}>Set</Text>
         <View style={styles.columnNumerics}>
-          {(showRpe ? NUMERIC_COLUMNS_WITH_RPE : NUMERIC_COLUMNS).map((label) => (
+          {numericColumns(exercise, showRpe).map((label) => (
             <Text key={label} style={[styles.columnLabel, { width: columnWidth }]}>
               {label}
             </Text>
@@ -176,15 +200,18 @@ export function ExerciseBlock({
               {index > 0 ? <View style={styles.rowDivider} /> : null}
               <SetRow
                 index={index + 1}
-                isRepsFocused={isFocused(set.id, 'reps')}
+                isRepsFocused={isFocused(set.id, second)}
                 isRpeFocused={isFocused(set.id, 'rpe')}
                 isWeightFocused={isFocused(set.id, 'weight')}
-                onPressReps={() => onFocusCell({ setId: set.id, field: 'reps' })}
+                onPressReps={() => onFocusCell({ setId: set.id, field: second })}
                 onPressRpe={() => onFocusCell({ setId: set.id, field: 'rpe' })}
                 onPressWeight={() => onFocusCell({ setId: set.id, field: 'weight' })}
                 onToggleComplete={() => onToggleComplete(set.id)}
                 readOnly={readOnly}
-                repsText={displayValue({ setId: set.id, field: 'reps' }, set.reps)}
+                repsText={displayValue(
+                  { setId: set.id, field: second },
+                  second === 'duration' ? set.durationSec : set.reps,
+                )}
                 rowRef={(node) => registerRowRef(set.id, node)}
                 rpeText={
                   showRpe
@@ -232,6 +259,13 @@ const useStyles = createStyles((colors) => ({
   },
   badge: {
     marginRight: spacing.xs,
+  },
+  /** Superset position before the title, e.g. "A1". */
+  supersetLabel: {
+    ...type.label,
+    marginRight: spacing.sm,
+    fontVariant: ['tabular-nums'],
+    color: colors.textMuted,
   },
   /** Read-only right-aligned "<N> sets · <volume>" summary. */
   summary: {

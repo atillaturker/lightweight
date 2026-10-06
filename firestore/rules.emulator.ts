@@ -48,6 +48,18 @@ const WORKOUT = {
   ],
 };
 
+const CUSTOM_EXERCISE = {
+  id: 'custom-abc',
+  name: 'Landmine Press',
+  muscleGroup: 'shoulders',
+  equipment: 'barbell',
+  measure: 'reps',
+  perSide: true,
+  isArchived: false,
+  createdAt: 1,
+  updatedAt: 1,
+};
+
 let env: RulesTestEnvironment;
 
 /** Firestore as the signed-in `uid`, or unauthenticated for `null`. */
@@ -188,5 +200,40 @@ describe('other paths', () => {
     const db = dbAs('alice');
     await assertFails(setDoc(doc(db, 'users/alice/routines/r-1'), { name: 'x' }));
     await assertFails(setDoc(doc(db, 'anything/else'), { a: 1 }));
+  });
+});
+
+describe('users/{uid}/exercises/{exerciseId}', () => {
+  const path = 'users/alice/exercises/custom-abc';
+
+  it('lets the owner create, update and read a custom exercise', async () => {
+    const ref = doc(dbAs('alice'), path);
+    await assertSucceeds(setDoc(ref, CUSTOM_EXERCISE));
+    await assertSucceeds(setDoc(ref, { ...CUSTOM_EXERCISE, isArchived: true, updatedAt: 2 }));
+    await assertSucceeds(getDoc(ref));
+  });
+
+  it('denies other users', async () => {
+    await seed(path, CUSTOM_EXERCISE);
+    const ref = doc(dbAs('bob'), path);
+    await assertFails(getDoc(ref));
+    await assertFails(setDoc(ref, CUSTOM_EXERCISE));
+  });
+
+  it('never allows deleting a custom exercise', async () => {
+    await seed(path, CUSTOM_EXERCISE);
+    await assertFails(deleteDoc(doc(dbAs('alice'), path)));
+  });
+
+  it('rejects ids without the custom prefix', async () => {
+    const ref = doc(dbAs('alice'), 'users/alice/exercises/bench-press');
+    await assertFails(setDoc(ref, { ...CUSTOM_EXERCISE, id: 'bench-press' }));
+  });
+
+  it('rejects invalid fields and unknown keys', async () => {
+    const ref = doc(dbAs('alice'), path);
+    await assertFails(setDoc(ref, { ...CUSTOM_EXERCISE, muscleGroup: 'neck' }));
+    await assertFails(setDoc(ref, { ...CUSTOM_EXERCISE, name: '' }));
+    await assertFails(setDoc(ref, { ...CUSTOM_EXERCISE, isAdmin: true }));
   });
 });

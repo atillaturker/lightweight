@@ -12,7 +12,9 @@
  *   note?         string
  *   sets          Array<{
  *     id, exerciseId, weightKg, reps, type, completed,
- *     rpe?, note?, completedAt, order, isPR?
+ *     rpe?, note?, completedAt, order, isPR?,
+ *     durationSec?   // timed sets (reps is 0)
+ *     perSide?       // reps counted per side
  *   }>
  *
  * Timestamps are stored as epoch-millisecond numbers rather than Firestore
@@ -46,6 +48,8 @@ export interface WorkoutSetDocument {
   rpe?: number;
   note?: string;
   isPR?: boolean;
+  durationSec?: number;
+  perSide?: boolean;
 }
 
 /** One workout as persisted in Firestore. */
@@ -84,6 +88,8 @@ function toSetDocument(set: DomainSet): WorkoutSetDocument {
   if (set.rpe !== undefined) document.rpe = set.rpe;
   if (set.note !== undefined) document.note = set.note;
   if (set.isPR !== undefined) document.isPR = set.isPR;
+  if (set.durationSec !== undefined) document.durationSec = set.durationSec;
+  if (set.perSide !== undefined) document.perSide = set.perSide;
   return document;
 }
 
@@ -121,7 +127,9 @@ function isSetDocumentArray(value: unknown): value is WorkoutSetDocument[] {
         SET_TYPES.includes(entry.type as SetType) &&
         typeof entry.completed === 'boolean' &&
         (entry.completedAt === null || typeof entry.completedAt === 'number') &&
-        typeof entry.order === 'number'
+        typeof entry.order === 'number' &&
+        (entry.durationSec === undefined || typeof entry.durationSec === 'number') &&
+        (entry.perSide === undefined || typeof entry.perSide === 'boolean')
       );
     })
   );
@@ -158,6 +166,9 @@ function fromSetDocument(
     completedAt: set.completedAt,
     order: set.order,
     isPR: set.isPR,
+    // Absent on sets recorded before timed and per-side tracking existed.
+    ...(set.durationSec !== undefined ? { durationSec: set.durationSec } : {}),
+    ...(set.perSide !== undefined ? { perSide: set.perSide } : {}),
   };
 }
 

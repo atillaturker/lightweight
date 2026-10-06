@@ -13,7 +13,12 @@
 import { useAuthStore } from '@features/auth/store';
 import { HISTORY_STORE_KEY, useHistoryFilterStore, useHistoryStore } from '@features/history/store';
 import { PREFERENCES_STORE_KEY, usePreferencesStore } from '@features/profile/store';
-import { ROUTINES_STORE_KEY, useRoutineStore } from '@features/routines/store';
+import {
+  CUSTOM_EXERCISES_STORE_KEY,
+  ROUTINES_STORE_KEY,
+  useCustomExerciseStore,
+  useRoutineStore,
+} from '@features/routines/store';
 import {
   ACTIVE_WORKOUT_STORE_KEY,
   useActiveWorkoutStore,
@@ -30,6 +35,7 @@ function applyUserScope(uid: string | null): void {
   const adopt = uid !== null;
   switchPersistScope(useHistoryStore, HISTORY_STORE_KEY, scope, adopt);
   switchPersistScope(useRoutineStore, ROUTINES_STORE_KEY, scope, adopt);
+  switchPersistScope(useCustomExerciseStore, CUSTOM_EXERCISES_STORE_KEY, scope, adopt);
   switchPersistScope(useActiveWorkoutStore, ACTIVE_WORKOUT_STORE_KEY, scope, adopt);
   switchPersistScope(usePreferencesStore, PREFERENCES_STORE_KEY, scope, adopt);
   // In-memory stores that can still hold the previous account's data.

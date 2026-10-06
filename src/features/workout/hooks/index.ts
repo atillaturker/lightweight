@@ -19,6 +19,7 @@ export {
   parseDraftValue,
   sameCell,
   sanitizeNumericInput,
+  secondField,
   useSetTableDraft,
 } from './useSetTableDraft';
 export type {

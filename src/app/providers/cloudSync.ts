@@ -9,7 +9,7 @@
  */
 import NetInfo from '@react-native-community/netinfo';
 
-import type { Workout } from '@domain/entities';
+import type { Exercise, Workout } from '@domain/entities';
 import { useAuthStore } from '@features/auth/store';
 import {
   enqueueWorkoutDelete,
@@ -23,6 +23,12 @@ import {
   deleteWorkoutFromFirestore,
   saveWorkoutToFirestore,
 } from '@features/history/services/firestoreWorkouts';
+import {
+  enqueueCustomExerciseSave,
+  isCustomExerciseQueueBody,
+  setCloudCustomExerciseWriter,
+} from '@features/routines/services';
+import { saveCustomExerciseToFirestore } from '@features/routines/services/firestoreCustomExercises';
 import {
   setFirestoreQueueTransport,
   setQueueScopeProvider,
@@ -83,6 +89,39 @@ export function queueWorkoutUploads(uid: string, workouts: Workout[]): void {
   for (const workout of workouts) enqueueWorkoutSave(uid, workout);
 }
 
+/** Custom-exercise ids `uid` still has a queued save for. */
+export function pendingCustomExerciseIds(uid: string): Set<string> {
+  const ids = new Set<string>();
+  for (const mutation of useOfflineQueue.getState().queue) {
+    const body = mutation.body;
+    if (isCustomExerciseQueueBody(body) && body.uid === uid) ids.add(body.exercise.id);
+  }
+  return ids;
+}
+
+/** Queue uploads for custom exercises the cloud lacks or holds older. */
+export function queueCustomExerciseUploads(uid: string, exercises: Exercise[]): void {
+  const pending = pendingCustomExerciseIds(uid);
+  for (const exercise of exercises) {
+    if (!pending.has(exercise.id)) enqueueCustomExerciseSave(uid, exercise);
+  }
+}
+
+/** Write a custom exercise when online, otherwise (or on failure) queue it. */
+async function writeOrQueueCustomExercise(uid: string, exercise: Exercise): Promise<void> {
+  const online = await isOnline();
+  if (online) {
+    try {
+      await saveCustomExerciseToFirestore(uid, exercise);
+      return;
+    } catch (error: unknown) {
+      console.warn('[firestore] custom exercise write failed, queueing instead', error);
+    }
+  }
+  enqueueCustomExerciseSave(uid, exercise);
+  if (online) flushQueue();
+}
+
 /**
  * Give parked mutations a fresh set of attempts and deliver what the
  * signed-in account owns. Called after each sign-in sync, so a workout
@@ -134,6 +173,10 @@ async function deleteOrQueueWorkout(
 
 /** Deliver one queued Firestore mutation. */
 async function deliverQueuedMutation(mutation: QueuedMutation): Promise<void> {
+  if (isCustomExerciseQueueBody(mutation.body)) {
+    await saveCustomExerciseToFirestore(mutation.body.uid, mutation.body.exercise);
+    return;
+  }
   if (!isWorkoutQueueBody(mutation.body)) {
     throw new Error(`Unknown Firestore mutation: ${mutation.endpoint}`);
   }
@@ -171,6 +214,16 @@ export function registerCloudSync(): void {
     }
     void deleteOrQueueWorkout(uid, workoutId, startedAt).catch((error: unknown) => {
       console.warn('[firestore] workout delete failed', error);
+    });
+  });
+  setCloudCustomExerciseWriter((exercise) => {
+    const uid = currentUid();
+    if (uid === null) {
+      console.warn('[firestore] no signed-in uid; custom exercise write skipped');
+      return;
+    }
+    void writeOrQueueCustomExercise(uid, exercise).catch((error: unknown) => {
+      console.warn('[firestore] custom exercise sync failed', error);
     });
   });
   setQueueScopeProvider(currentUid);

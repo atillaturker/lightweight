@@ -11,6 +11,7 @@ const mockCreateUserProfile = jest.fn();
 const mockSaveUserPreferences = jest.fn();
 const mockSaveHasOnboarded = jest.fn();
 const mockFetchWorkouts = jest.fn();
+const mockFetchCustomExercises = jest.fn();
 
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
@@ -33,11 +34,17 @@ jest.mock('@features/history/services/firestoreWorkouts', () => ({
   deleteWorkoutFromFirestore: jest.fn(),
 }));
 
+jest.mock('@features/routines/services/firestoreCustomExercises', () => ({
+  fetchCustomExercisesFromFirestore: (...args: unknown[]) => mockFetchCustomExercises(...args),
+  saveCustomExerciseToFirestore: jest.fn(),
+}));
+
 import { act, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 import { useAuthStore } from '@features/auth/store';
-import type { Workout } from '@domain/entities';
+import type { Exercise, Workout } from '@domain/entities';
+import { useCustomExerciseStore } from '@features/routines/store';
 import { useHistoryStore } from '@features/history/store';
 import { useOfflineQueue } from '@infrastructure/network';
 
@@ -79,6 +86,8 @@ beforeEach(() => {
   mockSaveUserPreferences.mockResolvedValue(undefined);
   mockSaveHasOnboarded.mockResolvedValue(undefined);
   mockFetchWorkouts.mockResolvedValue(remoteOf([]));
+  mockFetchCustomExercises.mockResolvedValue([]);
+  useCustomExerciseStore.setState({ exercises: [] });
   useHistoryStore.setState({ sessions: [] });
   useOfflineQueue.setState({ queue: [] });
   useAuthStore.setState({
@@ -226,3 +235,61 @@ describe('useCloudSync history reconciliation', () => {
   });
 });
 
+/** A custom exercise with only the fields the merge reads. */
+function customExercise(id: string, name: string, updatedAt: number): Exercise {
+  return {
+    id: `custom-${id}`,
+    name,
+    muscleGroup: 'back',
+    equipment: 'machine',
+    pictogramId: `ex-custom-${id}`,
+    isCustom: true,
+    isArchived: false,
+    createdAt: 1,
+    updatedAt,
+  };
+}
+
+/** Custom-exercise ids queued for upload. */
+function queuedCustomIds(): string[] {
+  return useOfflineQueue.getState().queue.flatMap((item) => {
+    const body = item.body as { kind?: string; exercise?: Exercise };
+    return body.kind === 'saveCustomExercise' && body.exercise ? [body.exercise.id] : [];
+  });
+}
+
+describe('useCloudSync custom exercises', () => {
+  it('adopts exercises created on another device', async () => {
+    mockFetchCustomExercises.mockResolvedValue([customExercise('remote', 'Pendlay Row', 1)]);
+
+    render(<CloudSync />);
+
+    await waitFor(() =>
+      expect(useCustomExerciseStore.getState().exercises.map((e) => e.id)).toEqual(['custom-remote']),
+    );
+    expect(queuedCustomIds()).toEqual([]);
+  });
+
+  it('queues local exercises the cloud lacks', async () => {
+    useCustomExerciseStore.setState({ exercises: [customExercise('local', 'Seal Row', 1)] });
+
+    render(<CloudSync />);
+
+    await waitFor(() => expect(queuedCustomIds()).toEqual(['custom-local']));
+  });
+
+  it('keeps the local copy when the cloud read fails', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    useCustomExerciseStore.setState({ exercises: [customExercise('local', 'Seal Row', 1)] });
+    mockFetchCustomExercises.mockRejectedValue(new Error('unavailable'));
+
+    render(<CloudSync />);
+
+    await waitFor(() =>
+      expect(warn).toHaveBeenCalledWith('[firestore] failed to read custom exercises', expect.any(Error)),
+    );
+    expect(queuedCustomIds()).toEqual([]);
+    expect(useCustomExerciseStore.getState().exercises).toHaveLength(1);
+    warn.mockRestore();
+  });
+});

@@ -287,3 +287,60 @@ describe('updateExerciseTarget', () => {
     });
   });
 });
+
+describe('updateExerciseTimeTarget', () => {
+  it('sets sets and seconds on a timed slot', () => {
+    const id = newRoutine();
+    useRoutineStore.getState().addExercisesToRoutine(id, ['weighted-front-plank']);
+
+    useRoutineStore.getState().updateExerciseTimeTarget(id, 'weighted-front-plank', 4, 45);
+
+    expect(routineById(id).exercises[0]).toMatchObject({ targetSets: 4, targetSeconds: 45 });
+  });
+
+  it('ignores an exercise that is not in the routine', () => {
+    const id = newRoutine();
+    const before = routineById(id);
+
+    useRoutineStore.getState().updateExerciseTimeTarget(id, 'missing', 4, 45);
+
+    expect(routineById(id)).toEqual(before);
+  });
+});
+
+describe('supersets', () => {
+  function routineWith(ids: string[]): string {
+    const id = newRoutine();
+    useRoutineStore.getState().addExercisesToRoutine(id, ids);
+    return id;
+  }
+  const groups = (id: string) => routineById(id).exercises.map((slot) => slot.supersetGroup ?? '-');
+
+  it('links a slot with the next and unlinks it again', () => {
+    const id = routineWith(['bench-press', 'barbell-row', 'back-squat']);
+
+    useRoutineStore.getState().linkWithNext(id, 'bench-press');
+    expect(groups(id)).toEqual(['A', 'A', '-']);
+
+    useRoutineStore.getState().unlinkFromSuperset(id, 'barbell-row');
+    expect(groups(id)).toEqual(['-', '-', '-']);
+  });
+
+  it('dissolves a superset that a reorder splits apart', () => {
+    const id = routineWith(['bench-press', 'barbell-row', 'back-squat']);
+    useRoutineStore.getState().linkWithNext(id, 'bench-press');
+
+    useRoutineStore.getState().reorderExercise(id, 0, 2);
+
+    expect(groups(id)).toEqual(['-', '-', '-']);
+  });
+
+  it('dissolves a pair when one member is removed', () => {
+    const id = routineWith(['bench-press', 'barbell-row']);
+    useRoutineStore.getState().linkWithNext(id, 'bench-press');
+
+    useRoutineStore.getState().removeExercise(id, 'barbell-row');
+
+    expect(groups(id)).toEqual(['-']);
+  });
+});

@@ -18,6 +18,17 @@ export interface Set {
   completed: boolean;
   /** Perceived exertion, 1-10. Optional. */
   rpe?: number;
+  /**
+   * Seconds held, for a timed exercise (plank, carry). Present only on
+   * timed sets, whose `reps` is 0 and whose `weightKg` is any added load.
+   */
+  durationSec?: number;
+  /**
+   * Reps were counted per side (one-arm row, single-leg squat). Volume
+   * counts both sides. Snapshotted from the exercise when the set is
+   * logged, so history does not depend on the library.
+   */
+  perSide?: boolean;
   note?: string;
   completedAt: number | null;
   /** Position within its exercise. */

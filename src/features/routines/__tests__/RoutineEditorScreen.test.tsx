@@ -179,3 +179,23 @@ describe("RoutineEditorScreen naming", () => {
     expect(navigation.goBack).toHaveBeenCalled();
   });
 });
+
+describe("RoutineEditorScreen supersets", () => {
+  it("pairs an exercise with the next one from its target sheet", () => {
+    const id = useRoutineStore.getState().createRoutine("Push");
+    useRoutineStore.getState().addExercisesToRoutine(id, ["bench-press", "barbell-row"]);
+    const navigation = makeNavigation();
+    render(
+      <RoutineEditorScreen
+        navigation={navigation as unknown as Props["navigation"]}
+        route={makeRoute(id)}
+      />,
+    );
+
+    fireEvent.press(screen.getAllByLabelText("Target 3 by 8")[0]);
+    fireEvent.press(screen.getByLabelText("Superset with next"));
+
+    expect(screen.getByText(/Superset A1/)).toBeTruthy();
+    expect(screen.getByText(/Superset A2/)).toBeTruthy();
+  });
+});

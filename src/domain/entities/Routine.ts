@@ -5,6 +5,11 @@ export interface RoutineExercise {
   exerciseId: string;
   targetSets: number;
   targetReps: number;
+  /**
+   * Suggested seconds per set for a timed exercise. Absent means
+   * `DEFAULT_HOLD_SECONDS`; ignored for rep-based exercises.
+   */
+  targetSeconds?: number;
   order: number;
   /** Superset label, e.g. "A1", "A2". Undefined for straight sets. */
   supersetGroup?: string;

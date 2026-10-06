@@ -7,7 +7,11 @@ export type { RoutineTemplateId } from './types';
 export { ROUTINES_STORE_KEY, useRoutineStore } from './store';
 export type { RoutineStore } from './store';
 
-export { calculatedRoutineMinutes, routineDurationMinutes } from './utils';
+export {
+  calculatedRoutineMinutes,
+  routineDurationMinutes,
+  supersetLabels,
+} from './utils';
 
 export { EXERCISE_LIBRARY, TEMPLATE_EXERCISE_IDS } from './services';
 
@@ -18,4 +22,9 @@ export { ExerciseTechnique } from './components/ExerciseTechnique';
 export type { ExerciseTechniqueProps } from './components/ExerciseTechnique';
 export type { RoutineRowProps } from './components/RoutineRow';
 
-export { ExercisePickerScreen, RoutineEditorScreen, RoutinesScreen } from './screens';
+export {
+  CustomExerciseScreen,
+  ExercisePickerScreen,
+  RoutineEditorScreen,
+  RoutinesScreen,
+} from './screens';

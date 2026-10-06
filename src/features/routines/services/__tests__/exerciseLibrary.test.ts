@@ -32,6 +32,8 @@ describe('isCatalogEntry', () => {
   });
 
   it('rejects malformed optional fields', () => {
+    expect(isCatalogEntry({ ...ROW, measure: 'distance' })).toBe(false);
+    expect(isCatalogEntry({ ...ROW, perSide: 'yes' })).toBe(false);
     expect(isCatalogEntry({ ...ROW, instructions: 'Lie down.' })).toBe(false);
     expect(isCatalogEntry({ ...ROW, source: { dataset: 'x' } })).toBe(false);
   });
@@ -86,5 +88,12 @@ describe('EXERCISE_LIBRARY', () => {
   it('carries instructions for dataset-backed exercises', () => {
     const bench = EXERCISE_LIBRARY.find((exercise) => exercise.id === 'bench-press');
     expect(bench?.instructions?.length).toBeGreaterThan(0);
+  });
+
+  it('marks timed and per-side exercises', () => {
+    const byId = new Map(EXERCISE_LIBRARY.map((exercise) => [exercise.id, exercise]));
+    expect(byId.get('weighted-front-plank')?.measure).toBe('time');
+    expect(byId.get('bulgarian-split-squat')?.perSide).toBe(true);
+    expect(byId.get('bench-press')?.measure).toBeUndefined();
   });
 });

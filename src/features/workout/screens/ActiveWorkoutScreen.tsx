@@ -35,6 +35,7 @@ import { Button } from '@components/Button';
 import { EmptyState } from '@components/EmptyState';
 import { gutter, spacing, type, createStyles } from '@theme';
 import { formatClock } from '@lib/format';
+import { supersetLabels } from '@features/routines';
 import type { TodayStackParamList } from '@/app/navigation/types';
 
 import { ExerciseBlock } from '../components/ExerciseBlock';
@@ -61,6 +62,7 @@ import type {
   NumericField,
 } from '../types';
 import { lastTimeLine } from '../utils/lastPerformance';
+import { shouldRestAfter } from '../utils/supersetOrder';
 import { getExerciseHistory, getRestTimerSeconds, getRpeEnabled } from '../services';
 import { PREVIEW_LAST_TIME, resolveFrameExercises } from '../utils/workoutPreview';
 type Props = NativeStackScreenProps<TodayStackParamList, 'ActiveWorkout'>;
@@ -124,6 +126,7 @@ export function ActiveWorkoutScreen({
     : draft.focusedCell;
 
   const reveal = useCellReveal(focusedCell);
+  const labels = useMemo(() => supersetLabels(exercises), [exercises]);
 
   const totalSets = countTotalSets(exercises);
   const completedSets = countCompletedSets(exercises);
@@ -162,7 +165,8 @@ export function ActiveWorkoutScreen({
         return;
       }
       completeSet(exerciseId, setId);
-      rest.start(getRestTimerSeconds());
+      // In a superset, rest waits until the round is over.
+      if (shouldRestAfter(exercises, setId)) rest.start(getRestTimerSeconds());
     },
     [completeSet, exercises, isPreview, rest, updateSet],
   );
@@ -196,8 +200,10 @@ export function ActiveWorkoutScreen({
 
     if (firstIncomplete === null) return;
     completeSet(firstIncomplete.exerciseId, firstIncomplete.setId);
-    rest.start(getRestTimerSeconds());
-  }, [completeSet, draft.focusedCell, firstIncomplete, handleAdvance, isPreview, rest]);
+    if (shouldRestAfter(exercises, firstIncomplete.setId)) {
+      rest.start(getRestTimerSeconds());
+    }
+  }, [completeSet, draft.focusedCell, exercises, firstIncomplete, handleAdvance, isPreview, rest]);
 
   const handleExitChoice = useCallback(
     (choice: 'finish' | 'discard'): void => {
@@ -276,6 +282,7 @@ export function ActiveWorkoutScreen({
                 activeSetId={findActiveSet(exercise)?.id ?? null}
                 displayValue={draft.displayValue}
                 showRpe={showRpe}
+                supersetLabel={labels.get(exercise.exerciseId)}
                 exercise={exercise}
                 focusedCell={focusedCell}
                 lastTimeLine={resolveLastTimeLine(exercise, isPreview)}
@@ -391,6 +398,8 @@ function cellValue(set: ActiveSet, field: NumericField): number | undefined {
       return set.weightKg;
     case 'reps':
       return set.reps;
+    case 'duration':
+      return set.durationSec;
     case 'rpe':
       return set.rpe;
   }
@@ -403,6 +412,8 @@ function cellPatch(field: NumericField, value: number): Partial<ActiveSet> {
       return { weightKg: value };
     case 'reps':
       return { reps: value };
+    case 'duration':
+      return { durationSec: value };
     case 'rpe':
       return { rpe: value };
   }

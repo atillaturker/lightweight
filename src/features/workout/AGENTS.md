@@ -45,6 +45,31 @@ for data loss or UI blocking. A dropped set is a broken product.
 - While a live session is open, `KeepScreenAwake` (expo-keep-awake)
   stops the phone from locking. It is not rendered in preview frames.
 
+## Exercise kinds
+
+Each block snapshots how its exercise is logged when the session starts
+(`measure`, `perSide`, `bodyweight` on `ActiveExercise`):
+
+- Timed (`measure: 'time'`): the second column is **Time** (field
+  `duration`, whole seconds, shown as `m:ss`); reps stay 0. Sets seed
+  from the last session, else the slot's `targetSeconds`, else
+  `DEFAULT_HOLD_SECONDS`.
+- Bodyweight (equipment `bodyweight`): weight is added load, headed
+  **+kg**; 0 means none.
+- Per side: reps are per side (**Reps/side**); the set carries
+  `perSide: true` and volume counts both sides.
+
+Active sets become domain sets only through `toDomainSet`, used by both
+PR detection and finishing.
+
+## Supersets
+
+Blocks carry the slot's `supersetGroup`. A run of consecutive blocks with
+the same group is logged round by round (A1 set 1, A2 set 1, A1 set 2…):
+`logicalSetOrder` drives "Log set" and "Next", and `shouldRestAfter`
+starts rest only after the last member of a round. Blocks show "A1",
+"A2" before the title.
+
 ## Set model
 
 Set types: `normal | warmup | drop | failure`.

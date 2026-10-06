@@ -20,6 +20,11 @@ import {
   DEFAULT_TARGET_SETS,
 } from '../config';
 import { TEMPLATE_EXERCISE_IDS } from '../services';
+import {
+  linkWithNext as linkSlotWithNext,
+  normalizeSupersets,
+  unlinkFromSuperset as unlinkSlot,
+} from '../utils/supersets';
 
 /** Display name per starter template. */
 const TEMPLATE_NAMES: Record<RoutineTemplateId, string> = {
@@ -64,9 +69,20 @@ export interface RoutineStore {
   addExercisesToRoutine: (routineId: string, exerciseIds: string[]) => void;
   /** Remove one exercise from a routine. */
   removeExercise: (routineId: string, exerciseId: string) => void;
+  /** Join a slot and the one after it into a superset. */
+  linkWithNext: (routineId: string, exerciseId: string) => void;
+  /** Take a slot out of its superset. */
+  unlinkFromSuperset: (routineId: string, exerciseId: string) => void;
   /** Move an exercise within the routine's list. */
   reorderExercise: (routineId: string, fromIndex: number, toIndex: number) => void;
   /** Update the target sets/reps for one exercise in one routine. */
+  /** Set a timed slot's suggested `sets × seconds`. */
+  updateExerciseTimeTarget: (
+    routineId: string,
+    exerciseId: string,
+    targetSets: number,
+    targetSeconds: number,
+  ) => void;
   updateExerciseTarget: (
     routineId: string,
     exerciseId: string,
@@ -91,6 +107,38 @@ export function defaultRoutineName(routines: Routine[]): string {
   let n = 2;
   while (taken.has(`${DEFAULT_ROUTINE_NAME} ${n}`)) n += 1;
   return `${DEFAULT_ROUTINE_NAME} ${n}`;
+}
+
+/** Replace one routine's slot list; no change when the routine is missing. */
+function updateSlots(
+  routines: Routine[],
+  routineId: string,
+  change: (slots: RoutineExercise[]) => RoutineExercise[],
+): { routines: Routine[] } | Record<string, never> {
+  const target = routines.find((routine) => routine.id === routineId);
+  if (!target) return {};
+  const ordered = [...target.exercises].sort((a, b) => a.order - b.order);
+  return { routines: patchRoutine(routines, routineId, { exercises: reindex(change(ordered)) }) };
+}
+
+/**
+ * Patch one slot of one routine; returns the list unchanged when either
+ * is missing.
+ */
+function patchSlot(
+  routines: Routine[],
+  routineId: string,
+  exerciseId: string,
+  patch: Partial<RoutineExercise>,
+): Routine[] {
+  const target = routines.find((routine) => routine.id === routineId);
+  if (!target?.exercises.some((entry) => entry.exerciseId === exerciseId)) {
+    return routines;
+  }
+  const exercises = target.exercises.map((entry) =>
+    entry.exerciseId === exerciseId ? { ...entry, ...patch } : entry,
+  );
+  return patchRoutine(routines, routineId, { exercises });
 }
 
 function createRoutineId(source: string): string {
@@ -126,12 +174,15 @@ function patchRoutine(
 }
 
 /**
- * Rewrite slot `order` to match array position. Every list mutation
- * reindexes so `order` stays contiguous and starts at zero.
+ * Rewrite slot `order` to match array position and keep supersets valid.
+ * Every list mutation goes through here, so `order` stays contiguous from
+ * zero and a reorder or removal can never leave a broken superset.
  */
 function reindex(exercises: RoutineExercise[]): RoutineExercise[] {
-  return exercises.map((exercise, index) =>
-    exercise.order === index ? exercise : { ...exercise, order: index },
+  return normalizeSupersets(
+    exercises.map((exercise, index) =>
+      exercise.order === index ? exercise : { ...exercise, order: index },
+    ),
   );
 }
 
@@ -249,6 +300,14 @@ export const useRoutineStore = create<RoutineStore>()(
             }),
           };
         }),
+      linkWithNext: (routineId, exerciseId) =>
+        set((state) => updateSlots(state.routines, routineId, (slots) =>
+          linkSlotWithNext(slots, exerciseId),
+        )),
+      unlinkFromSuperset: (routineId, exerciseId) =>
+        set((state) => updateSlots(state.routines, routineId, (slots) =>
+          unlinkSlot(slots, exerciseId),
+        )),
       reorderExercise: (routineId, fromIndex, toIndex) =>
         set((state) => {
           const target = state.routines.find((r) => r.id === routineId);
@@ -269,6 +328,13 @@ export const useRoutineStore = create<RoutineStore>()(
             }),
           };
         }),
+      updateExerciseTimeTarget: (routineId, exerciseId, targetSets, targetSeconds) =>
+        set((state) => ({
+          routines: patchSlot(state.routines, routineId, exerciseId, {
+            targetSets,
+            targetSeconds,
+          }),
+        })),
       updateExerciseTarget: (routineId, exerciseId, targetSets, targetReps) =>
         set((state) => {
           const target = state.routines.find((r) => r.id === routineId);

@@ -8,7 +8,12 @@
  * caller supplies the library and the current time.
  */
 import type { Exercise, Set as DomainSet, Workout } from '@domain/entities';
-import { calculateVolume, summarizeVolume } from '@domain/rules';
+import {
+  calculateVolume,
+  isBodyweightExercise,
+  isTimedSet,
+  summarizeVolume,
+} from '@domain/rules';
 import { formatTonnage, formatMinutesBetween } from '@lib/format';
 import type { ActiveExercise, ActiveSet, PRSummaryRow } from '@features/workout';
 import { summarizeSessionPRs } from '@features/workout';
@@ -61,6 +66,7 @@ function toActiveSets(sets: DomainSet[]): ActiveSet[] {
     completed: true,
     completedAt: set.completedAt,
     rpe: set.rpe,
+    ...(set.durationSec !== undefined ? { durationSec: set.durationSec } : {}),
     // The persisted flag is authoritative for historical views.
     isPR: set.isPR ?? false,
   }));
@@ -103,6 +109,11 @@ function toBlocks(
         pictogramId: meta?.pictogramId ?? '',
         order: index,
         sets: toActiveSets(sets),
+        // How the sets were logged is read from the sets themselves, so a
+        // record stays right even if the library entry changes.
+        measure: sets.some(isTimedSet) ? 'time' : 'reps',
+        perSide: sets.some((set) => set.perSide === true),
+        bodyweight: meta !== undefined && isBodyweightExercise(meta),
       },
       summary: `${setCount} ${setCount === 1 ? 'set' : 'sets'} · ${formatTonnage(
         calculateVolume(sets),

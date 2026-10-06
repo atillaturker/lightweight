@@ -19,7 +19,7 @@
 import type { Set } from '@domain/entities';
 import { detectPRs, type PRRecord, type PRType } from '@domain/rules';
 import { isWorkingSet } from '@domain/rules/e1rm';
-import { formatDecimal, formatWeightKg } from '@lib/format';
+import { formatClock, formatDecimal, formatWeightKg } from '@lib/format';
 
 /** One row of the summary's personal-records section. */
 export interface PRSummaryRow {
@@ -35,7 +35,12 @@ export interface PRSummaryRow {
  * is the most legible headline, so it outranks an estimate, which in turn
  * outranks a rep record.
  */
-const PRIORITY: readonly PRType[] = ['heaviest_set', 'best_1rm', 'most_reps'];
+const PRIORITY: readonly PRType[] = [
+  'heaviest_set',
+  'best_1rm',
+  'most_reps',
+  'longest_hold',
+];
 
 /** Human-readable description of a single record. */
 function describe(record: PRRecord): string {
@@ -46,6 +51,8 @@ function describe(record: PRRecord): string {
       return `Best e1RM · ${formatDecimal(record.value)}kg`;
     case 'most_reps':
       return `Most reps · ${record.value}`;
+    case 'longest_hold':
+      return `Longest hold · ${formatClock(record.value)}`;
     case 'best_session_volume':
       return `Session volume · ${formatWeightKg(record.value)}kg`;
     default:

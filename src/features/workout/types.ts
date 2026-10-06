@@ -7,7 +7,7 @@
  * is open, and it has no `workoutId`/`order` because those are derived
  * once the session finishes.
  */
-import type { SetType } from '@domain/entities';
+import type { ExerciseMeasure, SetType } from '@domain/entities';
 
 /** One set of the in-progress session. */
 export interface ActiveSet {
@@ -18,6 +18,8 @@ export interface ActiveSet {
   completed: boolean;
   /** Perceived exertion, 1-10. Optional. */
   rpe?: number;
+  /** Seconds held; present only in a timed exercise's block. */
+  durationSec?: number;
   completedAt: number | null;
   /** Set by PR detection once the set is completed. */
   isPR: boolean;
@@ -31,6 +33,20 @@ export interface ActiveExercise {
   pictogramId: string;
   order: number;
   sets: ActiveSet[];
+  /**
+   * Snapshot of how the exercise is logged, taken when the session starts.
+   * Absent on sessions persisted before these existed: reps, both sides,
+   * external load.
+   */
+  measure?: ExerciseMeasure;
+  perSide?: boolean;
+  /** Weight is added load on top of bodyweight ("+kg"). */
+  bodyweight?: boolean;
+  /**
+   * Superset letter from the routine slot. Consecutive blocks sharing it
+   * are logged round by round, with rest only after each round.
+   */
+  supersetGroup?: string;
 }
 
 /**
@@ -41,10 +57,11 @@ export interface ActiveExercise {
 export type ActiveWorkoutPreview = 'default' | 'keyboard' | 'pr';
 
 /**
- * Which numeric cell of a set row is focused. `rpe` exists only while the
- * user's "RPE field" preference is on.
+ * Which numeric cell of a set row is focused. A timed block has
+ * `duration` where others have `reps`; `rpe` exists only while the user's
+ * "RPE field" preference is on.
  */
-export type NumericField = 'weight' | 'reps' | 'rpe';
+export type NumericField = 'weight' | 'reps' | 'duration' | 'rpe';
 
 /** Identifies the currently focused numeric cell. */
 export interface FocusedCell {

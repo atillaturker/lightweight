@@ -16,6 +16,7 @@ import { syncWorkoutToCloud } from '@features/history/services';
 import { useHistoryStore } from '@features/history/store';
 import { usePreferencesStore } from '@features/profile/store';
 import { EXERCISE_LIBRARY } from '@features/routines/services';
+import { useCustomExerciseStore } from '@features/routines/store';
 import {
   setExerciseLibraryProvider,
   setRestTimerSecondsProvider,
@@ -27,7 +28,12 @@ import {
 
 /** Point the workout feature's seams at their real sources. */
 export function registerDataProviders(): void {
-  setExerciseLibraryProvider(() => [...EXERCISE_LIBRARY]);
+  // Custom exercises are included, archived ones too, so logged sets of an
+  // archived exercise still resolve to a name.
+  setExerciseLibraryProvider(() => [
+    ...EXERCISE_LIBRARY,
+    ...useCustomExerciseStore.getState().exercises,
+  ]);
   setRestTimerSecondsProvider(
     () => usePreferencesStore.getState().restTimerSeconds,
   );

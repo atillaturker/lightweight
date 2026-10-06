@@ -23,17 +23,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import { DEFAULT_HOLD_SECONDS } from "@domain/rules";
 import { Button } from "@components/Button";
 import { ScreenHeader } from "@components/ScreenHeader";
 import { emptyStatePadding, fineSpacing, gutter, spacing, type, createStyles, useTheme } from "@theme";
 
 import { DEFAULT_ROUTINE_NAME, estimateDurationMinutes } from "../config";
-import { EXERCISE_LIBRARY } from "../services";
+import { useExerciseLibrary } from "../hooks";
 import { useRoutineStore } from "../store";
 import { DurationSheet } from "../components/DurationSheet";
 import { RoutineEditorRow } from "../components/RoutineEditorRow";
 import { TargetSheet } from "../components/TargetSheet";
-import { calculatedRoutineMinutes, routineDurationMinutes } from "../utils";
+import {
+  calculatedRoutineMinutes,
+  routineDurationMinutes,
+  supersetLabels,
+} from "../utils";
 
 import type { TodayStackParamList } from "@/app/navigation/types";
 
@@ -44,7 +49,9 @@ interface TargetEditing {
   exerciseId: string;
   name: string;
   sets: number;
+  /** Reps, or seconds for a timed exercise. */
   reps: number;
+  measure: "reps" | "time";
 }
 
 /** 44px back chevron, matching the shared header geometry. */
@@ -102,6 +109,11 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
   const updateExerciseTarget = useRoutineStore(
     (state) => state.updateExerciseTarget,
   );
+  const updateExerciseTimeTarget = useRoutineStore(
+    (state) => state.updateExerciseTimeTarget,
+  );
+  const linkWithNext = useRoutineStore((state) => state.linkWithNext);
+  const unlinkFromSuperset = useRoutineStore((state) => state.unlinkFromSuperset);
   const setRoutineDuration = useRoutineStore(
     (state) => state.setRoutineDuration,
   );
@@ -153,17 +165,26 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
 
   // Rows resolve against the library; ids with no library entry are shown
   // by their raw id so a stale reference is visible rather than dropped.
+  const labels = useMemo(() => supersetLabels(routine?.exercises ?? []), [routine]);
+
+  const { byId } = useExerciseLibrary();
   const rows = useMemo(() => {
-    const byId = new Map(EXERCISE_LIBRARY.map((entry) => [entry.id, entry]));
     return (routine?.exercises ?? []).map((slot) => {
       const exercise = byId.get(slot.exerciseId);
       return {
         slot,
         name: exercise?.name ?? slot.exerciseId,
         muscleGroup: exercise?.muscleGroup,
+        measure: exercise?.measure ?? "reps",
+        perSide: exercise?.perSide ?? false,
+        // A timed slot's second target is seconds, not reps.
+        targetValue:
+          exercise?.measure === "time"
+            ? (slot.targetSeconds ?? DEFAULT_HOLD_SECONDS)
+            : slot.targetReps,
       };
     });
-  }, [routine]);
+  }, [byId, routine]);
 
   const beginRename = useCallback(() => {
     setNameDraft(routine?.name ?? "");
@@ -209,6 +230,29 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
     routineId,
     setActiveRoutine,
   ]);
+
+  /**
+   * "Superset with next" whenever the slot has a slot after it outside its
+   * own group (this also extends a group from its last member), plus
+   * "Remove from superset" for a grouped slot.
+   */
+  const supersetActionsFor = (
+    exerciseId: string | undefined,
+  ): { label: string; onPress: () => void }[] => {
+    const slots = routine?.exercises ?? [];
+    const index = slots.findIndex((slot) => slot.exerciseId === exerciseId);
+    if (exerciseId === undefined || index < 0 || !routineId) return [];
+    const group = slots[index].supersetGroup;
+    const next = slots[index + 1];
+    const actions: { label: string; onPress: () => void }[] = [];
+    if (next !== undefined && (group === undefined || next.supersetGroup !== group)) {
+      actions.push({ label: "Superset with next", onPress: () => linkWithNext(routineId, exerciseId) });
+    }
+    if (group !== undefined) {
+      actions.push({ label: "Remove from superset", onPress: () => unlinkFromSuperset(routineId, exerciseId) });
+    }
+    return actions;
+  };
 
   const handleSelectDuration = useCallback(
     (minutes: number): void => {
@@ -312,11 +356,15 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
                     exerciseId: row.slot.exerciseId,
                     name: row.name,
                     sets: row.slot.targetSets,
-                    reps: row.slot.targetReps,
+                    reps: row.targetValue,
+                    measure: row.measure,
                   })
                 }
+                measure={row.measure}
+                perSide={row.perSide}
+                supersetLabel={labels.get(row.slot.exerciseId)}
                 showDivider={index > 0}
-                targetReps={row.slot.targetReps}
+                targetReps={row.targetValue}
                 targetSets={row.slot.targetSets}
               />
             ))}
@@ -356,12 +404,15 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
         exerciseName={targetEditing?.name ?? ""}
         initialReps={targetEditing?.reps ?? 0}
         initialSets={targetEditing?.sets ?? 0}
+        measure={targetEditing?.measure ?? "reps"}
         onClose={() => setTargetEditing(null)}
-        onConfirm={(sets, reps) => {
-          if (targetEditing && routineId) {
-            updateExerciseTarget(routineId, targetEditing.exerciseId, sets, reps);
-          }
+        onConfirm={(sets, value) => {
+          if (!targetEditing || !routineId) return;
+          const update =
+            targetEditing.measure === "time" ? updateExerciseTimeTarget : updateExerciseTarget;
+          update(routineId, targetEditing.exerciseId, sets, value);
         }}
+        supersetActions={supersetActionsFor(targetEditing?.exerciseId)}
         onRemove={() => {
           if (targetEditing && routineId) {
             removeExercise(routineId, targetEditing.exerciseId);

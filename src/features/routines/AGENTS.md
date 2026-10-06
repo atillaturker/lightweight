@@ -35,9 +35,30 @@ Routine CRUD and exercise picker. Three screens.
   tile when there is none. Do not fall back to the muscle icon there.
   Never substitute with `@expo/vector-icons`.
 
+## Custom exercises
+
+- Created from the picker ("Create exercise", prefilled with the search
+  text) on `CustomExerciseScreen`; the new exercise comes back selected.
+- Stored in `useCustomExerciseStore` (per account, see `userScope.ts`),
+  ids prefixed `custom-`, mirrored to Firestore through the
+  `syncCustomExerciseToCloud` seam. Never deleted, only archived.
+- Screens read the library through `useExerciseLibrary()`: `pickable`
+  (active custom exercises first, then built-ins) and `byId` (archived
+  included). Never read `EXERCISE_LIBRARY` directly in a screen.
+
+## Supersets
+
+A superset is a run of consecutive slots sharing `supersetGroup` (stored
+as a letter: A, B…; labeled A1, A2 in the UI). Built from the target
+sheet ("Superset with next", "Remove from superset"). Every list
+mutation goes through `reindex`, which calls `normalizeSupersets`, so a
+reorder or removal never leaves a broken group (lone members are
+cleared, runs relabeled in order).
+
 ## Set targets
 
-Target format: `<sets> × <reps>`. Freeform. Only a suggestion — Active
+Target format: `<sets> × <reps>`; timed exercises use `<sets> × <seconds>s`
+(`RoutineExercise.targetSeconds`) and per-side ones `<sets> × <reps> / side`. Freeform. Only a suggestion — Active
 Workout does not enforce it.
 
 ## Do not

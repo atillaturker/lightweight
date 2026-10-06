@@ -8,7 +8,7 @@
  */
 import React from 'react';
 
-import { formatDecimal, formatInteger, formatWeightKg } from '@lib/format';
+import { formatClock, formatDecimal, formatInteger, formatWeightKg } from '@lib/format';
 import type { FocusedCell } from '@features/workout';
 import { EMPTY_CELL, ExerciseBlock } from '@features/workout';
 
@@ -27,6 +27,8 @@ function displayValue(cell: FocusedCell, actual: number | undefined): string {
       return formatWeightKg(actual);
     case 'reps':
       return formatInteger(actual);
+    case 'duration':
+      return formatClock(actual);
     case 'rpe':
       return formatDecimal(actual);
   }

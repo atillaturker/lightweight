@@ -14,8 +14,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, type TextInput } from 'react-native';
 
 import { isValidRpe } from '@domain/rules';
+import { formatClock } from '@lib/format';
 
 import type { ActiveExercise, ActiveSet, FocusedCell, NumericField } from '../types';
+import { logicalSetOrder } from '../utils/supersetOrder';
 
 /** Values returned by {@link useSetTableDraft}. */
 export interface SetTableDraft {
@@ -54,6 +56,17 @@ export type CommitDraft = (
 /** Shown in a cell with no value (an RPE not rated yet). */
 export const EMPTY_CELL = '–';
 
+/** Longest hold a timed set may record, in seconds (one hour). */
+export const MAX_HOLD_SECONDS = 3600;
+
+/**
+ * Idle text of a cell. Durations read as a clock (`0:45`); while a
+ * duration is being typed the draft shows the raw seconds instead.
+ */
+export function formatCellValue(field: NumericField, value: number): string {
+  return field === 'duration' ? formatClock(value) : String(value);
+}
+
 /** Strip anything that is not a digit or a decimal point. */
 export function sanitizeNumericInput(text: string): string {
   const cleaned = text.replace(/[^0-9.]/g, '');
@@ -64,14 +77,18 @@ export function sanitizeNumericInput(text: string): string {
 /**
  * Parse draft text into a number, or `null` when it is not usable for
  * `field`. Weight accepts any non-negative number (0 = bodyweight); reps
- * must be a whole number of at least one; RPE must be on the 1–10 scale in
- * half steps.
+ * must be a whole number of at least one; a duration is whole seconds from
+ * 1 to {@link MAX_HOLD_SECONDS}; RPE must be on the 1–10 scale in half
+ * steps.
  */
 export function parseDraftValue(text: string, field: NumericField): number | null {
   if (text.trim() === '') return null;
   const value = Number(text);
   if (!Number.isFinite(value) || value < 0) return null;
   if (field === 'rpe') return isValidRpe(value) ? value : null;
+  if (field === 'duration') {
+    return Number.isInteger(value) && value >= 1 && value <= MAX_HOLD_SECONDS ? value : null;
+  }
   if (field === 'reps' && (!Number.isInteger(value) || value < 1)) return null;
   return value;
 }
@@ -198,7 +215,7 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
     (cell: FocusedCell, actual: number | undefined): string => {
       const isFocused = focusedCell !== null && sameCell(focusedCell, cell);
       if (isFocused) return draftValue;
-      return actual === undefined ? EMPTY_CELL : String(actual);
+      return actual === undefined ? EMPTY_CELL : formatCellValue(cell.field, actual);
     },
     [draftValue, focusedCell],
   );
@@ -229,37 +246,44 @@ export interface IncompleteSetRef {
 }
 
 /**
- * The first incomplete set in reading order across the whole table, or
+ * The first incomplete set in logging order across the whole table, or
  * `null` when every set has been completed. This is the target of the
- * "Log set" action when no cell is focused.
+ * "Log set" action when no cell is focused. Supersets are walked round by
+ * round (see `utils/supersetOrder`).
  */
 export function firstIncompleteSet(
   exercises: ActiveExercise[],
 ): IncompleteSetRef | null {
-  for (const block of exercises) {
-    const set = block.sets.find((candidate) => !candidate.completed);
-    if (set !== undefined) {
-      return { exerciseId: block.exerciseId, setId: set.id };
-    }
+  for (const ref of logicalSetOrder(exercises)) {
+    const block = exercises.find((entry) => entry.exerciseId === ref.exerciseId);
+    const set = block?.sets.find((candidate) => candidate.id === ref.setId);
+    if (set !== undefined && !set.completed) return ref;
   }
   return null;
 }
 
+/** The cell beside weight: `duration` for a timed block, else `reps`. */
+export function secondField(block: Pick<ActiveExercise, 'measure'>): 'reps' | 'duration' {
+  return block.measure === 'time' ? 'duration' : 'reps';
+}
+
 /**
- * Every numeric cell of the table, in reading order. RPE cells are part of
- * the order only when the RPE column is shown.
+ * Every numeric cell of the table, in logging order (supersets round by
+ * round). RPE cells are part of the order only when the RPE column is
+ * shown.
  */
 export function listCells(
   exercises: ActiveExercise[],
   includeRpe = false,
 ): FocusedCell[] {
+  const blocks = new Map(exercises.map((block) => [block.exerciseId, block]));
   const cells: FocusedCell[] = [];
-  for (const block of exercises) {
-    for (const set of block.sets) {
-      cells.push({ setId: set.id, field: 'weight' });
-      cells.push({ setId: set.id, field: 'reps' });
-      if (includeRpe) cells.push({ setId: set.id, field: 'rpe' });
-    }
+  for (const { exerciseId, setId } of logicalSetOrder(exercises)) {
+    const block = blocks.get(exerciseId);
+    if (block === undefined) continue;
+    cells.push({ setId, field: 'weight' });
+    cells.push({ setId, field: secondField(block) });
+    if (includeRpe) cells.push({ setId, field: 'rpe' });
   }
   return cells;
 }

@@ -14,6 +14,7 @@ import { getExerciseLibrary, getWeightUnit } from '@features/workout';
 
 import {
   buildExerciseDetail,
+  exerciseKind,
   type ExerciseDetailData,
   type ExerciseMetric,
 } from '../utils';
@@ -40,7 +41,13 @@ export function useExerciseDetail(
     return {
       exercise,
       unit: getWeightUnit(),
-      data: buildExerciseDetail(sessions, exerciseId, metric, Date.now()),
+      data: buildExerciseDetail(
+        sessions,
+        exerciseId,
+        metric,
+        Date.now(),
+        exerciseKind(exercise),
+      ),
     };
   }, [sessions, exerciseId, metric]);
 }
