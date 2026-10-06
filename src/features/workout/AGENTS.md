@@ -45,6 +45,16 @@ for data loss or UI blocking. A dropped set is a broken product.
 - While a live session is open, `KeepScreenAwake` (expo-keep-awake)
   stops the phone from locking. It is not rendered in preview frames.
 
+## Progression
+
+When the routine's `progression` is not `off`, each block's sets are
+seeded from `nextPrescription` (`@domain/rules/progression`) over the
+exercise's last sessions (`recentSessions`), using the user's unit for
+the weight step (`defaultIncrementKg`). The block keeps the
+`prescription`, and the line under its title says why
+(`utils/prescriptionLine`) — a heavier bar never appears unexplained.
+Without a prescription, sets repeat the last session.
+
 ## Exercise kinds
 
 Each block snapshots how its exercise is logged when the session starts

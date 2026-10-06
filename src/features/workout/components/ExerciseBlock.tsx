@@ -41,6 +41,8 @@ export interface ExerciseBlockProps {
   showRpe?: boolean;
   /** `Last time · 80kg × 8, 8, 7`, or `null` with no history. */
   lastTimeLine: string | null;
+  /** Why the sets are prescribed as they are (routine progression). */
+  prescriptionLine?: string | null;
   /** Called when a numeric cell is pressed. */
   onFocusCell: (cell: FocusedCell) => void;
   /** Called when a set's check is pressed. */
@@ -98,6 +100,7 @@ export function ExerciseBlock({
   displayValue,
   showRpe = false,
   lastTimeLine,
+  prescriptionLine = null,
   onFocusCell,
   onToggleComplete,
   onAddSet,
@@ -174,6 +177,11 @@ export function ExerciseBlock({
 
       {lastTimeLine !== null ? (
         <Text style={styles.lastTime}>{lastTimeLine}</Text>
+      ) : null}
+      {prescriptionLine !== null ? (
+        <Text style={styles.prescription} testID={testID ? `${testID}-prescription` : undefined}>
+          {prescriptionLine}
+        </Text>
       ) : null}
 
       <View style={styles.columnHeader}>
@@ -288,6 +296,14 @@ const useStyles = createStyles((colors) => ({
     fontFamily: 'Inter-Regular',
     marginTop: spacing.xs,
     color: colors.textMuted,
+  },
+  /** The progression reason, one step stronger than "last time". */
+  prescription: {
+    ...type.label,
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+    marginTop: spacing.xs,
+    color: colors.textBody,
   },
   /** 16px below the "last time" line. Mirrors the set-row layout exactly. */
   columnHeader: {

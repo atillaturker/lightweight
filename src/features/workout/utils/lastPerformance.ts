@@ -7,11 +7,30 @@
  * history, so the caller hides the line rather than printing a placeholder.
  */
 import type { Set } from '@domain/entities';
-import { isTimedSet } from '@domain/rules';
+import { isTimedSet, isWorkingSet } from '@domain/rules';
 import { formatClock, formatWeightKg } from '@lib/format';
 
 /** Reps performed, in order, for one exercise in one session. */
 const HISTORY_LIMIT = 24;
+
+/**
+ * Working sets grouped by session, most recent session first, at most
+ * `limit` sessions. `history` is chronological (the seam's contract).
+ */
+export function recentSessions(history: Set[], limit: number): Set[][] {
+  const sessions: Set[][] = [];
+  let currentId: string | null = null;
+  for (const set of [...history].reverse()) {
+    if (!isWorkingSet(set)) continue;
+    if (set.workoutId !== currentId) {
+      if (sessions.length === limit) break;
+      sessions.push([]);
+      currentId = set.workoutId;
+    }
+    sessions[sessions.length - 1].unshift(set);
+  }
+  return sessions;
+}
 
 /**
  * Keep only the most recently completed sets belonging to the last

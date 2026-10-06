@@ -28,14 +28,19 @@ import type {
 } from '@domain/entities';
 import {
   DEFAULT_HOLD_SECONDS,
+  defaultIncrementKg,
   isBodyweightExercise,
   isTimedExercise,
+  nextPrescription,
+  STALL_SESSIONS,
+  type Prescription,
+  type ProgressionKind,
 } from '@domain/rules';
-import { getExerciseHistory } from '@features/workout/services';
+import { getExerciseHistory, getWeightUnit } from '@features/workout/services';
 import { zustandStorage } from '@infrastructure/storage';
 
 import type { ActiveExercise, ActiveSet } from '@features/workout/types';
-import { lastSessionSets } from '@features/workout/utils/lastPerformance';
+import { lastSessionSets, recentSessions } from '@features/workout/utils/lastPerformance';
 
 /** A set payload as accepted by {@link ActiveWorkoutState.logSet}. */
 export type NewActiveSet = Omit<ActiveSet, 'id' | 'completedAt' | 'isPR'>;
@@ -150,10 +155,18 @@ function newActiveSet(seed: SeedSet | undefined, timed: boolean, holdSeconds: nu
  * routine inherit the previous set's values, so only the first seed needs
  * to come from history.
  */
-function buildInitialSets(exercise: Exercise, slot: RoutineExercise): ActiveSet[] {
-  // Seed from the most recent session only: set N starts where set N
-  // ended last time.
-  const seeds = lastSessionSets(getExerciseHistory(exercise.id)).map(toSeed);
+function buildInitialSets(
+  exercise: Exercise,
+  slot: RoutineExercise,
+  prescription: Prescription | null,
+): ActiveSet[] {
+  const history = getExerciseHistory(exercise.id);
+  // Without a prescription, seed from the most recent session only: set N
+  // starts where set N ended last time.
+  const seeds: SeedSet[] =
+    prescription === null
+      ? lastSessionSets(history).map(toSeed)
+      : [{ weightKg: prescription.weightKg, reps: prescription.reps, type: 'normal', durationSec: prescription.durationSec }];
   const setCount = Math.max(slot.targetSets, 1);
   const timed = isTimedExercise(exercise);
   const holdSeconds = slot.targetSeconds ?? DEFAULT_HOLD_SECONDS;
@@ -161,6 +174,27 @@ function buildInitialSets(exercise: Exercise, slot: RoutineExercise): ActiveSet[
   return Array.from({ length: setCount }, (_, index) =>
     newActiveSet(seeds[index] ?? seeds.at(-1), timed, holdSeconds),
   );
+}
+
+/** The kind of load the progression rule reasons about. */
+function progressionKind(exercise: Exercise): ProgressionKind {
+  if (isTimedExercise(exercise)) return 'timed';
+  return isBodyweightExercise(exercise) ? 'bodyweight' : 'load';
+}
+
+/**
+ * Targets for this slot under the routine's progression policy, or `null`
+ * when progression is off or the exercise has no history yet.
+ */
+function prescribe(routine: Routine, exercise: Exercise, slot: RoutineExercise): Prescription | null {
+  return nextPrescription({
+    policy: routine.progression ?? 'off',
+    kind: progressionKind(exercise),
+    targetSets: slot.targetSets,
+    targetReps: slot.targetReps,
+    incrementKg: defaultIncrementKg(exercise.equipment, getWeightUnit()),
+    sessions: recentSessions(getExerciseHistory(exercise.id), STALL_SESSIONS),
+  });
 }
 
 /**
@@ -179,13 +213,15 @@ function buildExercises(
   for (const slot of ordered) {
     const exercise = byId.get(slot.exerciseId);
     if (exercise === undefined) continue;
+    const prescription = prescribe(routine, exercise, slot);
 
     blocks.push({
       exerciseId: exercise.id,
       name: exercise.name,
       pictogramId: exercise.pictogramId,
       order: blocks.length,
-      sets: buildInitialSets(exercise, slot),
+      sets: buildInitialSets(exercise, slot, prescription),
+      ...(prescription !== null ? { prescription } : {}),
       measure: exercise.measure ?? 'reps',
       perSide: exercise.perSide === true,
       bodyweight: isBodyweightExercise(exercise),

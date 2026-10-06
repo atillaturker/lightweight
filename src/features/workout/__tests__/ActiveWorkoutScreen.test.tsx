@@ -325,3 +325,25 @@ describe('ActiveWorkoutScreen supersets', () => {
     expect(screen.getByTestId('active-workout-rest')).toBeTruthy();
   });
 });
+
+describe('ActiveWorkoutScreen progression', () => {
+  it('explains the prescribed target under the exercise name', () => {
+    useActiveWorkoutStore.setState({
+      ...EMPTY_WORKOUT,
+      sessionId: 'session-1',
+      routineName: 'Push',
+      startedAt: 1,
+      exercises: [
+        {
+          ...makeExercise('bench', [makeSet('s1', false)]),
+          prescription: { weightKg: 82.5, reps: 8, reason: 'progressed', change: 2.5 },
+        },
+      ],
+    });
+    render(<ActiveWorkoutScreen navigation={navigation} route={route} />);
+
+    expect(screen.getByTestId('active-workout-block-0-prescription')).toHaveTextContent(
+      'Next · +2.5 kg: every rep hit last time',
+    );
+  });
+});
