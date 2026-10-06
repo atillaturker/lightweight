@@ -1,13 +1,13 @@
 import React from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 import {
   hitSlop,
   labelStyles,
   pressedStyles,
-  styles,
+  useStyles,
   variantStyles,
 } from "./Button.styles";
 
@@ -49,9 +49,11 @@ export function Button({
   fullWidth = false,
   testID,
 }: ButtonProps): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const isInactive = disabled || loading;
   const spinnerColor =
-    variant === "primary" ? colors.textInverse : colors.textPrimary;
+    variant === "primary" ? colors.onPrimary : colors.textPrimary;
 
   return (
     <Pressable
@@ -64,9 +66,9 @@ export function Button({
       testID={testID}
       style={({ pressed }) => [
         styles.base,
-        variantStyles[variant],
+        styles[variantStyles[variant]],
         fullWidth && styles.fullWidth,
-        pressed && !isInactive && pressedStyles[variant],
+        pressed && !isInactive && styles[pressedStyles[variant]],
         disabled && styles.disabled,
       ]}
     >
@@ -74,7 +76,7 @@ export function Button({
 
       <Text
         numberOfLines={1}
-        style={[labelStyles[variant], loading && styles.labelHidden]}
+        style={[styles[labelStyles[variant]], loading && styles.labelHidden]}
       >
         {label}
       </Text>

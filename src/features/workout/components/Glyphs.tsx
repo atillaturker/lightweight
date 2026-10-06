@@ -9,7 +9,7 @@
 import React from 'react';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-import { colors } from '@theme';
+import { useTheme } from '@theme';
 
 /** Props shared by every glyph: rendered size and stroke color. */
 export interface GlyphProps {
@@ -25,8 +25,10 @@ const STROKE_WIDTH = 1.5;
 /** Calendar outline for the Home header's date action. */
 export function CalendarGlyph({
   size,
-  color = colors.textPrimary,
+  color: colorProp,
 }: GlyphProps): React.ReactElement {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.textPrimary;
   return (
     <Svg
       fill="none"
@@ -48,8 +50,10 @@ export function CalendarGlyph({
 /** Close mark for the Active Workout header. */
 export function CloseGlyph({
   size,
-  color = colors.textPrimary,
+  color: colorProp,
 }: GlyphProps): React.ReactElement {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.textPrimary;
   return (
     <Svg
       fill="none"
@@ -68,8 +72,10 @@ export function CloseGlyph({
 /** Check mark inside a completed set's check circle. */
 export function CheckGlyph({
   size,
-  color = colors.textInverse,
+  color: colorProp,
 }: GlyphProps): React.ReactElement {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.onPrimary;
   return (
     <Svg
       fill="none"
@@ -89,8 +95,10 @@ export function CheckGlyph({
 /** Right chevron on a navigable list row. */
 export function ChevronGlyph({
   size,
-  color = colors.textMuted,
+  color: colorProp,
 }: GlyphProps): React.ReactElement {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.textMuted;
   return (
     <Svg
       fill="none"
@@ -110,8 +118,10 @@ export function ChevronGlyph({
 /** Overflow "⋯" mark on an exercise block title row. */
 export function MoreGlyph({
   size,
-  color = colors.textPrimary,
+  color: colorProp,
 }: GlyphProps): React.ReactElement {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.textPrimary;
   return (
     <Svg
       fill="none"

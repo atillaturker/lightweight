@@ -68,8 +68,8 @@ reintroduced elsewhere it stays retired — this screen is the live one.
   Auth by hand.
 - Setup screens have a back chevron on steps 2 and 3, none on step 1.
 - Progress indicator: three 24x3px bars, pill-radius, 4px gap.
-  Only the CURRENT step's bar is `#111111`. Completed steps are NOT
-  black — they return to `#E5E7EB`. Never use a colored dot.
+  Only the CURRENT step's bar is `colors.primary`. Completed steps
+  return to `colors.hairline`. Never use a colored dot.
 - Option lists use radio rows, not cards. 64px row height.
   22px radio + label. Hairline between rows, inset 38px from the left.
 - Setup step 3 (routines) has 76px rows because each option carries a
@@ -79,11 +79,11 @@ reintroduced elsewhere it stays retired — this screen is the live one.
 ## Design constraints
 
 - Intro screens are the only screens that show product fragments.
-  Fragments sit directly on white, cut at the bottom edge, never inside
+  Fragments sit directly on the canvas, cut at the bottom edge, never inside
   a card. (Welcome's carousel cards are the deliberate exception: flat
   chart blocks, still no surface or border.)
 - No illustration, no photography, no mascot.
-- Blue (`#3B82F6`) appears at most once, only on the second intro
+- `colors.accent` appears at most once, only on the second intro
   screen's chart as the latest data point.
 
 ## Do not

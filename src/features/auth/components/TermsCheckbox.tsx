@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { styles, TERMS_HIT_SLOP } from "./TermsCheckbox.styles";
+import { useStyles, TERMS_HIT_SLOP } from "./TermsCheckbox.styles";
 
 /** Props for {@link TermsCheckbox}. */
 export interface TermsCheckboxProps {
@@ -27,6 +27,7 @@ export function TermsCheckbox({
   error,
   testID,
 }: TermsCheckboxProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.container}>
       <View style={styles.row}>

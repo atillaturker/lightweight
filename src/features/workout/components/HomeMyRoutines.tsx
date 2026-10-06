@@ -12,16 +12,20 @@
  * the screen suppresses when the next-session block already shows the same
  * CTA, so a screen never carries two primary create actions.
  *
- * At most three routines are shown; when more exist the header carries a
- * "See all" action that opens the full list.
+ * At most three routines are shown. Whenever at least one exists the
+ * header carries a "See all" action that opens the full Routines list —
+ * that list is where further routines are created, so it must be
+ * reachable even with a single routine. The rows are one short list
+ * group, so they sit in a single Card (DESIGN.md §7.2).
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import { Card } from "@components/Card";
 import { SectionHeader } from "@components/SectionHeader";
 import type { Routine } from "@domain/entities";
 import { RoutineRow, routineDurationMinutes } from "@features/routines";
-import { colors, spacing, type } from "@theme";
+import { spacing, type, createStyles } from "@theme";
 
 /** Maximum routines previewed on Home before "See all" takes over. */
 export const HOME_ROUTINE_PREVIEW_LIMIT = 3;
@@ -58,6 +62,7 @@ function EmptyRoutines({
   showCreateAction: boolean;
   testID?: string;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.empty} testID={testID}>
       <Text style={styles.emptyTitle}>No routines yet</Text>
@@ -91,8 +96,9 @@ export function HomeMyRoutines({
   showCreateAction,
   testID,
 }: HomeMyRoutinesProps): React.ReactElement {
+  const styles = useStyles();
   const shown = routines.slice(0, HOME_ROUTINE_PREVIEW_LIMIT);
-  const showSeeAll = routines.length > HOME_ROUTINE_PREVIEW_LIMIT;
+  const showSeeAll = routines.length > 0;
 
   const seeAll = (
     <Pressable
@@ -111,6 +117,7 @@ export function HomeMyRoutines({
       <View style={styles.header}>
         <SectionHeader
           action={showSeeAll ? seeAll : undefined}
+          icon="list"
           label="My Routines"
           testID={testID ? `${testID}-header` : undefined}
         />
@@ -124,26 +131,29 @@ export function HomeMyRoutines({
         />
       ) : (
         <View style={styles.list}>
-          {shown.map((routine, index) => (
-            <View key={routine.id}>
-              {index > 0 ? <View style={styles.divider} /> : null}
-              <RoutineRow
-                isActive={routine.id === activeRoutineId}
-                meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
-                name={routine.name}
-                onPress={() => onSelectRoutine(routine.id)}
-                onPressMore={() => onPressMore(routine)}
-                testID={`home-routine-row-${routine.id}`}
-              />
-            </View>
-          ))}
+          <Card testID={testID ? `${testID}-card` : undefined}>
+            {shown.map((routine, index) => (
+              <View key={routine.id}>
+                {index > 0 ? <View style={styles.divider} /> : null}
+                <RoutineRow
+                  isActive={routine.id === activeRoutineId}
+                  meta={`${routine.exercises.length} exercises · ~${routineDurationMinutes(routine)} min`}
+                  name={routine.name}
+                  onPress={() => onSelectRoutine(routine.id)}
+                  onPressMore={() => onPressMore(routine)}
+                  testID={`home-routine-row-${routine.id}`}
+                  variant="inset"
+                />
+              </View>
+            ))}
+          </Card>
         </View>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   header: {
     paddingHorizontal: spacing.xl,
   },
@@ -189,10 +199,10 @@ const styles = StyleSheet.create({
 
   list: {
     marginTop: spacing.sm,
+    marginHorizontal: spacing.xl,
   },
   divider: {
     height: 1,
-    marginHorizontal: spacing.xl,
     backgroundColor: colors.hairline,
   },
-});
+}));

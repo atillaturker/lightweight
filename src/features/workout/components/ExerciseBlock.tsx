@@ -2,19 +2,20 @@
  * One exercise block of the active session: title, "last time" line, the
  * set table, and the "add set" action.
  *
- * Blocks sit directly on the canvas and are separated by spacing alone —
- * there is no card, no border, and no alternating surface. The column
- * heading row is the only structure above the table, and the hairline
- * under it is the only rule in the block.
+ * Each block is one Card (DESIGN.md §7.2) — the same
+ * component in the live table and the read-only Session Detail table. The
+ * column heading row is the only structure above the set table, and the
+ * set rows keep their internal hairlines.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
-import { colors, spacing, type } from '@theme';
+import { Card } from '@components/Card';
+import { spacing, type, createStyles } from '@theme';
 
 import { MoreGlyph } from './Glyphs';
-import { NUMERIC_COLUMN_WIDTH, SetRow, type SetRowState } from './SetRow';
+import { numericColumnWidth, SetRow, type SetRowState } from './SetRow';
 import type { ActiveExercise, FocusedCell } from '../types';
 
 /** Height of the column-heading row. */
@@ -34,7 +35,9 @@ export interface ExerciseBlockProps {
   /** The focused numeric cell, if any. */
   focusedCell: FocusedCell | null;
   /** Cell display text — the draft while a cell is being edited. */
-  displayValue: (cell: FocusedCell, actual: number) => string;
+  displayValue: (cell: FocusedCell, actual: number | undefined) => string;
+  /** Show the RPE column (the user's "RPE field" preference). */
+  showRpe?: boolean;
   /** `Last time · 80kg × 8, 8, 7`, or `null` with no history. */
   lastTimeLine: string | null;
   /** Called when a numeric cell is pressed. */
@@ -65,8 +68,9 @@ export interface ExerciseBlockProps {
   testID?: string;
 }
 
-/** Column headings, in table order. Values are centered under them. */
-const COLUMNS: readonly string[] = ['Set', 'kg', 'Reps'];
+/** Numeric column headings, in table order. Values are centered under them. */
+const NUMERIC_COLUMNS: readonly string[] = ['kg', 'Reps'];
+const NUMERIC_COLUMNS_WITH_RPE: readonly string[] = ['kg', 'Reps', 'RPE'];
 
 /**
  * The full set table for one exercise. Renders the "PR" pill in the title
@@ -78,6 +82,7 @@ export function ExerciseBlock({
   activeSetId,
   focusedCell,
   displayValue,
+  showRpe = false,
   lastTimeLine,
   onFocusCell,
   onToggleComplete,
@@ -89,7 +94,11 @@ export function ExerciseBlock({
   registerRowRef,
   testID,
 }: ExerciseBlockProps): React.ReactElement {
+  const styles = useStyles();
   const hasPR = exercise.sets.some((set) => set.isPR);
+  const columnWidth = numericColumnWidth(showRpe);
+  const isFocused = (setId: string, field: FocusedCell['field']): boolean =>
+    focusedCell?.setId === setId && focusedCell.field === field;
 
   const titleRow = (
     <>
@@ -124,7 +133,7 @@ export function ExerciseBlock({
   );
 
   return (
-    <View testID={testID}>
+    <Card testID={testID}>
       {onPressHeader === undefined ? (
         <View style={styles.titleRow}>{titleRow}</View>
       ) : (
@@ -144,10 +153,10 @@ export function ExerciseBlock({
       ) : null}
 
       <View style={styles.columnHeader}>
-        <Text style={styles.columnLabelSet}>{COLUMNS[0]}</Text>
+        <Text style={styles.columnLabelSet}>Set</Text>
         <View style={styles.columnNumerics}>
-          {COLUMNS.slice(1).map((label) => (
-            <Text key={label} style={styles.columnLabel}>
+          {(showRpe ? NUMERIC_COLUMNS_WITH_RPE : NUMERIC_COLUMNS).map((label) => (
+            <Text key={label} style={[styles.columnLabel, { width: columnWidth }]}>
               {label}
             </Text>
           ))}
@@ -167,14 +176,21 @@ export function ExerciseBlock({
               {index > 0 ? <View style={styles.rowDivider} /> : null}
               <SetRow
                 index={index + 1}
-                isRepsFocused={focusedCell?.setId === set.id && focusedCell.field === 'reps'}
-                isWeightFocused={focusedCell?.setId === set.id && focusedCell.field === 'weight'}
+                isRepsFocused={isFocused(set.id, 'reps')}
+                isRpeFocused={isFocused(set.id, 'rpe')}
+                isWeightFocused={isFocused(set.id, 'weight')}
                 onPressReps={() => onFocusCell({ setId: set.id, field: 'reps' })}
+                onPressRpe={() => onFocusCell({ setId: set.id, field: 'rpe' })}
                 onPressWeight={() => onFocusCell({ setId: set.id, field: 'weight' })}
                 onToggleComplete={() => onToggleComplete(set.id)}
                 readOnly={readOnly}
                 repsText={displayValue({ setId: set.id, field: 'reps' }, set.reps)}
                 rowRef={(node) => registerRowRef(set.id, node)}
+                rpeText={
+                  showRpe
+                    ? displayValue({ setId: set.id, field: 'rpe' }, set.rpe)
+                    : undefined
+                }
                 state={state}
                 testID={testID ? `${testID}-set-${index}` : undefined}
                 weightText={displayValue(
@@ -198,11 +214,11 @@ export function ExerciseBlock({
           <Text style={styles.addSetLabel}>＋ Add set</Text>
         </Pressable>
       )}
-    </View>
+    </Card>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   titleRow: {
     height: MORE_TARGET,
     flexDirection: 'row',
@@ -265,7 +281,6 @@ const styles = StyleSheet.create({
   columnLabel: {
     ...type.labelSmall,
     letterSpacing: 0.44,
-    width: NUMERIC_COLUMN_WIDTH,
     textAlign: 'center',
     textTransform: 'uppercase',
     color: colors.textMuted,
@@ -298,4 +313,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: colors.textPrimary,
   },
-});
+}));

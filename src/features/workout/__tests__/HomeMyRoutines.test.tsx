@@ -2,8 +2,9 @@
  * Behavior tests for Home's "My Routines" preview.
  *
  * The section header is the fixed landmark for routines on Home, so it must
- * survive an empty list. With routines it previews at most three, offers
- * "See all" beyond that, and never shows the empty state. The empty state's
+ * survive an empty list. With routines it previews at most three, always
+ * offers "See all" (the Routines list is where new routines are created),
+ * and never shows the empty state. The empty state's
  * create action is optional so the screen can avoid a duplicate CTA.
  */
 import { fireEvent, render, screen } from "@testing-library/react-native";
@@ -57,6 +58,23 @@ describe("HomeMyRoutines empty state", () => {
     ).toBeTruthy();
   });
 
+  it("hides See all when there are no routines", () => {
+    render(
+      <HomeMyRoutines
+        activeRoutineId={null}
+        onCreateRoutine={jest.fn()}
+        onPressMore={jest.fn()}
+        onPressSeeAll={jest.fn()}
+        onSelectRoutine={jest.fn()}
+        routines={[]}
+        showCreateAction
+        testID="home-my-routines"
+      />,
+    );
+
+    expect(screen.queryByTestId("home-my-routines-see-all")).toBeNull();
+  });
+
   it("fires the create action from the empty state", () => {
     const onCreateRoutine = jest.fn();
     render(
@@ -96,6 +114,26 @@ describe("HomeMyRoutines empty state", () => {
 });
 
 describe("HomeMyRoutines list", () => {
+  it("offers See all even with a single routine", () => {
+    const onPressSeeAll = jest.fn();
+    render(
+      <HomeMyRoutines
+        activeRoutineId={null}
+        onCreateRoutine={jest.fn()}
+        onPressMore={jest.fn()}
+        onPressSeeAll={onPressSeeAll}
+        onSelectRoutine={jest.fn()}
+        routines={ROUTINES.slice(0, 1)}
+        showCreateAction={false}
+        testID="home-my-routines"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("home-my-routines-see-all"));
+    expect(onPressSeeAll).toHaveBeenCalled();
+    expect(screen.queryByText("New routine")).toBeNull();
+  });
+
   it("previews at most three routines and offers See all beyond that", () => {
     const onPressSeeAll = jest.fn();
     render(

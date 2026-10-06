@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, fonts, spacing, type } from "@theme";
+import { fonts, spacing, type, createStyles } from "@theme";
 
 /** Total height of the tab row. */
 export const ROW_HEIGHT = 32;
@@ -12,7 +11,7 @@ export const UNDERLINE_HEIGHT = 2;
  * Static styles for TextTabs. Active/inactive text and underline
  * visibility are composed as style arrays in the component.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -58,4 +57,4 @@ export const styles = StyleSheet.create({
   underlineHidden: {
     backgroundColor: "transparent",
   },
-});
+}));

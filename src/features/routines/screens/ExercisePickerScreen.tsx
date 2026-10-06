@@ -9,27 +9,31 @@
  *
  * `library` mode renders the same list. It is a read-only browse today —
  * the detail route it should push does not exist yet.
+ *
+ * The library holds over a thousand exercises, so the list is a
+ * virtualized FlatList and each row is memoized.
  */
 import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
+  FlatList,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
+  type ListRenderItemInfo,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
-import { MuscleIcon } from "@components/MuscleIcon";
 import { ScreenHeader } from "@components/ScreenHeader";
-import type { MuscleGroup as DomainMuscleGroup } from "@domain/entities";
-import { colors, emptyStatePadding, fineSpacing, gutter, radii, spacing, type } from "@theme";
+import type { Exercise, MuscleGroup as DomainMuscleGroup } from "@domain/entities";
+import { emptyStatePadding, fineSpacing, gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
+import { ExerciseThumb } from "../components/ExerciseThumb";
 import { EXERCISE_LIBRARY } from "../services";
 import { useRoutineStore } from "../store";
 
@@ -45,10 +49,12 @@ const FILTERS: readonly { label: string; group: DomainMuscleGroup | null }[] = [
   { label: "Shoulders", group: "shoulders" },
   { label: "Arms", group: "arms" },
   { label: "Legs", group: "legs" },
+  { label: "Core", group: "core" },
 ];
 
 /** Magnifier glyph for the search field. */
 function SearchGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -67,6 +73,7 @@ function SearchGlyph(): React.ReactElement {
 
 /** Plus glyph shown on unselected rows. */
 function PlusGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -85,6 +92,7 @@ function PlusGlyph(): React.ReactElement {
 
 /** Check glyph shown on selected rows. */
 function CheckGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -101,9 +109,62 @@ function CheckGlyph(): React.ReactElement {
   );
 }
 
-/** Capitalize a muscle group for display, e.g. `chest` → `Chest`. */
+/** Capitalize a muscle group or equipment for display, e.g. `chest` → `Chest`. */
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+interface PickerRowProps {
+  exercise: Exercise;
+  selected: boolean;
+  showDivider: boolean;
+  onToggle: (exerciseId: string) => void;
+}
+
+/** One selectable exercise row. Memoized: the list is long. */
+const PickerRow = React.memo(function PickerRow({
+  exercise,
+  selected,
+  showDivider,
+  onToggle,
+}: PickerRowProps): React.ReactElement {
+  const styles = useStyles();
+  return (
+    <View>
+      {showDivider ? <View style={styles.rowHairline} /> : null}
+      <Pressable
+        accessibilityLabel={exercise.name}
+        accessibilityRole="button"
+        accessibilityState={{ selected }}
+        onPress={() => onToggle(exercise.id)}
+        style={styles.row}
+      >
+        <ExerciseThumb exerciseId={exercise.id} />
+        <View style={styles.textColumn}>
+          <Text numberOfLines={1} style={styles.exerciseName}>
+            {exercise.name}
+          </Text>
+          <Text style={styles.muscleLabel}>
+            {`${capitalize(exercise.muscleGroup)} · ${capitalize(exercise.equipment)}`}
+          </Text>
+        </View>
+        <View style={styles.toggleColumn}>
+          {selected ? <CheckGlyph /> : <PlusGlyph />}
+        </View>
+      </Pressable>
+    </View>
+  );
+});
+
+/** Shown when search and filter leave no rows. */
+function NoResults(): React.ReactElement {
+  const styles = useStyles();
+  return (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyTitle}>No exercises found</Text>
+      <Text style={styles.emptyMessage}>Try a different search or category.</Text>
+    </View>
+  );
 }
 
 /**
@@ -111,6 +172,8 @@ function capitalize(value: string): string {
  * confirm.
  */
 export function ExercisePickerScreen({ navigation, route }: Props): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { mode, routineId } = route.params;
 
   const addExercisesToRoutine = useRoutineStore(
@@ -133,10 +196,13 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
       if (needle === "") return true;
       return (
         exercise.name.toLowerCase().includes(needle) ||
-        exercise.equipment.toLowerCase().includes(needle)
+        exercise.equipment.toLowerCase().includes(needle) ||
+        (exercise.targetMuscle?.toLowerCase().includes(needle) ?? false)
       );
     });
   }, [groupFilter, query]);
+
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
   const toggle = useCallback((exerciseId: string): void => {
     setSelectedIds((current) =>
@@ -174,6 +240,18 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
     addExercisesToRoutine(routineId, selectedIds);
     navigation.goBack();
   }, [addExercisesToRoutine, navigation, routineId, selectedIds]);
+
+  const renderRow = useCallback(
+    ({ item, index }: ListRenderItemInfo<Exercise>) => (
+      <PickerRow
+        exercise={item}
+        onToggle={toggle}
+        selected={selectedSet.has(item.id)}
+        showDivider={index > 0}
+      />
+    ),
+    [selectedSet, toggle],
+  );
 
   const confirmLabel =
     selectedIds.length === 1
@@ -230,53 +308,17 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
         </ScrollView>
       </View>
 
-      <ScrollView
+      <FlatList
+        data={rows}
+        initialNumToRender={15}
+        keyExtractor={(exercise) => exercise.id}
         keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={NoResults}
+        renderItem={renderRow}
         showsVerticalScrollIndicator={false}
         style={styles.listScroll}
-      >
-        {rows.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No exercises found</Text>
-            <Text style={styles.emptyMessage}>
-              Try a different search or category.
-            </Text>
-          </View>
-        ) : (
-          rows.map((exercise, index) => {
-            const selected = selectedIds.includes(exercise.id);
-            return (
-              <View key={exercise.id}>
-                {index > 0 ? <View style={styles.rowHairline} /> : null}
-                <Pressable
-                  accessibilityLabel={exercise.name}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  onPress={() => toggle(exercise.id)}
-                  style={styles.row}
-                >
-                  <View style={styles.iconColumn}>
-                    <MuscleIcon group={exercise.muscleGroup} size={24} />
-                  </View>
-
-                  <View style={styles.textColumn}>
-                    <Text numberOfLines={1} style={styles.exerciseName}>
-                      {exercise.name}
-                    </Text>
-                    <Text style={styles.muscleLabel}>
-                      {capitalize(exercise.muscleGroup)}
-                    </Text>
-                  </View>
-
-                  <View style={styles.toggleColumn}>
-                    {selected ? <CheckGlyph /> : <PlusGlyph />}
-                  </View>
-                </Pressable>
-              </View>
-            );
-          })
-        )}
-      </ScrollView>
+        windowSize={7}
+      />
 
       {selectedIds.length > 0 ? (
         <View style={styles.footer}>
@@ -292,7 +334,7 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
 
   searchWrap: {
@@ -337,14 +379,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.hairline,
   },
-  chipSelected: { backgroundColor: colors.primary },
+  chipSelected: {
+    backgroundColor: colors.canvas,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
   chipLabel: {
     ...type.label,
-    color: colors.textPrimary,
+    color: colors.textBody,
   },
   chipLabelSelected: {
     ...type.label,
-    color: colors.textInverse,
+    color: colors.accent,
   },
 
   listScroll: { flex: 1, marginTop: spacing.xxl },
@@ -359,13 +405,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     minHeight: 64,
     paddingHorizontal: gutter,
-  },
-
-  iconColumn: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
   },
 
   textColumn: {
@@ -414,4 +453,4 @@ const styles = StyleSheet.create({
     borderTopColor: colors.hairline,
     backgroundColor: colors.canvas,
   },
-});
+}));

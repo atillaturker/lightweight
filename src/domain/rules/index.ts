@@ -1,4 +1,10 @@
-export { calculateE1RM, bestE1RM, isWorkingSet } from './e1rm';
+export {
+  calculateE1RM,
+  bestE1RM,
+  E1RM_MAX_REPS,
+  isE1RMEligible,
+  isWorkingSet,
+} from './e1rm';
 export {
   calculateVolume,
   summarizeVolume,
@@ -16,3 +22,11 @@ export {
   MIN_STREAK_DURATION_MS,
 } from './streak';
 export { calculateDelta } from './delta';
+export {
+  averageRpe,
+  hasRpeData,
+  isValidRpe,
+  RPE_MAX,
+  RPE_MIN,
+  RPE_STEP,
+} from './effort';

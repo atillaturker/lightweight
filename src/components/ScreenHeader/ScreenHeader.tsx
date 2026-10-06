@@ -7,11 +7,11 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 import {
   HEADER_CHEVRON_SIZE,
-  styles,
+  useStyles,
 } from "./ScreenHeader.styles";
 
 /** Props for {@link ScreenHeader}. */
@@ -33,6 +33,7 @@ export interface ScreenHeaderProps
  * `react-native-svg` so it renders on Android as well as iOS.
  */
 function BackChevron(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -65,6 +66,7 @@ export function ScreenHeader({
   testID,
   ...rest
 }: ScreenHeaderProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.container} testID={testID} {...rest}>
       {showBack ? (

@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, renderHook, screen } from "@testing-library/react-native";
 import React from "react";
 import { Text } from "react-native";
 
-import { styles } from "./Input.styles";
+import { useStyles } from "./Input.styles";
 import { Input } from "./Input";
 
 describe("Input", () => {
@@ -116,7 +116,8 @@ describe("Input", () => {
       <Input rightAccessory={<Text>👁</Text>} testID="email" />,
     );
 
-    expect(styles.accessory).toEqual(
+    const { result } = renderHook(() => useStyles());
+    expect(result.current.accessory).toEqual(
       expect.objectContaining({ right: 12, position: "absolute" }),
     );
   });

@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@components/Button";
-import { colors, gutter, radii, spacing, type } from "@theme";
+import { gutter, radii, spacing, type, createStyles } from "@theme";
 
 import { ValuePill } from "./ValuePill";
 
@@ -48,6 +48,7 @@ export function TargetSheet({
   onRemove,
   onClose,
 }: TargetSheetProps): React.ReactElement {
+  const styles = useStyles();
   const [sets, setSets] = useState(initialSets);
   const [reps, setReps] = useState(initialReps);
 
@@ -139,7 +140,7 @@ export function TargetSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.backdrop,
@@ -191,4 +192,4 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.error,
   },
-});
+}));

@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, type } from "@theme";
+import { radii, type, createStyles } from "@theme";
 
 /** Height of the centred "or" pill. */
 export const DIVIDER_PILL_HEIGHT = 28;
@@ -12,7 +11,7 @@ export const DIVIDER_PILL_WIDTH = 48;
  * Static styles for AuthDivider. Separation is drawn with a 1px hairline
  * only — no shadow, blur, or gradient.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   container: {
     width: "100%",
     height: DIVIDER_PILL_HEIGHT,
@@ -44,4 +43,4 @@ export const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.textMuted,
   },
-});
+}));

@@ -1,15 +1,18 @@
 /**
  * Home — Section 3, recent activity.
  *
- * A short list of the last few finished sessions. Row height is fixed at
- * 56px and hairlines are drawn between rows only, so the list never reads
- * as a card. The right column carries the session volume and a chevron —
- * two pieces of information on one row, but only one of them navigates.
+ * A short list of the last few finished sessions, grouped in one Card
+ * (DESIGN.md §7.2) under a clock-glyph section header (DESIGN.md §6). Row height is
+ * fixed at 56px and hairlines are drawn between rows only. The right column
+ * carries the session volume and a chevron — two pieces of information on
+ * one row, but only one of them navigates.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, fineSpacing, spacing, type } from '@theme';
+import { Card } from '@components/Card';
+import { SectionHeader } from '@components/SectionHeader';
+import { fineSpacing, spacing, type, createStyles } from '@theme';
 
 import { ChevronGlyph } from './Glyphs';
 
@@ -48,6 +51,7 @@ function SessionRow({
   session: RecentSessionRow;
   onPress: () => void;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={session.title}
@@ -84,50 +88,49 @@ export function HomeRecentActivity({
   onPressSeeAll,
   testID,
 }: HomeRecentActivityProps): React.ReactElement | null {
+  const styles = useStyles();
   if (sessions.length === 0) return null;
 
   return (
     <View testID={testID}>
-      <View style={styles.headerRow}>
-        <Text style={styles.headerTitle}>Recent activity</Text>
-
-        <Pressable
-          accessibilityLabel="See all sessions"
-          accessibilityRole="button"
-          onPress={onPressSeeAll}
-          style={styles.seeAll}
-          testID={testID ? `${testID}-see-all` : undefined}
-        >
-          <Text style={styles.seeAllLabel}>See all</Text>
-        </Pressable>
+      <View style={styles.header}>
+        <SectionHeader
+          action={
+            <Pressable
+              accessibilityLabel="See all sessions"
+              accessibilityRole="button"
+              onPress={onPressSeeAll}
+              style={styles.seeAll}
+              testID={testID ? `${testID}-see-all` : undefined}
+            >
+              <Text style={styles.seeAllLabel}>See all</Text>
+            </Pressable>
+          }
+          icon="clock"
+          label="Recent activity"
+        />
       </View>
 
       <View style={styles.list}>
-        {sessions.map((session, index) => (
-          <View key={session.id}>
-            {index > 0 ? <View style={styles.divider} /> : null}
-            <SessionRow
-              onPress={() => onSelectSession(session.id)}
-              session={session}
-            />
-          </View>
-        ))}
+        <Card>
+          {sessions.map((session, index) => (
+            <View key={session.id}>
+              {index > 0 ? <View style={styles.divider} /> : null}
+              <SessionRow
+                onPress={() => onSelectSession(session.id)}
+                session={session}
+              />
+            </View>
+          ))}
+        </Card>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  headerRow: {
-    height: 44,
+const useStyles = createStyles((colors) => ({
+  header: {
     paddingHorizontal: spacing.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
   },
   seeAll: {
     height: 44,
@@ -138,6 +141,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   list: {
+    marginTop: spacing.sm,
     paddingHorizontal: spacing.xl,
   },
   divider: {
@@ -173,4 +177,4 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: spacing.sm,
   },
-});
+}));

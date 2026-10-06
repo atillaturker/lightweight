@@ -1,15 +1,16 @@
 /**
  * One "By exercise" row: exercise name over a volume-share micro-bar, with
- * the period delta right-aligned. Plain row — no card, no surface. Only the
- * fastest-improving row tints its micro-bar with the accent color; every
- * other row uses the primary color. Negative deltas are muted, never the
- * error red.
+ * the period delta right-aligned. The row itself draws no surface; the
+ * `inset` variant drops the gutter padding for rows grouped in a Card. Only
+ * the fastest-improving row tints its micro-bar with the accent color;
+ * every other row uses the primary color. Negative deltas are muted, never
+ * the error red.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { MuscleIcon, type MuscleGroup } from '@components/MuscleIcon';
-import { colors, gutter, spacing, type } from '@theme';
+import { gutter, spacing, type, createStyles, useTheme, type ColorPalette } from '@theme';
 import { formatDecimal } from '@lib/format';
 
 import type { ExerciseProgressRow } from '../utils';
@@ -33,12 +34,20 @@ export interface ExerciseDeltaRowProps {
   dividerTop: boolean;
   /** Muscle group for the row icon; omitted when the exercise is unknown. */
   muscleGroup?: MuscleGroup;
+  /**
+   * `list` (default) pads the row to the screen gutter; `inset` has no
+   * horizontal padding, for rows inside a Card.
+   */
+  variant?: 'list' | 'inset';
   onPress: () => void;
   testID?: string;
 }
 
 /** Arrow, value and color for a delta. `null` renders a muted placeholder. */
-function toDeltaLabel(delta: number | null): { text: string; color: string } {
+function toDeltaLabel(
+  delta: number | null,
+  colors: ColorPalette,
+): { text: string; color: string } {
   if (delta === null) return { text: '—', color: colors.textMuted };
   const arrow = delta > 0 ? '▲' : '▼';
   return {
@@ -53,10 +62,13 @@ export function ExerciseDeltaRow({
   accent,
   dividerTop,
   muscleGroup,
+  variant = 'list',
   onPress,
   testID,
 }: ExerciseDeltaRowProps): React.ReactElement {
-  const delta = toDeltaLabel(row.deltaPercent);
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const delta = toDeltaLabel(row.deltaPercent, colors);
   const share = Math.min(Math.max(row.volumeShare, 0), 1);
 
   return (
@@ -64,7 +76,7 @@ export function ExerciseDeltaRow({
       accessibilityLabel={`${row.name} progress`}
       accessibilityRole="button"
       onPress={onPress}
-      style={styles.row}
+      style={[styles.row, variant === 'list' ? styles.rowList : null]}
       testID={testID}
     >
       {dividerTop ? <View style={styles.divider} /> : null}
@@ -104,10 +116,12 @@ export function ExerciseDeltaRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   row: {
     minHeight: ROW_HEIGHT,
     justifyContent: 'center',
+  },
+  rowList: {
     paddingHorizontal: gutter,
   },
   divider: {
@@ -153,4 +167,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontVariant: ['tabular-nums'],
   },
-});
+}));

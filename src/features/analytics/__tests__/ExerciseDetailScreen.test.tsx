@@ -102,3 +102,29 @@ describe('ExerciseDetailScreen hero unit', () => {
     expect(screen.getByText('257.2')).toBeTruthy();
   });
 });
+
+describe('ExerciseDetailScreen e1RM source and effort', () => {
+  it('names the set the estimate comes from', () => {
+    usePreferencesStore.setState({ unit: 'kg' });
+
+    render(<ExerciseDetailScreen navigation={navigation} route={route} />);
+
+    expect(screen.getByTestId('exercise-detail-hero-source')).toHaveTextContent('From 100 kg × 5');
+  });
+
+  it('hides the Effort tab until a set is rated', () => {
+    render(<ExerciseDetailScreen navigation={navigation} route={route} />);
+
+    expect(screen.queryByText('Effort')).toBeNull();
+  });
+
+  it('offers the Effort tab once a set carries an RPE', () => {
+    const session = recentSession();
+    session.sets[0] = { ...session.sets[0], rpe: 8 };
+    useHistoryStore.setState({ sessions: [session] });
+
+    render(<ExerciseDetailScreen navigation={navigation} route={route} />);
+
+    expect(screen.getByText('Effort')).toBeTruthy();
+  });
+});

@@ -4,10 +4,10 @@
  * no card, border, or background.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { colors, fineSpacing, radii, spacing, type } from '@theme';
+import { fineSpacing, radii, spacing, type, createStyles, useTheme } from '@theme';
 
 import { displayNameFor, initialsFor } from '../utils';
 
@@ -29,6 +29,8 @@ export function IdentityBlock({
   onPress,
   testID,
 }: IdentityBlockProps): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const displayName = displayNameFor(name, email);
   const displayEmail = email?.trim() ? email.trim() : '—';
 
@@ -69,7 +71,7 @@ export function IdentityBlock({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -104,4 +106,4 @@ const styles = StyleSheet.create({
     marginTop: fineSpacing.stack,
     color: colors.textMuted,
   },
-});
+}));

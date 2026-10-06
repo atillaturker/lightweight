@@ -29,4 +29,31 @@ describe("SectionHeader", () => {
 
     expect(screen.queryByTestId("header-action")).toBeNull();
   });
+
+  it("renders the glyph before the label when an icon is given", async () => {
+    await render(<SectionHeader icon="clock" label="Recent" testID="header" />);
+
+    expect(screen.getByTestId("header-icon")).toBeTruthy();
+    expect(screen.queryByTestId("header-rule")).toBeNull();
+  });
+
+  it("draws the rule in the rule variant", async () => {
+    await render(<SectionHeader label="Recent" testID="header" variant="rule" />);
+
+    expect(screen.getByTestId("header-rule")).toBeTruthy();
+  });
+
+  it("drops the rule when an action takes the right edge", async () => {
+    await render(
+      <SectionHeader
+        action={<Text>See all</Text>}
+        label="Recent"
+        testID="header"
+        variant="rule"
+      />,
+    );
+
+    expect(screen.queryByTestId("header-rule")).toBeNull();
+    expect(screen.getByTestId("header-action")).toBeTruthy();
+  });
 });

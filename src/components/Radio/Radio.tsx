@@ -8,9 +8,9 @@ import {
 } from "react-native";
 
 import { svgIcon, svgToDataUri } from "@lib/svg";
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
-import { RADIO_CHECK_SIZE, styles } from "./Radio.styles";
+import { RADIO_CHECK_SIZE, useStyles } from "./Radio.styles";
 
 /** Props for {@link Radio}. */
 export interface RadioProps
@@ -27,6 +27,7 @@ const CHECK_STYLE = { width: RADIO_CHECK_SIZE, height: RADIO_CHECK_SIZE } as con
 
 /** The white check glyph drawn inside a selected radio. */
 function CheckGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   const uri = svgToDataUri(
     svgIcon(
       RADIO_CHECK_SIZE,
@@ -53,6 +54,7 @@ export function Radio({
   testID,
   ...rest
 }: RadioProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={label}

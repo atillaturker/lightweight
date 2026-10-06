@@ -2,9 +2,9 @@
  * Home — Section 2, the weekly summary strip.
  *
  * A ring on the left answers "how close am I to this week's goal" and
- * three bare stat columns answer the rest. The whole group sits on one
- * soft background block (surface fill, no border) — the screen's single
- * permitted background block under the v2 enrichment rules.
+ * three bare stat columns answer the rest. The whole group sits in one
+ * metric well (`Card variant="well"`, DESIGN.md §7.2). The streak label carries
+ * a flame glyph — the one metric here with a natural symbol (DESIGN.md §8).
  *
  * The ring is a supporting element: fixed at 72px, deliberately smaller
  * than the routine name above it, and it never replaces the number — the
@@ -18,8 +18,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { Card } from '@components/Card';
 import { RingChart } from '@components/RingChart';
-import { colors, radii, spacing } from '@theme';
+import { spacing, useTheme } from '@theme';
 import { formatDeltaLabel } from '@lib/format';
 
 import { StatColumn, StatStrip } from './StatColumn';
@@ -58,58 +59,58 @@ export function HomeWeeklyStrip({
   streakWeeks,
   testID,
 }: HomeWeeklyStripProps): React.ReactElement {
+  const { colors } = useTheme();
   const deltaLabel = formatDeltaLabel(volumeDeltaPercent);
   const isRise = volumeDeltaPercent !== null && volumeDeltaPercent > 0;
   const goalMet = sessionsThisWeek >= goal;
 
   return (
-    <View style={styles.block} testID={testID}>
-      <View style={styles.row}>
-        <RingChart
-          centerLabel={`${sessionsThisWeek}/${goal}`}
-          centerSublabel="goal"
-          color={goalMet ? colors.accent : undefined}
-          max={goal}
-          size={WEEKLY_GOAL_RING_SIZE}
-          testID={testID ? `${testID}-ring` : undefined}
-          value={sessionsThisWeek}
-        />
+    <View style={styles.block}>
+      <Card testID={testID} variant="well">
+        <View style={styles.row}>
+          <RingChart
+            centerLabel={`${sessionsThisWeek}/${goal}`}
+            centerSublabel="goal"
+            color={goalMet ? colors.accent : undefined}
+            max={goal}
+            size={WEEKLY_GOAL_RING_SIZE}
+            testID={testID ? `${testID}-ring` : undefined}
+            value={sessionsThisWeek}
+          />
 
-        <View style={styles.strip}>
-          <StatStrip>
-            <StatColumn
-              caption="sessions"
-              label="This week"
-              testID={testID ? `${testID}-sessions` : undefined}
-              value={`${sessionsThisWeek} / ${goal}`}
-            />
-            <StatColumn
-              caption={deltaLabel ?? undefined}
-              captionColor={isRise ? colors.success : undefined}
-              label="Volume"
-              testID={testID ? `${testID}-volume` : undefined}
-              value={volume}
-            />
-            <StatColumn
-              caption="weeks"
-              label="Streak"
-              testID={testID ? `${testID}-streak` : undefined}
-              value={String(streakWeeks)}
-            />
-          </StatStrip>
+          <View style={styles.strip}>
+            <StatStrip>
+              <StatColumn
+                caption="sessions"
+                label="This week"
+                testID={testID ? `${testID}-sessions` : undefined}
+                value={`${sessionsThisWeek} / ${goal}`}
+              />
+              <StatColumn
+                caption={deltaLabel ?? undefined}
+                captionColor={isRise ? colors.success : undefined}
+                label="Volume"
+                testID={testID ? `${testID}-volume` : undefined}
+                value={volume}
+              />
+              <StatColumn
+                caption="weeks"
+                icon="flame"
+                label="Streak"
+                testID={testID ? `${testID}-streak` : undefined}
+                value={String(streakWeeks)}
+              />
+            </StatStrip>
+          </View>
         </View>
-      </View>
+      </Card>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  /** The screen's single soft block: surface fill, no border. */
   block: {
     marginHorizontal: spacing.xl,
-    padding: spacing.lg,
-    borderRadius: radii.card,
-    backgroundColor: colors.surface,
   },
   row: {
     flexDirection: 'row',

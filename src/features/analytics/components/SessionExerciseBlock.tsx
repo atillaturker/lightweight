@@ -8,9 +8,9 @@
  */
 import React from 'react';
 
-import { formatInteger, formatWeightKg } from '@lib/format';
+import { formatDecimal, formatInteger, formatWeightKg } from '@lib/format';
 import type { FocusedCell } from '@features/workout';
-import { ExerciseBlock } from '@features/workout';
+import { EMPTY_CELL, ExerciseBlock } from '@features/workout';
 
 import type { SessionExerciseBlockModel } from '../utils';
 
@@ -20,8 +20,16 @@ function noop(): void {
 }
 
 /** Format a numeric cell for display; a record owns the value, not a draft. */
-function displayValue(cell: FocusedCell, actual: number): string {
-  return cell.field === 'weight' ? formatWeightKg(actual) : formatInteger(actual);
+function displayValue(cell: FocusedCell, actual: number | undefined): string {
+  if (actual === undefined) return EMPTY_CELL;
+  switch (cell.field) {
+    case 'weight':
+      return formatWeightKg(actual);
+    case 'reps':
+      return formatInteger(actual);
+    case 'rpe':
+      return formatDecimal(actual);
+  }
 }
 
 /** Props for {@link SessionExerciseBlock}. */
@@ -56,6 +64,7 @@ export function SessionExerciseBlock({
       onToggleComplete={noop}
       readOnly
       registerRowRef={noop}
+      showRpe={block.exercise.sets.some((set) => set.rpe !== undefined)}
       summary={block.summary}
       testID={testID}
     />

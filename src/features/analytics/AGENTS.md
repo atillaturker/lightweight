@@ -1,29 +1,37 @@
 # AGENTS.md — Analytics feature
 
 Progress, Exercise Detail, Session Detail. Read-only screens.
-Pure computation sourced from `@domain/rules/`.
+Pure computation sourced from `@domain/rules/`. Chart visuals follow
+`/DESIGN.md` §5 (tokens, chart types, rules); this file adds only
+analytics-specific behavior.
 
 ## Rules
 
 - All calculations live in `@domain/rules/`. Zero math inside this feature.
-- e1RM always uses `@domain/rules/e1rm.ts` (Epley formula).
+- e1RM always uses `@domain/rules/e1rm.ts` (Epley formula), and only
+  from sets of at most `E1RM_MAX_REPS` (12) reps (`isE1RMEligible`). The
+  Exercise Detail hero names the set the estimate came from.
+- The "Effort" metric (average RPE, `@domain/rules/effort.ts`) appears
+  only once the exercise has a rated set. Unrated sets are skipped, never
+  counted as zero.
 - Warmup sets are excluded from volume (`Set.type !== 'warmup'`).
 - Delta computation returns `null` when no comparison data exists —
   never `0`. The UI hides the delta line on `null`.
-- Negative delta uses `#6B7280`, not `#EF4444`. A dip in training is
-  not an error state.
+- Negative delta uses `colors.textMuted`, not `colors.error`. A dip in
+  training is not an error state.
 - Filtering for delta lists: only exercises with 3+ sessions appear.
   Fewer sessions produce misleading percentages.
 
-## Chart rules
+## Chart behavior
 
-- Y-axis: minimum labels (2-3 values). Never one label per data point.
-- Single highlight per chart: one 6px `#3B82F6` circle.
-- No chart container card. Charts sit directly on white.
-- Chart height: 180px. Never taller.
-- X-axis: exactly three labels (left, center, right). No more.
-- Bar charts: current period `#111111`, previous period `#E5E7EB`,
-  4px wide bars, 2px top corner radius.
+- Every chart is fed by a pure series builder in `utils/` that is unit
+  tested; components only draw.
+- Empty and sparse data: fewer than 2 points shows the empty state, not
+  a one-point line. Effort charts need at least 5 rated sets in range.
+- Time ranges come from one shared range type so every chart's
+  SegmentedControl offers the same options.
+- Activity heatmaps and muscle maps shade by the intensity scale and
+  always expose the exact value on tap.
 
 ## Screens
 
@@ -34,9 +42,8 @@ Pure computation sourced from `@domain/rules/`.
 
 ## Do not
 
-- Do not add KPI grids, donut charts, or heatmaps.
-- Do not use `#EF4444` for negative deltas.
-- Do not wrap charts in cards.
-- Do not add legends or legend swatches.
+- Do not use `colors.error` for negative deltas.
+- Do not wrap a chart in a card of its own.
+- Do not show a chart without the number it is about.
 - Do not use `tabular-nums` inconsistently — every numeric value in a
-  stat strip or table uses it.
+  stat strip, table or axis uses it.

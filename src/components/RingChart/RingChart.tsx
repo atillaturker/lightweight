@@ -1,9 +1,8 @@
 /**
  * Ring chart — a single-ratio progress ring for goal-completion metrics.
  *
- * The design system permits rings only on Welcome, Home / Today, Profile,
- * and the post-workout Summary; see /AGENTS.md → "Ring charts" for the
- * full spec. The component encodes every rule that can be enforced in
+ * Rings show progress toward a goal and are never used where precise
+ * comparison is the point; see /DESIGN.md §5.5 for the full spec. The component encodes every rule that can be enforced in
  * code: one ring per instance, round caps, 12 o'clock clockwise start, a
  * stroke width derived from the diameter, and a visual fill capped at
  * 96% so the empty track stays perceptible.
@@ -12,9 +11,9 @@ import React from "react";
 import { Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
-import { styles } from "./RingChart.styles";
+import { useStyles } from "./RingChart.styles";
 
 /**
  * Largest fraction of the circumference the fill may draw, so the track
@@ -31,8 +30,6 @@ const HERO_STROKE = 4;
 /** Stroke width used on smaller rings (< 80px). */
 const COMPACT_STROKE = 3;
 
-/** The only two fill colors a ring may use, per the design system. */
-const ALLOWED_FILLS: readonly string[] = [colors.primary, colors.accent];
 
 /** Props for {@link RingChart}. */
 export interface RingChartProps {
@@ -125,10 +122,15 @@ export function RingChart({
   color,
   testID,
 }: RingChartProps): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { radius, strokeWidth, circumference, dashOffset } =
     calculateRingGeometry(value, max, size);
 
-  const fill = color !== undefined && ALLOWED_FILLS.includes(color)
+  // The only two fills a ring may use, per the design system, in the
+  // active palette.
+  const allowedFills: readonly string[] = [colors.primary, colors.accent];
+  const fill = color !== undefined && allowedFills.includes(color)
     ? color
     : colors.primary;
 

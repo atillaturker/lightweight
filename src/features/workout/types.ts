@@ -40,8 +40,11 @@ export interface ActiveExercise {
  */
 export type ActiveWorkoutPreview = 'default' | 'keyboard' | 'pr';
 
-/** Which numeric cell of a set row is focused. */
-export type NumericField = 'weight' | 'reps';
+/**
+ * Which numeric cell of a set row is focused. `rpe` exists only while the
+ * user's "RPE field" preference is on.
+ */
+export type NumericField = 'weight' | 'reps' | 'rpe';
 
 /** Identifies the currently focused numeric cell. */
 export interface FocusedCell {

@@ -1,7 +1,7 @@
 import React from "react";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 /**
  * Official brand colours for third-party sign-in marks. These are
@@ -35,6 +35,7 @@ const APPLE_PATH =
  * and the slashed eye while the value is visible.
  */
 export function EyeIcon({ hidden }: { hidden: boolean }): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -64,6 +65,7 @@ export function EyeIcon({ hidden }: { hidden: boolean }): React.ReactElement {
 
 /** Apple provider mark used by the "Continue with Apple" button. */
 export function AppleGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       height={APPLE_GLYPH_SIZE}

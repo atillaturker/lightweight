@@ -4,9 +4,9 @@
  * average/peak trend line. Moved out of ProgressScreen unchanged.
  */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { colors, spacing, type } from "@theme";
+import { spacing, type, createStyles } from "@theme";
 import { formatDecimal, formatInteger } from "@lib/format";
 
 import type { ProgressMetric, ProgressRange, ProgressTotals } from "../utils";
@@ -65,6 +65,7 @@ export function ProgressHero({
   peak,
   peakLabel,
 }: ProgressHeroProps): React.ReactElement {
+  const styles = useStyles();
   const display = METRIC_DISPLAY[metric];
   const unitWord = range === "4W" || range === "12W" ? "weeks" : "months";
   const count = range === "4W" ? 4 : range === "12W" ? 12 : range === "6M" ? 6 : 12;
@@ -112,7 +113,7 @@ export function ProgressHero({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   heroLabel: {
     ...type.labelSmall,
     letterSpacing: 0.66,
@@ -154,4 +155,4 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
     color: colors.textMuted,
   },
-});
+}));

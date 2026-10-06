@@ -31,7 +31,7 @@ import {
 import { useSignInActions } from "../hooks/useSignInActions";
 import { useAuthStore } from "../store/authStore";
 import { calculatePasswordStrength } from "../utils/passwordStrength";
-import { styles } from "./authScreen.styles";
+import { useStyles } from "./authScreen.styles";
 
 /** Validation schema for the sign-up form. */
 const signUpSchema = z.object({
@@ -58,6 +58,7 @@ const EMPTY_SIGN_UP: SignUpForm = {
 export function SignUpScreen({
   navigation,
 }: NativeStackScreenProps<AuthStackParamList, "SignUp">): React.ReactElement {
+  const styles = useStyles();
   const { signUpEmail, signInGoogle, signInApple } = useSignInActions();
   const status = useAuthStore((state) => state.status);
   const authError = useAuthStore((state) => state.error);

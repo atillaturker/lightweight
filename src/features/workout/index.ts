@@ -52,7 +52,13 @@ export type {
   WeightUnitProvider,
 } from './services';
 
-export { useActiveWorkout, useRestTimer, useSetLogger, useWorkoutActions } from './hooks';
+export {
+  EMPTY_CELL,
+  useActiveWorkout,
+  useRestTimer,
+  useSetLogger,
+  useWorkoutActions,
+} from './hooks';
 export type {
   SetLoggerActions,
   UseActiveWorkoutResult,

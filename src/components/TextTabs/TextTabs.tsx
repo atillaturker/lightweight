@@ -7,7 +7,7 @@ import {
   type PressableProps,
 } from "react-native";
 
-import { styles } from "./TextTabs.styles";
+import { useStyles } from "./TextTabs.styles";
 
 /** A single text tab. */
 export interface TextTabsOption {
@@ -50,6 +50,7 @@ function Tab({
   testID?: string;
   onPress: () => void;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={label}
@@ -109,6 +110,7 @@ function TabRow({
   testID?: string;
   children: React.ReactNode;
 }): React.ReactElement {
+  const styles = useStyles();
   if (scrollable) {
     return (
       <ScrollView

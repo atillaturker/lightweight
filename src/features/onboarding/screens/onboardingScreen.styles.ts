@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, gutter, spacing } from "@theme";
+import { gutter, spacing, createStyles } from "@theme";
 
 /** Step height of the two intro headlines, per the intro specs. */
 const INTRO_HEADLINE_SIZE = 30;
@@ -29,7 +28,7 @@ export const SETUP_OPTIONS_TOP = spacing.huge;
  * Typography is inline rather than from `@theme` because the intro and
  * setup specs use sizes and tracking that the shared scale does not carry.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   // ─── Chrome ───────────────────────────────────────────
   container: {
     flex: 1,
@@ -121,4 +120,4 @@ export const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xl,
   },
-});
+}));

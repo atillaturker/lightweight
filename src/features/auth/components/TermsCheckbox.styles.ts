@@ -1,7 +1,6 @@
 import type { Insets } from "react-native";
-import { StyleSheet } from "react-native";
 
-import { colors, spacing, type } from "@theme";
+import { spacing, type, createStyles } from "@theme";
 
 /** Drawn edge length of the checkbox square. */
 export const TERMS_BOX_SIZE = 18;
@@ -27,7 +26,7 @@ export const TERMS_HIT_SLOP: Insets = {
  * Static styles for TermsCheckbox. The box is a square sibling of a
  * 44px-tall row so the tap target never inflates the drawn control.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   container: {
     width: "100%",
   },
@@ -57,7 +56,7 @@ export const styles = StyleSheet.create({
 
   check: {
     ...type.labelSmall,
-    color: colors.textInverse,
+    color: colors.onPrimary,
   },
 
   label: {
@@ -75,4 +74,4 @@ export const styles = StyleSheet.create({
     ...type.caption,
     color: colors.error,
   },
-});
+}));

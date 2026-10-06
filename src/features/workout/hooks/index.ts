@@ -11,6 +11,7 @@ export type { SessionSummary } from './useSessionSummary';
 export { useRestTimerLine } from './useRestTimerLine';
 export type { RestTimerLine } from './useRestTimerLine';
 export {
+  EMPTY_CELL,
   findActiveSet,
   firstIncompleteSet,
   listCells,

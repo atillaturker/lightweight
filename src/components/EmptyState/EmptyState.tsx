@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, View, type ViewProps } from "react-native";
 
-import { styles } from "./EmptyState.styles";
+import { useStyles } from "./EmptyState.styles";
 
 /** Props for {@link EmptyState}. */
 export interface EmptyStateProps
@@ -25,6 +25,7 @@ export function EmptyState({
   testID,
   ...rest
 }: EmptyStateProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.container} testID={testID} {...rest}>
       <Text style={[styles.title, message ? styles.titleWithMessage : null]}>

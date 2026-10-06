@@ -2,18 +2,17 @@
  * Exercise Detail — answers "am I getting stronger on this lift?".
  *
  * Reads durable history and the exercise library through the workout
- * feature's provider seams, and the display unit through the same seam, so
- * it never imports another feature directly. The hero is the current
- * estimated 1RM with its 8-week change; the chart switches between the 1RM,
- * volume, and reps series; the records and recent-sets lists round it out.
- * Read-only.
+ * feature's provider seams, and the display unit through the same seam. The
+ * hero is the current estimated 1RM with its 8-week change; the chart
+ * switches between the 1RM, volume, and reps series; the records and
+ * recent-sets lists follow, and the routines feature's technique section
+ * (illustration + how-to steps) closes the screen. Read-only.
  */
 import React, { useCallback, useState } from "react";
 import {
   Alert,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -24,18 +23,22 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { WeightUnit } from "@domain/entities";
 import { Weight } from "@domain/value-objects";
 import { Button } from "@components/Button";
+import { Card } from "@components/Card";
 import { EmptyState } from "@components/EmptyState";
 import { ScreenHeader } from "@components/ScreenHeader";
+import { SectionHeader } from "@components/SectionHeader";
 import { TextTabs } from "@components/TextTabs";
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles } from "@theme";
 import {
   formatDecimal,
   formatInteger,
   formatShortDate,
 } from "@lib/format";
+import { ExerciseTechnique } from "@features/routines";
 import { MoreGlyph } from "@features/workout";
 
 import {
+  ExerciseHero,
   ExerciseLineChart,
   RecentSetRow,
   RecordRow,
@@ -71,17 +74,19 @@ const MORE_GLYPH_SIZE = 20;
 /** A record is "new" when achieved within this window. */
 const RECENT_RECORD_MS = 30 * 24 * 60 * 60 * 1000;
 
-const METRIC_OPTIONS = [
+const METRIC_OPTIONS: readonly { value: ExerciseMetric; label: string }[] = [
   { value: "1rm", label: "1RM" },
   { value: "volume", label: "Volume" },
   { value: "reps", label: "Reps" },
-] as const;
+  { value: "rpe", label: "Effort" },
+];
 
 /** Chart title per metric. */
 const CHART_TITLES: Record<ExerciseMetric, string> = {
   "1rm": "ESTIMATED 1RM · LAST 8 WEEKS",
   volume: "VOLUME · LAST 8 WEEKS",
   reps: "TOTAL REPS · LAST 8 WEEKS",
+  rpe: "AVERAGE RPE · LAST 8 WEEKS",
 };
 
 /** Convert a stored kilogram value to a display figure for the unit. */
@@ -92,6 +97,7 @@ function formatWeightText(kg: number, unit: WeightUnit): string {
 
 /** Y-axis value formatter for the selected metric. */
 function formatChartValue(metric: ExerciseMetric, value: number): string {
+  // RPE is 1–10 in half steps: one decimal is exact enough.
   return metric === "reps" ? formatInteger(value) : formatDecimal(value, 1);
 }
 
@@ -132,17 +138,9 @@ function badgeRecordType(
   return latest?.type ?? null;
 }
 
-/** Centered section title, left-aligned, with nothing on the right. */
-function SectionHeader({ title }: { title: string }): React.ReactElement {
-  return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-  );
-}
-
 /** Pushed per-exercise analytics screen, shared by the Progress and History tabs. */
 export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactElement {
+  const styles = useStyles();
   const { exerciseId } = route.params;
   const [metric, setMetric] = useState<ExerciseMetric>("1rm");
   const { exercise, unit, data } = useExerciseDetail(exerciseId, metric);
@@ -183,6 +181,10 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
   }
 
   const hasChart = data.points.some((value) => value !== null);
+  // "Effort" appears only once the exercise has RPE ratings to chart.
+  const metricOptions = METRIC_OPTIONS.filter(
+    (option) => option.value !== "rpe" || data.hasEffortData,
+  );
   const badgeType = badgeRecordType(data.records, Date.now());
   const chartWidth = width - gutter * 2;
 
@@ -211,37 +213,31 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
         showsVerticalScrollIndicator={false}
         testID="exercise-detail-scroll"
       >
-        <Text style={styles.heroLabel}>ESTIMATED 1RM</Text>
-        <View style={styles.heroValueRow}>
-          <Text style={styles.heroValue} testID="exercise-detail-hero-value">
-            {data.heroE1RMKg === null
-              ? "—"
-              : formatWeightText(data.heroE1RMKg, unit)}
-          </Text>
-          {data.heroE1RMKg === null ? null : (
-            <Text style={styles.heroUnit}>{unit}</Text>
-          )}
-        </View>
-
-        {data.heroDeltaKg !== null ? (
-          <Text
-            style={[
-              styles.heroDelta,
-              data.heroDeltaKg > 0 ? styles.deltaPositive : null,
-            ]}
-            testID="exercise-detail-hero-delta"
-          >
-            {`${data.heroDeltaKg > 0 ? "▲" : "▼"} ${formatWeightText(
-              Math.abs(data.heroDeltaKg),
-              unit,
-            )} ${unit} over 8 weeks`}
-          </Text>
-        ) : null}
+        <ExerciseHero
+          deltaPositive={data.heroDeltaKg !== null && data.heroDeltaKg > 0}
+          deltaText={
+            data.heroDeltaKg === null
+              ? null
+              : `${data.heroDeltaKg > 0 ? "▲" : "▼"} ${formatWeightText(
+                  Math.abs(data.heroDeltaKg),
+                  unit,
+                )} ${unit} over 8 weeks`
+          }
+          sourceText={
+            data.heroSource === null
+              ? null
+              : `From ${formatWeightText(data.heroSource.weightKg, unit)} ${unit} × ${data.heroSource.reps}`
+          }
+          unit={unit}
+          valueText={
+            data.heroE1RMKg === null ? null : formatWeightText(data.heroE1RMKg, unit)
+          }
+        />
 
         <View style={styles.tabBlock}>
           <TextTabs
             onChange={(value) => setMetric(value as ExerciseMetric)}
-            options={[...METRIC_OPTIONS]}
+            options={metricOptions}
             testID="exercise-detail-metric"
             value={metric}
           />
@@ -269,55 +265,63 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
         }`}</Text>
 
         <View style={styles.section}>
-          <SectionHeader title="Personal records" />
+          <SectionHeader icon="trophy" label="Personal records" />
           {data.records.length === 0 ? (
             <Text style={styles.recordsEmpty} testID="exercise-detail-no-records">
               No records yet
             </Text>
           ) : (
             <View style={styles.rows}>
-              {data.records.map((row, index) => (
-                <RecordRow
-                  dateText={formatShortDate(row.achievedAt)}
-                  dividerTop={index > 0}
-                  key={row.type}
-                  label={row.label}
-                  showBadge={row.type === badgeType}
-                  testID={`exercise-detail-record-${row.type}`}
-                  valueText={recordValueText(row, unit)}
-                />
-              ))}
+              <Card testID="exercise-detail-records-card">
+                {data.records.map((row, index) => (
+                  <RecordRow
+                    dateText={formatShortDate(row.achievedAt)}
+                    dividerTop={index > 0}
+                    key={row.type}
+                    label={row.label}
+                    showBadge={row.type === badgeType}
+                    testID={`exercise-detail-record-${row.type}`}
+                    valueText={recordValueText(row, unit)}
+                  />
+                ))}
+              </Card>
             </View>
           )}
         </View>
 
         {data.recentSets.length > 0 ? (
           <View style={styles.section}>
-            <SectionHeader title="Recent sets" />
+            <SectionHeader icon="clock" label="Recent sets" />
             <View style={styles.rows}>
-              {data.recentSets.map((row, index) => (
-                <RecentSetRow
-                  dateText={formatShortDate(row.startedAt)}
-                  dividerTop={index > 0}
-                  key={row.sessionId}
-                  summaryText={recentSummaryText(
-                    row.weightKg,
-                    row.reps,
-                    row.sets,
-                    unit,
-                  )}
-                  testID={`exercise-detail-recent-${row.sessionId}`}
-                />
-              ))}
+              <Card testID="exercise-detail-recent-card">
+                {data.recentSets.map((row, index) => (
+                  <RecentSetRow
+                    dateText={formatShortDate(row.startedAt)}
+                    dividerTop={index > 0}
+                    key={row.sessionId}
+                    summaryText={recentSummaryText(
+                      row.weightKg,
+                      row.reps,
+                      row.sets,
+                      unit,
+                    )}
+                    testID={`exercise-detail-recent-${row.sessionId}`}
+                  />
+                ))}
+              </Card>
             </View>
           </View>
         ) : null}
+
+        <View style={styles.section}>
+          <ExerciseTechnique contentWidth={chartWidth} exercise={exercise} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
   centered: { flex: 1, justifyContent: "center" },
 
@@ -326,35 +330,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.huge,
     paddingHorizontal: gutter,
   },
-
-  heroLabel: {
-    ...type.labelSmall,
-    letterSpacing: 0.66,
-    textTransform: "uppercase",
-    color: colors.textMuted,
-  },
-  heroValueRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginTop: spacing.xs + 2,
-    gap: spacing.sm,
-  },
-  heroValue: {
-    ...type.metricHero,
-    fontVariant: ["tabular-nums"],
-    color: colors.textPrimary,
-  },
-  heroUnit: {
-    ...type.metric,
-    fontFamily: "Inter-Medium",
-    color: colors.textMuted,
-  },
-  heroDelta: {
-    ...type.label,
-    marginTop: spacing.sm,
-    color: colors.textMuted,
-  },
-  deltaPositive: { color: colors.success },
 
   tabBlock: { marginTop: TAB_GAP },
   chartTitle: {
@@ -379,13 +354,6 @@ const styles = StyleSheet.create({
   },
 
   section: { marginTop: SECTION_GAP },
-  sectionHeader: {
-    height: 44,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sectionTitle: { ...type.sectionTitle, color: colors.textPrimary },
   rows: { marginTop: SECTION_HEADER_GAP },
   recordsEmpty: {
     ...type.body,
@@ -394,4 +362,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: colors.textMuted,
   },
-});
+}));

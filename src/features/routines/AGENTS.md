@@ -11,7 +11,10 @@ Routine CRUD and exercise picker. Three screens.
 ## Rules
 
 - The **active routine** is the one the Today screen will start next.
-  Only one routine is active at a time. Marked with a 6px `#3B82F6` dot
+  Only one routine is active at a time. Finishing a workout advances it
+  to the routine after the one trained, in list order, skipping archived
+  routines and wrapping to the first (`routineAfter` in the workout
+  feature). Marked with a 6px `colors.accent` dot
   next to the chevron. Never with a badge or pill.
 - Routines with historical sessions attached cannot be deleted —
   archive them instead. This preserves history integrity.
@@ -21,11 +24,15 @@ Routine CRUD and exercise picker. Three screens.
 - Routine editor is a working editor. Target cell (`3 × 8`) is tappable
   and opens a bottom sheet. The name is inline-editable via a pencil
   affordance. Rows drag-reorder via the grip handle on the right.
+- The library is large (~1,170 exercises): exercise lists are
+  virtualized (`FlatList`) with memoized rows. Never render the whole
+  library in a `ScrollView`.
 - Exercise picker is PICKER MODE only in this feature. The same layout
   becomes Library mode when opened from Profile — different header,
   different tap behavior.
-- Every exercise has a pictogram. Pictograms are monoline SVG paths in
-  `src/components/MuscleIcon/`, keyed by the exercise's muscle group.
+- Exercise rows in the picker and the routine editor lead with
+  `ExerciseThumb`: the exercise illustration (DESIGN.md §9), or an empty
+  tile when there is none. Do not fall back to the muscle icon there.
   Never substitute with `@expo/vector-icons`.
 
 ## Set targets

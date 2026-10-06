@@ -4,3 +4,5 @@ export {
   usePreferencesStore,
 } from './preferencesStore';
 export type { PreferencesStore } from './preferencesStore';
+export { APPEARANCE_STORE_KEY, useAppearanceStore } from './appearanceStore';
+export type { AppearanceStore } from './appearanceStore';

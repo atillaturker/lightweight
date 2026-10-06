@@ -2,9 +2,11 @@ import React, { useCallback } from "react";
 import { Pressable, Text, View, type PressableProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTheme } from "@theme";
+
 import { TabIcons } from "./TabBar.icons";
 import {
-  styles,
+  useStyles,
   TAB_ACTIVE_COLOR,
   TAB_BAR_HEIGHT,
   TAB_INACTIVE_COLOR,
@@ -48,7 +50,9 @@ interface TabProps {
  * active state — there is no background, indicator, or surface treatment.
  */
 function Tab({ item, active, testID, onPress }: TabProps): React.ReactElement {
-  const color = active ? TAB_ACTIVE_COLOR : TAB_INACTIVE_COLOR;
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const color = colors[active ? TAB_ACTIVE_COLOR : TAB_INACTIVE_COLOR];
   const Icon = TabIcons[item.icon];
 
   return (
@@ -83,6 +87,7 @@ export function TabBar({
   testID,
   ...rest
 }: TabBarProps): React.ReactElement {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
 
   const handleSelect = useCallback(

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { Pressable, Text, View, type PressableProps } from "react-native";
 
-import { styles } from "./SegmentedControl.styles";
+import { useStyles } from "./SegmentedControl.styles";
 
 /** A single selectable segment. */
 export interface SegmentedControlOption {
@@ -36,6 +36,7 @@ function Segment({
   testID?: string;
   onPress: () => void;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={label}
@@ -64,6 +65,7 @@ export function SegmentedControl({
   testID,
   ...rest
 }: SegmentedControlProps): React.ReactElement {
+  const styles = useStyles();
   const handlePress = useCallback(
     (nextValue: string) => {
       if (nextValue === value) return;

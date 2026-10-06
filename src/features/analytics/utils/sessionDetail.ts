@@ -60,6 +60,7 @@ function toActiveSets(sets: DomainSet[]): ActiveSet[] {
     type: set.type,
     completed: true,
     completedAt: set.completedAt,
+    rpe: set.rpe,
     // The persisted flag is authoritative for historical views.
     isPR: set.isPR ?? false,
   }));

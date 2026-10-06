@@ -10,7 +10,6 @@ import {
   Pressable,
   ScrollView,
   SectionList,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -18,9 +17,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import { LineIcon } from "@components/LineIcon";
 import { Pill } from "@components/Pill";
 import type { Workout } from "@domain/entities";
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles, useTheme } from "@theme";
 
 import { MonthHeader, SessionRow } from "../components";
 import {
@@ -44,6 +44,9 @@ const SEARCH_BUTTON_SIZE = 36;
 /** Rendered edge length of the search glyph. */
 const SEARCH_GLYPH_SIZE = 20;
 
+/** Empty-state glyph, per DESIGN.md §8. */
+const EMPTY_GLYPH_SIZE = 32;
+
 /** No-op for the search affordance, which ships in a later batch. */
 function noop(): void {
   return undefined;
@@ -51,6 +54,7 @@ function noop(): void {
 
 /** 20px monoline magnifier. */
 function SearchGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -73,6 +77,7 @@ function HistoryHeader({
 }: {
   onSearch: () => void;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>History</Text>
@@ -98,6 +103,7 @@ function FilterRow({
   filter: HistoryFilter;
   onChange: (filter: HistoryFilter) => void;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <ScrollView
       contentContainerStyle={styles.chipRow}
@@ -123,8 +129,10 @@ function FilterRow({
 
 /** Centered first-run state shown in place of the list and chips. */
 function HistoryEmptyState(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.empty}>
+      <LineIcon name="clock" size={EMPTY_GLYPH_SIZE} />
       <Text style={styles.emptyTitle}>No sessions yet</Text>
       <Text style={styles.emptyMessage}>
         Complete a workout to see it here.
@@ -135,6 +143,7 @@ function HistoryEmptyState(): React.ReactElement {
 
 /** Root screen of the History tab. */
 export function HistoryScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const sessions = useHistoryStore((state) => state.sessions);
   const filter = useHistoryFilterStore((state) => state.filter);
   const setFilter = useHistoryFilterStore((state) => state.setFilter);
@@ -204,7 +213,7 @@ export function HistoryScreen({ navigation }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
 
   header: {
@@ -256,6 +265,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...type.sectionTitle,
+    marginTop: spacing.lg,
     color: colors.textPrimary,
   },
   emptyMessage: {
@@ -264,4 +274,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
   },
-});
+}));

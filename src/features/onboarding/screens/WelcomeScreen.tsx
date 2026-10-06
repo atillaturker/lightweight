@@ -17,14 +17,14 @@
  * navigator swap straight to the auth stack.
  */
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
 import { SectionHeader } from "@components/SectionHeader";
-import { colors, fineSpacing, gutter, spacing } from "@theme";
+import { fineSpacing, gutter, spacing, createStyles, useTheme } from "@theme";
 
 import type { IntroStackParamList } from "@/app/navigation/types";
 import { useAppStore } from "../store/appStore";
@@ -65,6 +65,8 @@ const GLYPH_STYLE = { width: GLYPH_SIZE, height: GLYPH_SIZE } as const;
  * stem with a short and a long diagonal, drawn as monoline strokes.
  */
 function ProductMark(): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.mark}>
       <Svg
@@ -77,7 +79,7 @@ function ProductMark(): React.ReactElement {
         <Path
           d="M10 6V26H23"
           fill="none"
-          stroke={colors.textInverse}
+          stroke={colors.onPrimary}
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2.5}
@@ -92,6 +94,7 @@ function ProductMark(): React.ReactElement {
  * flow; the account action exits it for returning users.
  */
 export function WelcomeScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const markWelcomeSeen = useAppStore((state) => state.markWelcomeSeen);
   const markIntroSeen = useAppStore((state) => state.markIntroSeen);
 
@@ -160,7 +163,7 @@ export function WelcomeScreen({ navigation }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
@@ -245,4 +248,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textPrimary,
   },
-});
+}));

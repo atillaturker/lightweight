@@ -20,3 +20,5 @@ export { ProgressHero } from './ProgressHero';
 export type { ProgressHeroProps } from './ProgressHero';
 export { PRStrip } from './PRStrip';
 export type { PRStripProps } from './PRStrip';
+export { ExerciseHero } from './ExerciseHero';
+export type { ExerciseHeroProps } from './ExerciseHero';

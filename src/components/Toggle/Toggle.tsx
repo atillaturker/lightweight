@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Animated, Pressable, type PressableProps } from "react-native";
 
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
-import { KNOB_INSET, KNOB_TRAVEL, styles } from "./Toggle.styles";
+import { KNOB_INSET, KNOB_TRAVEL, useStyles } from "./Toggle.styles";
 
 /**
  * Controlled toggle switch. `value` is owned by the caller; the
@@ -63,13 +63,15 @@ function ToggleTrack({
 }: {
   progress: Animated.Value;
 }): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const trackColor = useMemo(
     () =>
       progress.interpolate({
         inputRange: [0, 1],
-        outputRange: [colors.hairline, colors.primary],
+        outputRange: [colors.trackOff, colors.primary],
       }),
-    [progress],
+    [colors.primary, colors.trackOff, progress],
   );
 
   const knobPosition = useMemo(
@@ -105,6 +107,7 @@ export function Toggle({
   testID,
   ...rest
 }: ToggleProps): React.ReactElement {
+  const styles = useStyles();
   const progress = useToggleProgress(value);
 
   const handlePress = useCallback(() => {

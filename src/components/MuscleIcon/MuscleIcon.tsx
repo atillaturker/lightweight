@@ -2,7 +2,7 @@ import React from "react";
 import Svg, { Path } from "react-native-svg";
 
 import type { MuscleGroup } from "@domain/entities";
-import { colors } from "@theme";
+import { useTheme } from "@theme";
 
 /**
  * Re-exported from the domain so the pictogram set and the exercise entity
@@ -50,9 +50,11 @@ const ICON_PATHS: Record<MuscleGroup, string> = {
 export function MuscleIcon({
   group,
   size = 24,
-  color = colors.textPrimary,
+  color: colorProp,
   testID,
 }: MuscleIconProps): React.ReactElement {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.textPrimary;
   return (
     <Svg
       fill="none"

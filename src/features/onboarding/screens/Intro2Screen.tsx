@@ -8,17 +8,17 @@
  * single latest data point.
  */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Circle, Line, Path, Svg } from "react-native-svg";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { Button } from "@components/Button";
-import { colors, fineSpacing, spacing } from "@theme";
+import { fineSpacing, spacing, createStyles, useTheme } from "@theme";
 
 import type { IntroStackParamList } from "@/app/navigation/types";
 import { useAppStore } from "../store/appStore";
-import { styles } from "./onboardingScreen.styles";
+import { useStyles } from "./onboardingScreen.styles";
 
 type Props = NativeStackScreenProps<IntroStackParamList, "Intro2">;
 
@@ -47,6 +47,9 @@ const CHART_STYLE = { width: "100%", height: CHART_HEIGHT } as const;
 
 /** The hero metric and chart previewed on the second intro screen. */
 function ProgressFragment(): React.ReactElement {
+  const fragmentStyles = useFragmentStyles();
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.fragment}>
       <Text style={fragmentStyles.metricLabel}>Estimated 1RM</Text>
@@ -111,6 +114,7 @@ function ProgressFragment(): React.ReactElement {
  * hand control back to the root navigator, which mounts AuthStack.
  */
 export function Intro2Screen(_props: Props): React.ReactElement {
+  const styles = useStyles();
   const markIntroSeen = useAppStore((state) => state.markIntroSeen);
 
   return (
@@ -149,7 +153,7 @@ export function Intro2Screen(_props: Props): React.ReactElement {
   );
 }
 
-const fragmentStyles = StyleSheet.create({
+const useFragmentStyles = createStyles((colors) => ({
   metricLabel: {
     fontFamily: "Inter-Medium",
     fontSize: 11,
@@ -201,4 +205,4 @@ const fragmentStyles = StyleSheet.create({
     marginTop: spacing.md,
     color: colors.textMuted,
   },
-});
+}));

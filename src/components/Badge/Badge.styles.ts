@@ -1,13 +1,11 @@
-import { StyleSheet } from "react-native";
 
-import { colors, radii, spacing, type } from "@theme";
+import { radii, spacing, type, createStyles } from "@theme";
 
 /**
- * Static styles for Badge. Both variants share the same surface — the
- * label text itself is the only signal, so no variant-specific colors
- * are defined here beyond the neutral look.
+ * Static styles for Badge. Both variants share the same surface; the `pr`
+ * variant only recolors its label.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   base: {
     alignSelf: "flex-start",
     alignItems: "center",
@@ -25,4 +23,7 @@ export const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: colors.textPrimary,
   },
-});
+  labelPR: {
+    color: colors.success,
+  },
+}));

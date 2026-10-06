@@ -22,7 +22,7 @@ import type { AuthStackParamList } from "@/app/navigation/types";
 import { AppleGlyph, AuthDivider, EyeIcon, GoogleGlyph } from "../components";
 import { useSignInActions } from "../hooks/useSignInActions";
 import { useAuthStore } from "../store/authStore";
-import { styles } from "./authScreen.styles";
+import { useStyles } from "./authScreen.styles";
 
 /** Validation schema for the log-in form. */
 const logInSchema = z.object({
@@ -42,6 +42,7 @@ const EMPTY_LOG_IN: LogInForm = { email: "", password: "" };
 export function LogInScreen({
   navigation,
 }: NativeStackScreenProps<AuthStackParamList, "LogIn">): React.ReactElement {
+  const styles = useStyles();
   const { signInEmail, signInGoogle, signInApple } = useSignInActions();
   const status = useAuthStore((state) => state.status);
   const authError = useAuthStore((state) => state.error);

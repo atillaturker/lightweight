@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { Badge } from "@components/Badge";
 import { Button } from "@components/Button";
@@ -14,7 +14,7 @@ import { SettingsRow } from "@components/SettingsRow";
 import { TabBar, type TabBarItem } from "@components/TabBar";
 import { TextTabs } from "@components/TextTabs";
 import { Toggle } from "@components/Toggle";
-import { colors, gutter, spacing, type } from "@theme";
+import { gutter, spacing, type, createStyles, useTheme } from "@theme";
 import type { TypeToken } from "@theme";
 
 /**
@@ -88,6 +88,7 @@ const RADIO_OPTIONS = [
  * `View`s instead of an inline SVG path.
  */
 function PlusIcon({ color }: { color: string }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.icon}>
       <View style={[styles.iconBarHorizontal, { backgroundColor: color }]} />
@@ -98,6 +99,8 @@ function PlusIcon({ color }: { color: string }): React.ReactElement {
 
 /** Section 1 — every Button variant and state. */
 function ButtonSection(): React.ReactElement {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.stackMd}>
       <Button label="Log set" onPress={noop} variant="primary" />
@@ -120,7 +123,7 @@ function ButtonSection(): React.ReactElement {
         variant="primary"
       />
       <Button
-        icon={<PlusIcon color={colors.textInverse} />}
+        icon={<PlusIcon color={colors.onPrimary} />}
         label="Add exercise"
         onPress={noop}
         variant="primary"
@@ -131,6 +134,7 @@ function ButtonSection(): React.ReactElement {
 
 /** Password field with an overlay reveal accessory (see judgment calls). */
 function PasswordField(): React.ReactElement {
+  const styles = useStyles();
   const [value, setValue] = useState("correcthorse");
   const [hidden, setHidden] = useState(true);
 
@@ -156,6 +160,7 @@ function PasswordField(): React.ReactElement {
 
 /** Section 2 — interactive, controlled inputs. */
 function InputSection(): React.ReactElement {
+  const styles = useStyles();
   const [email, setEmail] = useState("");
   const [invalidEmail, setInvalidEmail] = useState("not-an-email");
   const [helperValue, setHelperValue] = useState("");
@@ -187,6 +192,7 @@ function InputSection(): React.ReactElement {
 
 /** Section 3 — Badge. Both variants must look identical. */
 function BadgeSection(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.row}>
       <Badge label="PR" />
@@ -209,6 +215,7 @@ function ToggleRow({
   disabled?: boolean;
   last?: boolean;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={[styles.toggleRow, !last && styles.toggleRowDivider]}>
       <Text style={styles.toggleLabel}>{label}</Text>
@@ -243,6 +250,7 @@ function ToggleSection(): React.ReactElement {
 
 /** Section 5 — SegmentedControl instances. */
 function SegmentedSection(): React.ReactElement {
+  const styles = useStyles();
   const [range, setRange] = useState("12W");
   const [split, setSplit] = useState("Upper");
 
@@ -264,6 +272,7 @@ function SegmentedSection(): React.ReactElement {
 
 /** Section 6 — TextTabs, static and horizontally scrollable. */
 function TextTabsSection(): React.ReactElement {
+  const styles = useStyles();
   const [metric, setMetric] = useState("1RM");
   const [range, setRange] = useState("Volume");
 
@@ -290,6 +299,7 @@ function TextTabsSection(): React.ReactElement {
  * `Playground`); this section only carries its label.
  */
 function TabBarSection(): React.ReactElement {
+  const styles = useStyles();
   return (
     <Text style={styles.note}>
       Fixed to the bottom of the screen — selection is color-only.
@@ -308,6 +318,7 @@ function TextAction({
   label: string;
   tone: "primary" | "muted";
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable accessibilityRole="button" onPress={noop}>
       <Text
@@ -324,6 +335,7 @@ function TextAction({
 
 /** Section 8 — ScreenHeader with each slot combination. */
 function ScreenHeaderSection(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.stackXxl}>
       <View style={styles.demoBox}>
@@ -345,6 +357,7 @@ function ScreenHeaderSection(): React.ReactElement {
 
 /** Section 9 — SectionHeader with and without an action. */
 function SectionHeaderSection(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.stackXxl}>
       <SectionHeader label="TRAINING" />
@@ -398,6 +411,7 @@ function SettingsRowSection(): React.ReactElement {
 
 /** Section 11 — Pill, an interactive filter chip row. */
 function PillSection(): React.ReactElement {
+  const styles = useStyles();
   const [selected, setSelected] = useState("All");
 
   return (
@@ -416,6 +430,7 @@ function PillSection(): React.ReactElement {
 
 /** Section 12 — Radio options in isolation with hairline separators. */
 function RadioSection(): React.ReactElement {
+  const styles = useStyles();
   const [selected, setSelected] = useState("Kilograms (kg)");
 
   return (
@@ -438,6 +453,7 @@ function RadioSection(): React.ReactElement {
 
 /** Section 13 — EmptyState with and without an action. */
 function EmptyStateSection(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.stackHuge}>
       <EmptyState
@@ -457,6 +473,7 @@ function EmptyStateSection(): React.ReactElement {
 
 /** Section 14 — every type token rendered at its real size. */
 function TypographySection(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.stackMd}>
       {TYPE_TOKENS.map((token) => (
@@ -474,6 +491,7 @@ function noop(): void {}
 
 /** 1px hairline used to separate stacked demo rows. */
 function Divider(): React.ReactElement {
+  const styles = useStyles();
   return <View style={styles.divider} />;
 }
 
@@ -511,6 +529,7 @@ function Section({
   title: string;
   children: React.ReactNode;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -525,6 +544,7 @@ function Section({
  * the interactive `TabBar` fixed to the bottom of the screen.
  */
 export default function Playground(): React.ReactElement {
+  const styles = useStyles();
   const [activeTab, setActiveTab] = useState("today");
 
   return (
@@ -585,7 +605,7 @@ export default function Playground(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   screen: {
     flex: 1,
     backgroundColor: colors.canvas,
@@ -725,4 +745,4 @@ const styles = StyleSheet.create({
   tokenSample: {
     color: colors.textPrimary,
   },
-});
+}));

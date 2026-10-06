@@ -11,7 +11,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Line, Path, Svg, Text as SvgText } from 'react-native-svg';
 
-import { colors } from '@theme';
+import { useTheme } from '@theme';
 
 import type { ProgressBucket } from '../utils';
 
@@ -66,6 +66,7 @@ export function ProgressBarChart({
   width,
   testID,
 }: ProgressBarChartProps): React.ReactElement | null {
+  const { colors } = useTheme();
   if (width <= 0 || buckets.length === 0) return null;
 
   const groupWidth = width / buckets.length;

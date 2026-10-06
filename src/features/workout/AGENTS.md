@@ -21,6 +21,8 @@ for data loss or UI blocking. A dropped set is a broken product.
   to local history first, then mirrored to Firestore through the
   history feature's cloud seam, which queues on failure. Do not throw
   to the user.
+- Finishing a session rotates the active routine to the next one in the
+  list (`useWorkoutActions.finish` → `routineAfter`). Discarding does not.
 - Leaving ActiveWorkoutScreen without finishing opens a bottom sheet:
   Finish / Discard / Keep training. Never silently close.
 
@@ -34,6 +36,15 @@ for data loss or UI blocking. A dropped set is a broken product.
   modal, no sound. Spec: appears for 3 seconds, then fades (NOT yet
   implemented; the badge currently stays).
 
+## RPE and screen lock
+
+- The set table shows an RPE column only while the "RPE field"
+  preference is on (read through `getRpeEnabled()`). RPE is optional per
+  set, rated 1–10 in half steps (`isValidRpe`); an unrated cell shows
+  `EMPTY_CELL` and "Next" walks weight → reps → RPE.
+- While a live session is open, `KeepScreenAwake` (expo-keep-awake)
+  stops the phone from locking. It is not rendered in preview frames.
+
 ## Set model
 
 Set types: `normal | warmup | drop | failure`.
@@ -46,6 +57,6 @@ inherits from the same set index in the previous session.
 - Do not add a "Save" or "Done" button inside ActiveWorkout.
 - Do not show a modal for PR achievements. Inline badge only.
 - Do not block the keyboard while typing weight or reps.
-- Do not use filled black circles for read-only historical views —
+- Do not use filled `colors.primary` circles for read-only historical views —
   those are neutral gray outlines.
 - Do not compute volume or e1RM inline. Use `@domain/rules/`.

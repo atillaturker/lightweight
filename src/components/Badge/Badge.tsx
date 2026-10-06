@@ -1,13 +1,14 @@
 import React from "react";
 import { Text, View, type ViewProps } from "react-native";
 
-import { styles } from "./Badge.styles";
+import { useStyles } from "./Badge.styles";
 
 /**
  * Badge variants:
  * - `neutral` — surface fill, 1px hairline border, primary text.
- * - `pr` — identical to `neutral`. The word "PR" is the only signal;
- *   no accent color is introduced.
+ * - `pr` — the neutral pill with its label in `colors.success`
+ *   (DESIGN.md §4.2: PR badges carry the success color).
+ *   The fill stays neutral; no accent color is introduced.
  */
 export interface BadgeProps extends Omit<ViewProps, "style" | "children"> {
   label: string;
@@ -26,6 +27,7 @@ export function Badge({
   testID,
   ...rest
 }: BadgeProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View
       accessibilityLabel={label}
@@ -33,7 +35,10 @@ export function Badge({
       testID={testID}
       {...rest}
     >
-      <Text numberOfLines={1} style={styles.label}>
+      <Text
+        numberOfLines={1}
+        style={[styles.label, variant === "pr" ? styles.labelPR : null]}
+      >
         {label}
       </Text>
     </View>

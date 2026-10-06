@@ -6,9 +6,9 @@
  * ever colored with the accent. There is no label and no step counter.
  */
 import React from "react";
-import { StyleSheet, View, type ViewProps } from "react-native";
+import { View, type ViewProps } from "react-native";
 
-import { colors, radii } from "@theme";
+import { radii, createStyles } from "@theme";
 
 /** The three ordered setup steps, in flow order. */
 export const SETUP_STEPS = [1, 2, 3] as const;
@@ -42,6 +42,7 @@ export function SetupProgress({
   testID,
   ...rest
 }: SetupProgressProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View
       accessibilityLabel={`Step ${current} of ${SETUP_STEPS.length}`}
@@ -66,7 +67,7 @@ export function SetupProgress({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: {
     flexDirection: "row",
     alignItems: "center",
@@ -81,4 +82,4 @@ const styles = StyleSheet.create({
   barCurrent: {
     backgroundColor: colors.primary,
   },
-});
+}));

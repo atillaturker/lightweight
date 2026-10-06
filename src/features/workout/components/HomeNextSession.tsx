@@ -4,7 +4,7 @@
  * The overline sits on the canvas; the routine name, meta line, and
  * primary CTA are grouped in a single flat card, because they describe
  * one decision ("start this session"). The card uses the canvas fill
- * plus a 1px hairline, per the v2 enrichment rules — no shadow.
+ * plus a 1px hairline (DESIGN.md §7.2) — no shadow.
  *
  * When a session is already open the same block reframes as "IN
  * PROGRESS" and the CTA resumes instead of starting. The 6px dot under
@@ -12,10 +12,10 @@
  * uses.
  */
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Button } from '@components/Button';
-import { colors, fonts, radii, spacing, type } from '@theme';
+import { fonts, radii, spacing, type, createStyles } from '@theme';
 
 /** Rendered diameter of the live-session indicator dot. */
 const LIVE_DOT_SIZE = 6;
@@ -62,6 +62,7 @@ export function HomeNextSession({
   footnote,
   testID,
 }: HomeNextSessionProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.block} testID={testID}>
       <Text style={styles.overline}>{overline}</Text>
@@ -94,7 +95,7 @@ export function HomeNextSession({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   block: {
     paddingHorizontal: spacing.xl,
   },
@@ -154,4 +155,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.textMuted,
   },
-});
+}));

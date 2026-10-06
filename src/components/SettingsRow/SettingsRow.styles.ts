@@ -1,6 +1,5 @@
-import { StyleSheet } from "react-native";
 
-import { colors, spacing, type } from "@theme";
+import { spacing, type, createStyles } from "@theme";
 
 /** Value text size. The token scale has no 14px step, so it is set here. */
 const VALUE_FONT_SIZE = 14;
@@ -16,7 +15,7 @@ export const SETTINGS_ROW_CHEVRON_SIZE = 16;
  * shadow — the parent is responsible for the 1px hairline between rows.
  * Right-side spacing is composed as a style array in the component.
  */
-export const styles = StyleSheet.create({
+export const useStyles = createStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -44,4 +43,4 @@ export const styles = StyleSheet.create({
     fontSize: VALUE_FONT_SIZE,
     color: colors.textMuted,
   },
-});
+}));

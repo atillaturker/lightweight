@@ -5,9 +5,9 @@
  * carries no shadow or tint, per the History design.
  */
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { colors, fonts, gutter, type } from '@theme';
+import { fonts, gutter, type, createStyles } from '@theme';
 
 /** Props for {@link MonthHeader}. */
 export interface MonthHeaderProps {
@@ -21,6 +21,7 @@ export function MonthHeader({
   title,
   testID,
 }: MonthHeaderProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.header} testID={testID}>
       <Text style={styles.label}>{title}</Text>
@@ -28,7 +29,7 @@ export function MonthHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   /**
    * Flat 32px label band on the canvas with a single bottom hairline. It
    * stays a plain band rather than a soft block: the list already has one
@@ -50,4 +51,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.textMuted,
   },
-});
+}));

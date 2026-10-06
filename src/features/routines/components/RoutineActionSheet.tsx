@@ -21,7 +21,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { Routine } from "@domain/entities";
-import { colors, fineSpacing, gutter, radii, spacing, type } from "@theme";
+import { fineSpacing, gutter, radii, spacing, type, createStyles } from "@theme";
 
 /** Props for {@link RoutineActionSheet}. */
 export interface RoutineActionSheetProps {
@@ -52,6 +52,7 @@ function ActionRow({
   onPress: () => void;
   testID: string;
 }): React.ReactElement {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityLabel={label}
@@ -82,6 +83,7 @@ export function RoutineActionSheet({
   onDelete,
   onClose,
 }: RoutineActionSheetProps): React.ReactElement {
+  const styles = useStyles();
   const handleSetActive = (): void => {
     if (routine) onSetActive(routine.id);
     onClose();
@@ -174,7 +176,7 @@ export function RoutineActionSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.backdrop,
@@ -229,4 +231,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     backgroundColor: colors.hairline,
   },
-});
+}));

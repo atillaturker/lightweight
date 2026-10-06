@@ -1,13 +1,14 @@
 /**
  * One row of the Exercise Detail "Personal records" list: label (with an
- * optional PR pill) over the date achieved, value right-aligned. Plain row —
- * hairline separators are the caller's, drawn as the row's top edge.
+ * optional PR pill) over the date achieved, value right-aligned. Sits
+ * inside the screen's Card, which owns the horizontal padding; hairline
+ * separators are drawn as the row's top edge.
  */
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Badge } from '@components/Badge';
-import { colors, fineSpacing, gutter, spacing, type } from '@theme';
+import { fineSpacing, spacing, type, createStyles } from '@theme';
 
 /** Minimum row height. */
 const ROW_HEIGHT = 56;
@@ -33,6 +34,7 @@ export function RecordRow({
   dividerTop,
   testID,
 }: RecordRowProps): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.wrap} testID={testID}>
       {dividerTop ? <View style={styles.divider} /> : null}
@@ -60,11 +62,10 @@ export function RecordRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   wrap: {
     minHeight: ROW_HEIGHT,
     justifyContent: 'center',
-    paddingHorizontal: gutter,
   },
   divider: {
     height: 1,
@@ -105,4 +106,4 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     color: colors.textPrimary,
   },
-});
+}));

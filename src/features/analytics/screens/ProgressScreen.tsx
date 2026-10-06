@@ -11,7 +11,6 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -21,12 +20,15 @@ import Svg, { Path } from "react-native-svg";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import { Card } from "@components/Card";
+import { LineIcon } from "@components/LineIcon";
+import { SectionHeader } from "@components/SectionHeader";
 import { SegmentedControl } from "@components/SegmentedControl";
 import { TextTabs } from "@components/TextTabs";
 import type { MuscleGroup } from "@domain/entities";
 import { getExerciseLibrary } from "@features/workout";
 import { useHistoryFilterStore } from "@features/history";
-import { colors, gutter, radii, spacing, type } from "@theme";
+import { gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
 import { ExerciseDeltaRow, PRStrip, ProgressBarChart, ProgressHero } from "../components";
 import { useProgressData } from "../hooks";
@@ -60,6 +62,9 @@ const FILTER_GLYPH_SIZE = 20;
 /** Sort action glyph. */
 const SORT_GLYPH_SIZE = 12;
 
+/** Empty-state glyph, per DESIGN.md §8. */
+const EMPTY_GLYPH_SIZE = 32;
+
 /** Border width of the hero + chart card. */
 const CARD_BORDER = 1;
 
@@ -85,6 +90,7 @@ function noop(): void {
 
 /** 20px monoline filter (funnel) glyph for the header action. */
 function FilterGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -103,6 +109,7 @@ function FilterGlyph(): React.ReactElement {
 
 /** 12px monoline sort glyph shown beside the "Sort" action. */
 function SortGlyph(): React.ReactElement {
+  const { colors } = useTheme();
   return (
     <Svg
       fill="none"
@@ -120,6 +127,7 @@ function SortGlyph(): React.ReactElement {
 
 /** Left-aligned title with the circular filter action on the right. */
 function ProgressHeader({ onFilter }: { onFilter: () => void }): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Progress</Text>
@@ -139,8 +147,10 @@ function ProgressHeader({ onFilter }: { onFilter: () => void }): React.ReactElem
 
 /** Centered first-run state, shown when no session exists at all. */
 function ProgressEmptyState(): React.ReactElement {
+  const styles = useStyles();
   return (
     <View style={styles.empty} testID="progress-empty">
+      <LineIcon name="trend" size={EMPTY_GLYPH_SIZE} />
       <Text style={styles.emptyTitle}>No data yet</Text>
       <Text style={styles.emptyMessage}>
         Complete a workout to see your progress here.
@@ -151,6 +161,7 @@ function ProgressEmptyState(): React.ReactElement {
 
 /** Root screen of the Progress tab. */
 export function ProgressScreen({ navigation }: Props): React.ReactElement {
+  const styles = useStyles();
   const [range, setRange] = useState<ProgressRange>("12W");
   const [metric, setMetric] = useState<ProgressMetric>("volume");
   const data = useProgressData(range, metric);
@@ -261,31 +272,39 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
           {data.exerciseRows.length > 0 ? (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>By exercise</Text>
-                <Pressable
-                  accessibilityLabel="Sort exercises"
-                  accessibilityRole="button"
-                  onPress={noop}
-                  style={styles.sortAction}
-                  testID="progress-sort"
-                >
-                  <SortGlyph />
-                  <Text style={styles.sortLabel}>Sort</Text>
-                </Pressable>
+                <SectionHeader
+                  action={
+                    <Pressable
+                      accessibilityLabel="Sort exercises"
+                      accessibilityRole="button"
+                      onPress={noop}
+                      style={styles.sortAction}
+                      testID="progress-sort"
+                    >
+                      <SortGlyph />
+                      <Text style={styles.sortLabel}>Sort</Text>
+                    </Pressable>
+                  }
+                  icon="trend"
+                  label="By exercise"
+                />
               </View>
 
               <View style={styles.rows}>
-                {data.exerciseRows.map((row, index) => (
-                  <ExerciseDeltaRow
-                    accent={index === 0 && (row.deltaPercent ?? 0) > 0}
-                    dividerTop={index > 0}
-                    key={row.exerciseId}
-                    muscleGroup={muscleByExercise.get(row.exerciseId)}
-                    onPress={() => openExercise(row.exerciseId)}
-                    row={row}
-                    testID={`progress-exercise-${row.exerciseId}`}
-                  />
-                ))}
+                <Card testID="progress-exercise-card">
+                  {data.exerciseRows.map((row, index) => (
+                    <ExerciseDeltaRow
+                      accent={index === 0 && (row.deltaPercent ?? 0) > 0}
+                      dividerTop={index > 0}
+                      key={row.exerciseId}
+                      muscleGroup={muscleByExercise.get(row.exerciseId)}
+                      onPress={() => openExercise(row.exerciseId)}
+                      row={row}
+                      testID={`progress-exercise-${row.exerciseId}`}
+                      variant="inset"
+                    />
+                  ))}
+                </Card>
               </View>
             </View>
           ) : null}
@@ -304,7 +323,7 @@ const EMPTY_TOTALS: ProgressTotals = {
   sessions: 0,
 };
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.canvas },
 
   header: {
@@ -369,14 +388,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     height: 44,
     paddingHorizontal: gutter,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
-  sectionTitle: { ...type.sectionTitle, color: colors.textPrimary },
   sortAction: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   sortLabel: { ...type.label, color: colors.textMuted },
-  rows: { marginTop: spacing.md },
+  rows: { marginTop: spacing.sm, marginHorizontal: gutter },
 
   empty: {
     flex: 1,
@@ -384,11 +400,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingBottom: spacing.giant,
   },
-  emptyTitle: { ...type.sectionTitle, color: colors.textPrimary },
+  emptyTitle: {
+    ...type.sectionTitle,
+    marginTop: spacing.lg,
+    color: colors.textPrimary,
+  },
   emptyMessage: {
     ...type.body,
     marginTop: spacing.sm,
     fontSize: 14,
     color: colors.textMuted,
   },
-});
+}));

@@ -81,6 +81,18 @@ export interface RoutineStore {
 }
 
 /** Non-cryptographic id; unique enough for locally created routines. */
+/**
+ * Name for a routine created without one: "My Routine", then "My Routine
+ * 2", "My Routine 3"… so unnamed routines stay distinguishable in lists.
+ */
+export function defaultRoutineName(routines: Routine[]): string {
+  const taken = new Set(routines.map((routine) => routine.name));
+  if (!taken.has(DEFAULT_ROUTINE_NAME)) return DEFAULT_ROUTINE_NAME;
+  let n = 2;
+  while (taken.has(`${DEFAULT_ROUTINE_NAME} ${n}`)) n += 1;
+  return `${DEFAULT_ROUTINE_NAME} ${n}`;
+}
+
 function createRoutineId(source: string): string {
   return `routine-${source}-${Date.now()}`;
 }
@@ -154,7 +166,7 @@ export const ROUTINES_STORE_KEY = 'routines';
  */
 export const useRoutineStore = create<RoutineStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       routines: [],
       activeRoutineId: null,
       seedFromTemplate: (template) => {
@@ -169,7 +181,7 @@ export const useRoutineStore = create<RoutineStore>()(
         const now = Date.now();
         const routine: Routine = {
           id,
-          name: name?.trim() ? name : DEFAULT_ROUTINE_NAME,
+          name: name?.trim() ? name : defaultRoutineName(get().routines),
           exercises: [],
           createdAt: now,
           updatedAt: now,

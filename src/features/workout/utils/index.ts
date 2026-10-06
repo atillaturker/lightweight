@@ -2,6 +2,7 @@ export {
   countRoutineSets,
   estimateRoutineMinutes,
   resolveRoutineExercises,
+  routineAfter,
   selectNextRoutine,
 } from './routineSelection';
 export {

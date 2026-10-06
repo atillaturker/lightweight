@@ -10,7 +10,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Circle, Line, Path, Svg, Text as SvgText } from 'react-native-svg';
 
-import { colors } from '@theme';
+import { useTheme } from '@theme';
 
 /** Total rendered height, including the x-axis labels. */
 export const EXERCISE_CHART_HEIGHT = 180;
@@ -74,6 +74,7 @@ export function ExerciseLineChart({
   formatValue,
   testID,
 }: ExerciseLineChartProps): React.ReactElement | null {
+  const { colors } = useTheme();
   const values = points.filter((value): value is number => value !== null);
   if (width <= 0 || values.length === 0) return null;
 
