@@ -5,7 +5,7 @@
  * that switching the metric tab swaps the hero label and unit. Navigation is
  * mocked and the screen is not tested visually.
  */
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import React from 'react';
 
 // In-memory MMKV double, matching the pattern used across the suite.
@@ -36,6 +36,8 @@ import {
 } from '@features/history/store';
 
 import type { ProgressStackParamList } from '@/app/navigation/types';
+
+import { gutter } from '@theme';
 
 import { ProgressScreen } from '../screens/ProgressScreen';
 
@@ -120,5 +122,30 @@ describe('ProgressScreen before the first workout', () => {
 
     expect(screen.getByTestId('progress-empty')).toBeTruthy();
     expect(screen.getByTestId('body-weight-section')).toBeTruthy();
+  });
+});
+
+describe('ProgressScreen layout', () => {
+  it('insets every canvas section to the screen gutter', () => {
+    render(<ProgressScreen navigation={navigation} route={{} as Props['route']} />);
+
+    for (const [wrapper, section] of [
+      ['progress-section-activity', 'activity-section'],
+      ['progress-section-body-weight', 'body-weight-section'],
+      ['progress-section-muscles', 'muscle-map-section'],
+    ]) {
+      const inset = screen.getByTestId(wrapper);
+      expect(inset).toHaveStyle({ paddingHorizontal: gutter });
+      expect(within(inset).getByTestId(section)).toBeTruthy();
+    }
+  });
+
+  it('insets body weight before the first workout too', () => {
+    useHistoryStore.setState({ sessions: [] });
+    render(<ProgressScreen navigation={navigation} route={{} as Props['route']} />);
+
+    const inset = screen.getByTestId('progress-section-body-weight');
+    expect(inset).toHaveStyle({ paddingHorizontal: gutter });
+    expect(within(inset).getByTestId('body-weight-section')).toBeTruthy();
   });
 });

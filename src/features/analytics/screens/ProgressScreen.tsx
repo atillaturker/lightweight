@@ -37,6 +37,8 @@ import {
   PRStrip,
   ProgressBarChart,
   ProgressHero,
+  SECTION_CONTENT_GAP,
+  SECTION_HEADER_HEIGHT,
 } from "../components";
 import { useProgressData } from "../hooks";
 import {
@@ -191,6 +193,8 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
   /** Chart width inside the hero card: screen minus gutters and card padding. */
   const chartWidth =
     width - gutter * 2 - spacing.lg * 2 - CARD_BORDER * 2;
+  /** Width of a section that sits on the canvas: screen minus gutters. */
+  const sectionWidth = width - gutter * 2;
 
   const openPRHistory = useCallback((): void => {
     // Preselect the History filter so the tab opens on the PR list the
@@ -216,8 +220,8 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
         // before the first session.
         <ScrollView contentContainerStyle={styles.content} testID="progress-empty-scroll">
           <ProgressEmptyState />
-          <View style={styles.section}>
-            <BodyWeightSection unit={getWeightUnit()} width={chartWidth} />
+          <View style={styles.paddedSection} testID="progress-section-body-weight">
+            <BodyWeightSection unit={getWeightUnit()} width={sectionWidth} />
           </View>
         </ScrollView>
       ) : (
@@ -284,16 +288,16 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
             </View>
           ) : null}
 
-          <View style={styles.section}>
-            <ActivitySection width={chartWidth} />
+          <View style={styles.paddedSection} testID="progress-section-activity">
+            <ActivitySection width={sectionWidth} />
           </View>
 
-          <View style={styles.section}>
-            <BodyWeightSection unit={getWeightUnit()} width={chartWidth} />
+          <View style={styles.paddedSection} testID="progress-section-body-weight">
+            <BodyWeightSection unit={getWeightUnit()} width={sectionWidth} />
           </View>
 
-          <View style={styles.section}>
-            <MuscleMapSection width={chartWidth} />
+          <View style={styles.paddedSection} testID="progress-section-muscles">
+            <MuscleMapSection width={sectionWidth} />
           </View>
 
           {data.exerciseRows.length > 0 ? (
@@ -312,7 +316,6 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
                       <Text style={styles.sortLabel}>{EXERCISE_SORT_LABELS[sortMode]}</Text>
                     </Pressable>
                   }
-                  icon="trend"
                   label="By exercise"
                 />
               </View>
@@ -411,20 +414,22 @@ const useStyles = createStyles((colors) => ({
   },
 
   section: { marginTop: SECTION_GAP },
+  /** A section drawn on the canvas, inset to the screen gutter. */
+  paddedSection: { marginTop: SECTION_GAP, paddingHorizontal: gutter },
   sectionHeader: {
-    height: 44,
+    height: SECTION_HEADER_HEIGHT,
     paddingHorizontal: gutter,
     justifyContent: "center",
   },
   sortAction: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   sortLabel: { ...type.label, color: colors.textMuted },
-  rows: { marginTop: spacing.sm, marginHorizontal: gutter },
+  rows: { marginTop: SECTION_CONTENT_GAP, marginHorizontal: gutter },
 
+  /** Sits above Body weight, so it is padded rather than centered in the screen. */
   empty: {
-    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    paddingBottom: spacing.giant,
+    paddingTop: spacing.giant,
+    paddingHorizontal: gutter,
   },
   emptyTitle: {
     ...type.sectionTitle,
