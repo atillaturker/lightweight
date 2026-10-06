@@ -9,3 +9,9 @@ export {
   visibleEquipment,
 } from './exerciseFilter';
 export type { ExerciseFilter } from './exerciseFilter';
+export {
+  linkWithNext,
+  normalizeSupersets,
+  supersetLabels,
+  unlinkFromSuperset,
+} from './supersets';

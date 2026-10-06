@@ -25,6 +25,8 @@ export interface RoutineEditorRowProps {
   measure?: "reps" | "time";
   /** Reps are per side ("3 × 8 / side"). */
   perSide?: boolean;
+  /** "A1", "A2"… when the slot is in a superset. */
+  supersetLabel?: string;
   /** Draw the hairline above the row (every row but the first). */
   showDivider: boolean;
   onEditTarget: () => void;
@@ -58,6 +60,7 @@ export function RoutineEditorRow({
   targetReps,
   measure = "reps",
   perSide = false,
+  supersetLabel,
   showDivider,
   onEditTarget,
 }: RoutineEditorRowProps): React.ReactElement {
@@ -73,6 +76,7 @@ export function RoutineEditorRow({
             {name}
           </Text>
           <Text style={styles.muscleLabel}>
+            {supersetLabel !== undefined ? `Superset ${supersetLabel} · ` : ""}
             {muscleGroup
               ? muscleGroup.charAt(0).toUpperCase() + muscleGroup.slice(1)
               : "Other"}

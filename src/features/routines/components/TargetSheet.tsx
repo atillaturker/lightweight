@@ -36,6 +36,11 @@ export interface TargetSheetProps {
   onConfirm: (sets: number, repsOrSeconds: number) => void;
   onRemove: () => void;
   onClose: () => void;
+  /**
+   * Superset actions for this slot ("Superset with next", "Remove from
+   * superset"); empty when none applies.
+   */
+  supersetActions?: readonly { label: string; onPress: () => void }[];
 }
 
 /**
@@ -56,6 +61,7 @@ export function TargetSheet({
   onConfirm,
   onRemove,
   onClose,
+  supersetActions = [],
 }: TargetSheetProps): React.ReactElement {
   const styles = useStyles();
   const isTimed = measure === "time";
@@ -130,6 +136,23 @@ export function TargetSheet({
             ))}
           </View>
 
+          <View style={styles.supersetActions}>
+            {supersetActions.map((action) => (
+              <Pressable
+                accessibilityLabel={action.label}
+                accessibilityRole="button"
+                key={action.label}
+                onPress={() => {
+                  action.onPress();
+                  onClose();
+                }}
+                style={styles.supersetAction}
+              >
+                <Text style={styles.supersetLabel}>{action.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+
           <Pressable
             accessibilityLabel="Remove exercise"
             accessibilityRole="button"
@@ -194,10 +217,19 @@ const useStyles = createStyles((colors) => ({
     marginTop: spacing.sm,
   },
 
+  supersetActions: { marginTop: spacing.xxl },
+  supersetAction: {
+    justifyContent: "center",
+    height: 44,
+  },
+  supersetLabel: {
+    ...type.button,
+    color: colors.textPrimary,
+  },
   removeAction: {
     justifyContent: "center",
     height: 44,
-    marginTop: spacing.xxl,
+    marginTop: spacing.sm,
   },
   removeLabel: {
     ...type.button,

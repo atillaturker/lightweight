@@ -35,6 +35,15 @@ Routine CRUD and exercise picker. Three screens.
   tile when there is none. Do not fall back to the muscle icon there.
   Never substitute with `@expo/vector-icons`.
 
+## Supersets
+
+A superset is a run of consecutive slots sharing `supersetGroup` (stored
+as a letter: A, B…; labeled A1, A2 in the UI). Built from the target
+sheet ("Superset with next", "Remove from superset"). Every list
+mutation goes through `reindex`, which calls `normalizeSupersets`, so a
+reorder or removal never leaves a broken group (lone members are
+cleared, runs relabeled in order).
+
 ## Set targets
 
 Target format: `<sets> × <reps>`; timed exercises use `<sets> × <seconds>s`
