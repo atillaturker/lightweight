@@ -9,3 +9,4 @@ export type { Set, SetType } from './Set';
 export type { Workout } from './Workout';
 export type { ProgressionPolicy, Routine, RoutineExercise } from './Routine';
 export type { Appearance, User, UserPreferences, WeightUnit, WeekStart } from './User';
+export type { BodyWeightEntry } from './BodyWeight';

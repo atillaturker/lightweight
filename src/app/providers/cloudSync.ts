@@ -9,7 +9,13 @@
  */
 import NetInfo from '@react-native-community/netinfo';
 
-import type { Exercise, Workout } from '@domain/entities';
+import type { BodyWeightEntry, Exercise, Workout } from '@domain/entities';
+import {
+  enqueueBodyWeightSave,
+  isBodyWeightQueueBody,
+  setCloudBodyWeightWriter,
+} from '@features/bodyweight/services';
+import { saveBodyWeightToFirestore } from '@features/bodyweight/services/firestoreBodyWeight';
 import { useAuthStore } from '@features/auth/store';
 import {
   enqueueWorkoutDelete,
@@ -107,6 +113,39 @@ export function queueCustomExerciseUploads(uid: string, exercises: Exercise[]): 
   }
 }
 
+/** Body-weight days `uid` still has a queued save for. */
+function pendingBodyWeightDates(uid: string): Set<string> {
+  const dates = new Set<string>();
+  for (const mutation of useOfflineQueue.getState().queue) {
+    const body = mutation.body;
+    if (isBodyWeightQueueBody(body) && body.uid === uid) dates.add(body.entry.date);
+  }
+  return dates;
+}
+
+/** Queue uploads for body-weight entries the cloud lacks or holds older. */
+export function queueBodyWeightUploads(uid: string, entries: BodyWeightEntry[]): void {
+  const pending = pendingBodyWeightDates(uid);
+  for (const entry of entries) {
+    if (!pending.has(entry.date)) enqueueBodyWeightSave(uid, entry);
+  }
+}
+
+/** Write a body-weight entry when online, otherwise (or on failure) queue it. */
+async function writeOrQueueBodyWeight(uid: string, entry: BodyWeightEntry): Promise<void> {
+  const online = await isOnline();
+  if (online) {
+    try {
+      await saveBodyWeightToFirestore(uid, entry);
+      return;
+    } catch (error: unknown) {
+      console.warn('[firestore] body weight write failed, queueing instead', error);
+    }
+  }
+  enqueueBodyWeightSave(uid, entry);
+  if (online) flushQueue();
+}
+
 /** Write a custom exercise when online, otherwise (or on failure) queue it. */
 async function writeOrQueueCustomExercise(uid: string, exercise: Exercise): Promise<void> {
   const online = await isOnline();
@@ -173,6 +212,10 @@ async function deleteOrQueueWorkout(
 
 /** Deliver one queued Firestore mutation. */
 async function deliverQueuedMutation(mutation: QueuedMutation): Promise<void> {
+  if (isBodyWeightQueueBody(mutation.body)) {
+    await saveBodyWeightToFirestore(mutation.body.uid, mutation.body.entry);
+    return;
+  }
   if (isCustomExerciseQueueBody(mutation.body)) {
     await saveCustomExerciseToFirestore(mutation.body.uid, mutation.body.exercise);
     return;
@@ -224,6 +267,16 @@ export function registerCloudSync(): void {
     }
     void writeOrQueueCustomExercise(uid, exercise).catch((error: unknown) => {
       console.warn('[firestore] custom exercise sync failed', error);
+    });
+  });
+  setCloudBodyWeightWriter((entry) => {
+    const uid = currentUid();
+    if (uid === null) {
+      console.warn('[firestore] no signed-in uid; body weight write skipped');
+      return;
+    }
+    void writeOrQueueBodyWeight(uid, entry).catch((error: unknown) => {
+      console.warn('[firestore] body weight sync failed', error);
     });
   });
   setQueueScopeProvider(currentUid);

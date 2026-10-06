@@ -12,6 +12,7 @@ const mockSaveUserPreferences = jest.fn();
 const mockSaveHasOnboarded = jest.fn();
 const mockFetchWorkouts = jest.fn();
 const mockFetchCustomExercises = jest.fn();
+const mockFetchBodyWeight = jest.fn();
 
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
@@ -39,12 +40,18 @@ jest.mock('@features/routines/services/firestoreCustomExercises', () => ({
   saveCustomExerciseToFirestore: jest.fn(),
 }));
 
+jest.mock('@features/bodyweight/services/firestoreBodyWeight', () => ({
+  fetchBodyWeightFromFirestore: (...args: unknown[]) => mockFetchBodyWeight(...args),
+  saveBodyWeightToFirestore: jest.fn(),
+}));
+
 import { act, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 import { useAuthStore } from '@features/auth/store';
 import type { Exercise, Workout } from '@domain/entities';
 import { useCustomExerciseStore } from '@features/routines/store';
+import { useBodyWeightStore } from '@features/bodyweight/store';
 import { useHistoryStore } from '@features/history/store';
 import { useOfflineQueue } from '@infrastructure/network';
 
@@ -88,6 +95,8 @@ beforeEach(() => {
   mockFetchWorkouts.mockResolvedValue(remoteOf([]));
   mockFetchCustomExercises.mockResolvedValue([]);
   useCustomExerciseStore.setState({ exercises: [] });
+  mockFetchBodyWeight.mockResolvedValue([]);
+  useBodyWeightStore.setState({ entries: [] });
   useHistoryStore.setState({ sessions: [] });
   useOfflineQueue.setState({ queue: [] });
   useAuthStore.setState({
@@ -291,5 +300,38 @@ describe('useCloudSync custom exercises', () => {
     expect(queuedCustomIds()).toEqual([]);
     expect(useCustomExerciseStore.getState().exercises).toHaveLength(1);
     warn.mockRestore();
+  });
+});
+
+describe('useCloudSync body weight', () => {
+  function queuedDays(): string[] {
+    return useOfflineQueue.getState().queue.flatMap((item) => {
+      const body = item.body as { kind?: string; entry?: { date: string } };
+      return body.kind === 'saveBodyWeight' && body.entry ? [body.entry.date] : [];
+    });
+  }
+
+  it('merges per day and queues the local days the cloud lacks or holds older', async () => {
+    useBodyWeightStore.setState({
+      entries: [
+        { date: '2024-04-15', weightKg: 80, updatedAt: 10 },
+        { date: '2024-04-16', weightKg: 79, updatedAt: 1 },
+      ],
+    });
+    mockFetchBodyWeight.mockResolvedValue([
+      { date: '2024-04-16', weightKg: 79.5, updatedAt: 5 },
+      { date: '2024-04-14', weightKg: 81, updatedAt: 3 },
+    ]);
+
+    render(<CloudSync />);
+
+    await waitFor(() =>
+      expect(useBodyWeightStore.getState().entries.map((e) => [e.date, e.weightKg])).toEqual([
+        ['2024-04-14', 81],
+        ['2024-04-15', 80],
+        ['2024-04-16', 79.5],
+      ]),
+    );
+    expect(queuedDays()).toEqual(['2024-04-15']);
   });
 });

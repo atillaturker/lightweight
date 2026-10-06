@@ -26,3 +26,5 @@ export { MuscleMapSection } from './MuscleMapSection';
 export type { MuscleMapSectionProps } from './MuscleMapSection';
 export { ActivitySection } from './ActivitySection';
 export type { ActivitySectionProps } from './ActivitySection';
+export { BodyWeightSection } from './BodyWeightSection';
+export type { BodyWeightSectionProps } from './BodyWeightSection';

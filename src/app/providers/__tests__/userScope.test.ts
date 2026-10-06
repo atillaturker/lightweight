@@ -22,6 +22,7 @@ jest.mock('react-native-mmkv', () => ({
 
 import type { Workout } from '@domain/entities';
 import { useAuthStore } from '@features/auth/store';
+import { useBodyWeightStore } from '@features/bodyweight/store';
 import type { AuthUser } from '@features/auth/types';
 import { useHistoryStore } from '@features/history/store';
 import { usePreferencesStore } from '@features/profile/store';
@@ -127,5 +128,18 @@ describe('registerUserScope', () => {
     useAuthStore.getState().reset();
     useAuthStore.getState().setUser(makeUser('uid-a'));
     expect(useCustomExerciseStore.getState().exercises.map((e) => e.name)).toEqual(['Seal Row']);
+  });
+
+  it('keeps body weight with its account', () => {
+    useAuthStore.getState().setUser(makeUser('uid-a'));
+    useBodyWeightStore.getState().logWeight(80);
+
+    useAuthStore.getState().reset();
+    useAuthStore.getState().setUser(makeUser('uid-b'));
+    expect(useBodyWeightStore.getState().entries).toEqual([]);
+
+    useAuthStore.getState().reset();
+    useAuthStore.getState().setUser(makeUser('uid-a'));
+    expect(useBodyWeightStore.getState().entries.map((e) => e.weightKg)).toEqual([80]);
   });
 });

@@ -107,8 +107,8 @@ which reacts to sign-in and app-foreground events.
 
 ### Per-account storage
 
-History, routines, custom exercises, the active workout and preferences
-are persisted per signed-in uid (`<key>:<uid>` in MMKV).
+History, routines, custom exercises, body weight, the active workout and
+preferences are persisted per signed-in uid (`<key>:<uid>` in MMKV).
 `src/app/providers/userScope.ts`
 switches them synchronously whenever the auth user changes, so one
 account never sees or writes another's data, and nothing is deleted on
@@ -119,11 +119,13 @@ export its base key.
 ### Sync
 
 - Firestore paths: `users/{uid}` (profile),
-  `users/{uid}/workouts/{workoutId}` and
-  `users/{uid}/exercises/{exerciseId}` (custom exercises). Shapes live in
+  `users/{uid}/workouts/{workoutId}`,
+  `users/{uid}/exercises/{exerciseId}` (custom exercises) and
+  `users/{uid}/bodyweight/{YYYY-MM-DD}`. Shapes live in
   `src/features/profile/services/userProfileDocument.ts`,
-  `src/features/history/services/workoutDocument.ts` and
-  `src/features/routines/services/customExerciseDocument.ts`.
+  `src/features/history/services/workoutDocument.ts`,
+  `src/features/routines/services/customExerciseDocument.ts` and
+  `src/features/bodyweight/services/bodyWeightDocument.ts`.
 - Custom exercises are never deleted, only archived (logged sets keep
   their ids); on sign-in they merge by id, newer `updatedAt` winning.
 - Finished workouts are immutable. Deleting one writes a tombstone
@@ -336,8 +338,8 @@ Never create a screen before its types, service and hook exist.
 - **Onboarding, Workout, Routines, Analytics, History, Profile**:
   implemented under `src/features/`.
 - **Backend**: Firebase Auth + Firestore. Workouts, custom exercises,
-  the profile and preferences sync (see "Sync"). Routines are
-  local-only.
+  body weight, the profile and preferences sync (see "Sync"). Routines
+  are local-only.
 - **Exercise library**: 1,170 exercises from exercises-dataset (MIT),
   106 with Everkinetic illustrations (CC BY-SA 4.0). See
   `THIRD_PARTY_NOTICES.md`.
@@ -363,6 +365,7 @@ Never create a screen before its types, service and hook exist.
 | Working on routines        | `/src/features/routines/AGENTS.md`   |
 | Working on history         | `/src/features/history/AGENTS.md`    |
 | Working on profile         | `/src/features/profile/AGENTS.md`    |
+| Working on body weight     | `/src/features/bodyweight/AGENTS.md` |
 
 ---
 

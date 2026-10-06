@@ -60,6 +60,8 @@ const CUSTOM_EXERCISE = {
   updatedAt: 1,
 };
 
+const BODY_WEIGHT = { date: '2024-04-16', weightKg: 80.5, updatedAt: 1, deleted: false };
+
 let env: RulesTestEnvironment;
 
 /** Firestore as the signed-in `uid`, or unauthenticated for `null`. */
@@ -235,5 +237,29 @@ describe('users/{uid}/exercises/{exerciseId}', () => {
     await assertFails(setDoc(ref, { ...CUSTOM_EXERCISE, muscleGroup: 'neck' }));
     await assertFails(setDoc(ref, { ...CUSTOM_EXERCISE, name: '' }));
     await assertFails(setDoc(ref, { ...CUSTOM_EXERCISE, isAdmin: true }));
+  });
+});
+
+describe('users/{uid}/bodyweight/{date}', () => {
+  const path = 'users/alice/bodyweight/2024-04-16';
+
+  it('lets the owner log, remove (tombstone) and read an entry', async () => {
+    const ref = doc(dbAs('alice'), path);
+    await assertSucceeds(setDoc(ref, BODY_WEIGHT));
+    await assertSucceeds(setDoc(ref, { ...BODY_WEIGHT, deleted: true, updatedAt: 2 }));
+    await assertSucceeds(getDoc(ref));
+  });
+
+  it('denies other users and hard deletes', async () => {
+    await seed(path, BODY_WEIGHT);
+    await assertFails(getDoc(doc(dbAs('bob'), path)));
+    await assertFails(deleteDoc(doc(dbAs('alice'), path)));
+  });
+
+  it('rejects a date that does not match the id, implausible weights and extra keys', async () => {
+    const ref = doc(dbAs('alice'), path);
+    await assertFails(setDoc(ref, { ...BODY_WEIGHT, date: '2024-04-17' }));
+    await assertFails(setDoc(ref, { ...BODY_WEIGHT, weightKg: 5 }));
+    await assertFails(setDoc(ref, { ...BODY_WEIGHT, note: 'heavy' }));
   });
 });

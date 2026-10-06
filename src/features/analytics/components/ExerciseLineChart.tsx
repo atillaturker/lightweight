@@ -61,6 +61,8 @@ export interface ExerciseLineChartProps {
   width: number;
   /** Formats a value for the y-axis labels. */
   formatValue: (value: number) => string;
+  /** Start and end x-axis labels; defaults to the 8-week `W1` / `W8`. */
+  axisLabels?: readonly [string, string];
   testID?: string;
 }
 
@@ -72,6 +74,7 @@ export function ExerciseLineChart({
   points,
   width,
   formatValue,
+  axisLabels = ["W1", "W8"],
   testID,
 }: ExerciseLineChartProps): React.ReactElement | null {
   const { colors } = useTheme();
@@ -185,7 +188,7 @@ export function ExerciseLineChart({
           x={PLOT_LEFT}
           y={AXIS_LABEL_Y}
         >
-          W1
+          {axisLabels[0]}
         </SvgText>
         <SvgText
           fill={colors.textMuted}
@@ -195,7 +198,7 @@ export function ExerciseLineChart({
           x={width}
           y={AXIS_LABEL_Y}
         >
-          W8
+          {axisLabels[1]}
         </SvgText>
       </Svg>
     </View>
