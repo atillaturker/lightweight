@@ -15,9 +15,10 @@ const HISTORY_LIMIT = 24;
 
 /**
  * Keep only the most recently completed sets belonging to the last
- * session that logged this exercise.
+ * session that logged this exercise. `sets` is chronological (the
+ * exercise-history seam's contract).
  */
-function lastSessionSets(sets: Set[]): Set[] {
+export function lastSessionSets(sets: Set[]): Set[] {
   const completed = sets
     .filter((set) => set.completed)
     .slice(-HISTORY_LIMIT);

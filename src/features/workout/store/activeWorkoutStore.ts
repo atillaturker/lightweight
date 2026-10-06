@@ -35,6 +35,7 @@ import { getExerciseHistory } from '@features/workout/services';
 import { zustandStorage } from '@infrastructure/storage';
 
 import type { ActiveExercise, ActiveSet } from '@features/workout/types';
+import { lastSessionSets } from '@features/workout/utils/lastPerformance';
 
 /** A set payload as accepted by {@link ActiveWorkoutState.logSet}. */
 export type NewActiveSet = Omit<ActiveSet, 'id' | 'completedAt' | 'isPR'>;
@@ -150,8 +151,9 @@ function newActiveSet(seed: SeedSet | undefined, timed: boolean, holdSeconds: nu
  * to come from history.
  */
 function buildInitialSets(exercise: Exercise, slot: RoutineExercise): ActiveSet[] {
-  const history = getExerciseHistory(exercise.id);
-  const seeds = history.length > 0 ? history.map(toSeed) : [];
+  // Seed from the most recent session only: set N starts where set N
+  // ended last time.
+  const seeds = lastSessionSets(getExerciseHistory(exercise.id)).map(toSeed);
   const setCount = Math.max(slot.targetSets, 1);
   const timed = isTimedExercise(exercise);
   const holdSeconds = slot.targetSeconds ?? DEFAULT_HOLD_SECONDS;

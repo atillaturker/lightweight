@@ -33,6 +33,7 @@ jest.mock('@lib/id', () => ({
 import type { Exercise, Routine } from '@domain/entities';
 
 import { EMPTY_WORKOUT, toDomainSets, useActiveWorkoutStore } from '../activeWorkoutStore';
+import { resetSessionDataProviders, setExerciseHistoryProvider } from '../../services';
 
 /** Build a routine with one slot per provided exercise id. */
 function makeRoutine(exerciseIds: string[]): Routine {
@@ -374,5 +375,39 @@ describe('timed, per-side and bodyweight exercises', () => {
       reps: 0,
       durationSec: 30,
     });
+  });
+});
+
+describe('seeding from history', () => {
+  afterEach(() => resetSessionDataProviders());
+
+  it('starts each set where the same set ended in the most recent session', () => {
+    const past = (workoutId: string, weightKg: number, reps: number, order: number) => ({
+      id: `${workoutId}-${order}`,
+      exerciseId: 'bench',
+      workoutId,
+      weightKg,
+      reps,
+      type: 'normal' as const,
+      completed: true,
+      completedAt: 1,
+      order,
+    });
+    // Chronological, as the seam promises: the older session comes first.
+    setExerciseHistoryProvider(() => [
+      past('old', 60, 10, 0),
+      past('old', 60, 10, 1),
+      past('new', 80, 8, 0),
+      past('new', 85, 6, 1),
+    ]);
+
+    useActiveWorkoutStore.getState().startWorkout(makeRoutine(['bench']), EXERCISES);
+
+    const sets = useActiveWorkoutStore.getState().exercises[0].sets;
+    expect(sets.map((set) => [set.weightKg, set.reps])).toEqual([
+      [80, 8],
+      [85, 6],
+      [85, 6],
+    ]);
   });
 });
