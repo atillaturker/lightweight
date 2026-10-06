@@ -63,6 +63,22 @@ export function parseDraftValue(text: string, field: NumericField): number | nul
   return value;
 }
 
+/**
+ * Apply the first edit after a cell is focused. The draft is seeded with
+ * the cell's current value so it stays visible, but the user's first
+ * keystroke replaces it instead of extending it (tapping "0" and typing
+ * 85 must give 85, not 085). Deleting from the seed clears the field.
+ *
+ * The hidden input's caret is normally at the end, so typed characters
+ * arrive after the seed; a caret at the start is handled the same way.
+ */
+export function replaceSeed(seed: string, text: string): string {
+  if (seed.startsWith(text)) return ''; // a backspace into the seed
+  if (text.startsWith(seed)) return text.slice(seed.length);
+  if (text.endsWith(seed)) return text.slice(0, text.length - seed.length);
+  return text;
+}
+
 /** Whether two cell references point at the same field of the same set. */
 export function sameCell(a: FocusedCell, b: FocusedCell): boolean {
   return a.setId === b.setId && a.field === b.field;
@@ -84,6 +100,8 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
 
   const cellRef = useRef<FocusedCell | null>(null);
   const textRef = useRef('');
+  /** The value the draft was seeded with, until the first edit replaces it. */
+  const seedRef = useRef<string | null>(null);
   const commitRef = useRef(onCommit);
   commitRef.current = onCommit;
 
@@ -97,6 +115,7 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
   const clearDraft = useCallback((): void => {
     cellRef.current = null;
     textRef.current = '';
+    seedRef.current = null;
     setFocusedCell(null);
     setDraftValue('');
   }, []);
@@ -117,6 +136,10 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
    * Start editing a cell. Moving from one cell to another commits the cell
    * being left behind first, because the hidden input keeps focus across a
    * tap and therefore never fires `onBlur` on its own.
+   *
+   * When no cell was being edited the input should not hold focus. If it
+   * still does (the keyboard was dismissed without a blur), `focus()` would
+   * be a no-op and the keyboard would never come back, so blur it first.
    */
   const focusCell = useCallback(
     (cell: FocusedCell, currentValue: number): void => {
@@ -127,22 +150,33 @@ export function useSetTableDraft(onCommit: CommitDraft): SetTableDraft {
       const text = String(currentValue);
       cellRef.current = cell;
       textRef.current = text;
+      seedRef.current = text;
       setFocusedCell(cell);
       setDraftValue(text);
-      inputRef.current?.focus();
+      const input = inputRef.current;
+      if (previous === null && input?.isFocused()) input.blur();
+      input?.focus();
     },
     [writeDraft],
   );
 
   const changeDraft = useCallback((text: string): void => {
-    const sanitized = sanitizeNumericInput(text);
+    const seed = seedRef.current;
+    seedRef.current = null;
+    const edited = seed === null ? text : replaceSeed(seed, text);
+    const sanitized = sanitizeNumericInput(edited);
     textRef.current = sanitized;
     setDraftValue(sanitized);
   }, []);
 
-  // Android's back gesture hides the keyboard without blurring the input.
+  // Android's back gesture (and other system dismissals) hide the keyboard
+  // without blurring the input. Commit the draft and blur too, so the next
+  // tap on a cell can raise the keyboard again.
   useEffect(() => {
-    const subscription = Keyboard.addListener('keyboardDidHide', commit);
+    const subscription = Keyboard.addListener('keyboardDidHide', () => {
+      commit();
+      inputRef.current?.blur();
+    });
     return () => subscription.remove();
   }, [commit]);
 
