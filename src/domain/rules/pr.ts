@@ -1,5 +1,6 @@
 import type { Set } from '../entities/Set';
 import { calculateE1RM, isE1RMEligible, isWorkingSet } from './e1rm';
+import { isTimedSet } from './exerciseKind';
 
 /**
  * The kinds of personal record tracked by the app.
@@ -10,6 +11,7 @@ export type PRType =
   | 'heaviest_set'
   | 'best_1rm'
   | 'most_reps'
+  | 'longest_hold'
   | 'best_session_volume';
 
 /**
@@ -18,7 +20,10 @@ export type PRType =
 export interface PRRecord {
   type: PRType;
   exerciseId: string;
-  /** Kilograms for weight-based records, reps for `most_reps`. */
+  /**
+   * Kilograms for weight-based records, reps for `most_reps`, seconds for
+   * `longest_hold`.
+   */
   value: number;
   /** For `heaviest_set`: reps achieved at that weight. */
   repsAtWeight?: number;
@@ -61,10 +66,38 @@ function maxRepsAtLeastWeight(history: Set[], weightKg: number): number {
   return max;
 }
 
+/** Longest hold among historical timed working sets, or 0 when none. */
+function maxDuration(history: Set[]): number {
+  let max = 0;
+  for (const set of history) {
+    if (isWorkingSet(set) && isTimedSet(set)) {
+      max = Math.max(max, set.durationSec ?? 0);
+    }
+  }
+  return max;
+}
+
+/** A timed set's only record: holding longer than ever before. */
+function detectTimedPRs(history: Set[], newSet: Set): PRRecord[] {
+  const seconds = newSet.durationSec ?? 0;
+  if (seconds <= maxDuration(history)) return [];
+  return [
+    {
+      type: 'longest_hold',
+      exerciseId: newSet.exerciseId,
+      value: seconds,
+      achievedAt: newSet.completedAt ?? 0,
+    },
+  ];
+}
+
 /**
  * Given historical sets for an exercise and a new set,
  * return the PRs the new set achieves. Empty array if none.
  * Warmup sets never count.
+ *
+ * Timed sets only compete with timed sets, for `longest_hold`; the rep
+ * and weight records ignore timed history.
  *
  * - `heaviest_set` — a strictly heavier completed working set.
  * - `best_1rm` — a strictly higher Epley estimate, from a set of at most
@@ -72,10 +105,14 @@ function maxRepsAtLeastWeight(history: Set[], weightKg: number): number {
  * - `most_reps` — more reps than any prior working set at an equal or
  *   heavier weight (not a naive global rep maximum).
  */
-export function detectPRs(historicalSets: Set[], newSet: Set): PRRecord[] {
-  if (!isWorkingSet(newSet) || newSet.reps < 1) {
+export function detectPRs(allHistory: Set[], newSet: Set): PRRecord[] {
+  if (!isWorkingSet(newSet)) {
     return [];
   }
+  if (isTimedSet(newSet)) {
+    return detectTimedPRs(allHistory, newSet);
+  }
+  const historicalSets = allHistory.filter((set) => !isTimedSet(set));
   const records: PRRecord[] = [];
   const achievedAt = newSet.completedAt ?? 0;
 

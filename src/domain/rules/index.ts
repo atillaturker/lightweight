@@ -7,7 +7,9 @@ export {
 } from './e1rm';
 export {
   calculateVolume,
+  setVolume,
   summarizeVolume,
+  totalReps,
   weeklyVolume,
   startOfWeek,
   addWeeks,
@@ -30,3 +32,9 @@ export {
   RPE_MIN,
   RPE_STEP,
 } from './effort';
+export {
+  isBodyweightExercise,
+  isTimedExercise,
+  isTimedSet,
+  sideCount,
+} from './exerciseKind';

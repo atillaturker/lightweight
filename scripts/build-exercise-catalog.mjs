@@ -81,6 +81,32 @@ const EVERKINETIC_OVERRIDES = {
   'tricep-pushdown': 'triceps-pushdown-with-cable',
 };
 
+/**
+ * Exercises logged by time held rather than reps. Picked by hand: name
+ * patterns ("plank", "hang") also match dynamic movements like
+ * "Hang Clean" or "Push-up to Side Plank".
+ */
+const TIMED_IDS = new Set([
+  'weighted-front-plank',
+  'side-bridge-v-2',
+  'bodyweight-incline-side-plank',
+  'l-sit-on-floor',
+  'v-sit-on-floor',
+  'isometric-chest-squeeze',
+  'farmers-walk',
+  'dumbbell-single-arm-overhead-carry',
+]);
+
+/** One arm or one leg at a time: reps are logged per side. */
+const PER_SIDE_PATTERN = /\b(one|single)[ -](arm|leg)\b/i;
+
+/** Per-side exercises whose names do not say so. */
+const PER_SIDE_IDS = new Set([
+  'bulgarian-split-squat',
+  'side-bridge-v-2',
+  'bodyweight-incline-side-plank',
+]);
+
 const BODY_PART_TO_GROUP = {
   chest: 'chest',
   back: 'back',
@@ -193,6 +219,8 @@ function inkOnlySvg(xml) {
 /** Turn one dataset record into a catalog entry. */
 function toEntry(id, name, muscleGroup, equipment, record) {
   const entry = { id, name, muscleGroup, equipment };
+  if (TIMED_IDS.has(id)) entry.measure = 'time';
+  if (PER_SIDE_IDS.has(id) || PER_SIDE_PATTERN.test(name)) entry.perSide = true;
   if (!record) return entry;
   entry.targetMuscle = record.target;
   entry.secondaryMuscles = record.secondary_muscles;
@@ -298,6 +326,10 @@ function main() {
   for (const { entry } of entries) groups[entry.muscleGroup] = (groups[entry.muscleGroup] ?? 0) + 1;
   console.log(`catalog: ${entries.length} exercises`, groups);
   console.log(`illustrated: ${media.length}`);
+  const timed = entries.filter((e) => e.entry.measure === 'time').map((e) => e.entry.id);
+  const missing = [...TIMED_IDS].filter((id) => !timed.includes(id));
+  if (missing.length > 0) throw new Error(`TIMED_IDS not in catalog: ${missing.join(', ')}`);
+  console.log(`timed: ${timed.length}, per side: ${entries.filter((e) => e.entry.perSide).length}`);
   if (process.env.VERBOSE) for (const m of media) console.log(`  ${m.id} ← ${m.everkinetic}`);
 }
 

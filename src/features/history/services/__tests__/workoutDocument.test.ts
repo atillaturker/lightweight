@@ -109,6 +109,29 @@ describe('fromWorkoutDocument', () => {
     expect(decoded).toEqual(WORKOUT);
   });
 
+  it('round-trips timed and per-side sets', () => {
+    const base = WORKOUT.sets[1];
+    const workout: Workout = {
+      ...WORKOUT,
+      sets: [
+        { ...base, id: 'hold', type: 'normal', weightKg: 0, reps: 0, durationSec: 45 },
+        { ...base, id: 'row', type: 'normal', reps: 8, perSide: true },
+      ],
+    };
+
+    const document = toWorkoutDocument(workout);
+
+    expect(document.sets[0].durationSec).toBe(45);
+    expect(document.sets[1].perSide).toBe(true);
+    expect(fromWorkoutDocument(workout.id, document)).toEqual(workout);
+  });
+
+  it('rejects a set whose durationSec is not a number', () => {
+    const document = toWorkoutDocument(WORKOUT);
+    const corrupt = { ...document, sets: [{ ...document.sets[0], durationSec: '45' }] };
+    expect(isWorkoutDocument(corrupt)).toBe(false);
+  });
+
   it('prefers the document id over the embedded id', () => {
     const decoded = fromWorkoutDocument(
       'document-id',

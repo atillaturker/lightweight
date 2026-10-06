@@ -1,5 +1,6 @@
 import type { Set } from '../entities/Set';
 import type { E1RMResult } from '../value-objects/E1RM';
+import { isTimedSet } from './exerciseKind';
 
 /**
  * Estimate 1RM using the Epley formula.
@@ -21,11 +22,12 @@ export function calculateE1RM(weightKg: number, reps: number): number {
 
 /**
  * A set counts as a working set when it is completed, not a warmup, and
- * has at least one rep. A zero-rep set carries no work and has no e1RM,
- * so letting it through would make every e1RM caller throw.
+ * carries work: at least one rep, or for a timed set at least one second.
+ * A zero-rep untimed set carries no work.
  */
 export function isWorkingSet(set: Set): boolean {
-  return set.completed && set.type !== 'warmup' && set.reps >= 1;
+  if (!set.completed || set.type === 'warmup') return false;
+  return isTimedSet(set) ? (set.durationSec ?? 0) >= 1 : set.reps >= 1;
 }
 
 /**
@@ -36,11 +38,16 @@ export function isWorkingSet(set: Set): boolean {
 export const E1RM_MAX_REPS = 12;
 
 /**
- * Whether a set can produce an e1RM: a working set of at most
+ * Whether a set can produce an e1RM: an untimed working set of 1 to
  * {@link E1RM_MAX_REPS} reps.
  */
 export function isE1RMEligible(set: Set): boolean {
-  return isWorkingSet(set) && set.reps <= E1RM_MAX_REPS;
+  return (
+    isWorkingSet(set) &&
+    !isTimedSet(set) &&
+    set.reps >= 1 &&
+    set.reps <= E1RM_MAX_REPS
+  );
 }
 
 /**

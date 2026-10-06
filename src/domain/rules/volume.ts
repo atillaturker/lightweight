@@ -3,6 +3,20 @@ import type { Workout } from '../entities/Workout';
 import type { WeekStart } from '../entities/User';
 import type { VolumeSummary } from '../value-objects/Volume';
 import { isWorkingSet } from './e1rm';
+import { sideCount } from './exerciseKind';
+
+/**
+ * Reps a set performed in total: per-side sets count both sides. Timed
+ * sets have 0 reps.
+ */
+export function totalReps(set: Set): number {
+  return set.reps * sideCount(set);
+}
+
+/** Volume (kg) of one set: weight × total reps. Timed sets add 0. */
+export function setVolume(set: Set): number {
+  return set.weightKg * totalReps(set);
+}
 
 /**
  * Calculate total volume (kg) for a list of sets.
@@ -13,7 +27,7 @@ export function calculateVolume(sets: Set[]): number {
   let total = 0;
   for (const set of sets) {
     if (isWorkingSet(set)) {
-      total += set.weightKg * set.reps;
+      total += setVolume(set);
     }
   }
   return total;
@@ -28,12 +42,12 @@ export function summarizeVolume(sets: Set[]): VolumeSummary {
     if (!isWorkingSet(set)) {
       continue;
     }
-    const setVolume = set.weightKg * set.reps;
-    summary.total += setVolume;
+    const volume = setVolume(set);
+    summary.total += volume;
     summary.sets += 1;
-    summary.reps += set.reps;
+    summary.reps += totalReps(set);
     summary.perExercise[set.exerciseId] =
-      (summary.perExercise[set.exerciseId] ?? 0) + setVolume;
+      (summary.perExercise[set.exerciseId] ?? 0) + volume;
   }
   return summary;
 }

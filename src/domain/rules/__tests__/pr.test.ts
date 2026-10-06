@@ -23,6 +23,26 @@ function types(records: Set[] | ReturnType<typeof detectPRs>): string[] {
 }
 
 describe('detectPRs', () => {
+  it('awards longest_hold to a timed set held longer than before', () => {
+    const history = [makeSet({ id: 'a', weightKg: 0, reps: 0, durationSec: 40 })];
+    const records = detectPRs(history, makeSet({ id: 'b', weightKg: 0, reps: 0, durationSec: 55 }));
+
+    expect(records).toEqual([
+      expect.objectContaining({ type: 'longest_hold', value: 55 }),
+    ]);
+  });
+
+  it('gives a timed set no weight or rep records', () => {
+    const records = detectPRs([], makeSet({ id: 'b', weightKg: 20, reps: 0, durationSec: 30 }));
+    expect(records.map((r) => r.type)).toEqual(['longest_hold']);
+  });
+
+  it('ignores timed history for rep records', () => {
+    const history = [makeSet({ id: 'a', weightKg: 40, reps: 0, durationSec: 60 })];
+    const records = detectPRs(history, makeSet({ id: 'b', weightKg: 20, reps: 5 }));
+    expect(records.map((r) => r.type)).toContain('heaviest_set');
+  });
+
   it('does not award best_1rm to a set above the e1RM rep cap', () => {
     const history = [makeSet({ id: 'a', weightKg: 100, reps: 5 })];
     // 80 × 20 estimates 133 kg, above 100 × 5 (117 kg), but is not eligible.
