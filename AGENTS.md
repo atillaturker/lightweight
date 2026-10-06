@@ -107,8 +107,9 @@ which reacts to sign-in and app-foreground events.
 
 ### Per-account storage
 
-History, routines, custom exercises, body weight, the active workout and
-preferences are persisted per signed-in uid (`<key>:<uid>` in MMKV).
+History, routines, custom exercises, exercise notes, body weight, the
+active workout and preferences are persisted per signed-in uid
+(`<key>:<uid>` in MMKV).
 `src/app/providers/userScope.ts`
 switches them synchronously whenever the auth user changes, so one
 account never sees or writes another's data, and nothing is deleted on
