@@ -14,3 +14,6 @@ export { useSessionActions } from './hooks';
 export type { SessionActions } from './hooks';
 
 export { HistoryScreen } from './screens';
+
+export { fromWorkoutDocument, isWorkoutDocument, toWorkoutDocument } from './services';
+export type { WorkoutDocument } from './services';

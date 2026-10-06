@@ -29,6 +29,11 @@ writes).
 - Session Detail shows a four-metric strip: Volume, Sets, Reps, Time.
 - Header on Session Detail has no centered title. The routine name
   appears in the content as the primary heading.
+- Every write that changes sessions goes through `useSessionActions`,
+  which mirrors it to the cloud: `removeSession` and
+  `removeAllSessions` leave a tombstone per session; `importSessions`
+  (backups) adds only new ids and uploads them. Delete-all covers the
+  sessions on the device (the newest `MAX_HISTORY_SESSIONS`).
 
 ## Do not
 
