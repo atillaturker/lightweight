@@ -4,7 +4,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { colors } from "@theme";
 
-/** Height of the sparkline, per v3 rule 7. */
+/** Height of the sparkline, per DESIGN.md §6. */
 export const SPARKLINE_HEIGHT = 30;
 
 /** Stroke width of the line. */
@@ -55,7 +55,7 @@ export function calculateSparklinePath(
 }
 
 /**
- * Hero-metric decoration ("Design enrichment v3", rule 7): a 30px-tall,
+ * Hero-metric decoration (DESIGN.md §6): a 30px-tall,
  * 1.5px `colors.primary` line with no axis, gridlines, fill or highlight.
  * Renders an empty box of the same size when there is no trend to draw,
  * so the hero layout does not jump.

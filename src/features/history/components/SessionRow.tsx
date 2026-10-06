@@ -1,7 +1,7 @@
 /**
  * One past session in the History list.
  *
- * A plain row: a 40px letter tile for the routine (v3 rule 10), routine
+ * A plain row: a 40px letter tile for the routine (DESIGN.md §8), routine
  * name and summary line, session volume right-aligned in a fixed column,
  * and a muted chevron. The hairline
  * between rows is drawn as the row's top divider so it can never appear

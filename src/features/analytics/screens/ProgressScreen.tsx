@@ -63,7 +63,7 @@ const FILTER_GLYPH_SIZE = 20;
 /** Sort action glyph. */
 const SORT_GLYPH_SIZE = 12;
 
-/** Empty-state glyph, per v3 rule 6. */
+/** Empty-state glyph, per DESIGN.md §8. */
 const EMPTY_GLYPH_SIZE = 32;
 
 /** Border width of the hero + chart card. */

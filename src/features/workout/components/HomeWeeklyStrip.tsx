@@ -3,8 +3,8 @@
  *
  * A ring on the left answers "how close am I to this week's goal" and
  * three bare stat columns answer the rest. The whole group sits in one
- * metric well (`Card variant="well"`, v3 rule 2). The streak label carries
- * a flame glyph — the one metric here with a natural symbol (v3 rule 6).
+ * metric well (`Card variant="well"`, DESIGN.md §7.2). The streak label carries
+ * a flame glyph — the one metric here with a natural symbol (DESIGN.md §8).
  *
  * The ring is a supporting element: fixed at 72px, deliberately smaller
  * than the routine name above it, and it never replaces the number — the

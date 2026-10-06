@@ -4,7 +4,7 @@
  * Owns the section rhythm — 24px above the header, 8px below — and the
  * single hairline between consecutive rows. It never draws a hairline above
  * the first row or below the last, matching the design system. Sections
- * stay uncarded (profile rules); the header may carry a glyph (v3 rule 8).
+ * stay uncarded (profile rules); the header may carry a glyph (DESIGN.md §6).
  */
 import React from 'react';
 import { StyleSheet, View } from 'react-native';

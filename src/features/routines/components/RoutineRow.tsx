@@ -9,7 +9,7 @@
  * The active routine is marked with a 6px accent dot immediately before the
  * "⋯", matching the routines design. At most one row carries it.
  *
- * Per "Design enrichment v3" rule 10 the row leads with a 40px letter tile.
+ * Per DESIGN.md §8 the row leads with a 40px letter tile.
  * The `inset` variant drops the gutter padding for rows grouped in a Card.
  */
 import React from "react";

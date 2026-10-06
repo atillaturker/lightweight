@@ -6,7 +6,7 @@ import { LineIcon, type LineIconName } from "../LineIcon";
 import { styles } from "./SectionHeader.styles";
 
 /**
- * Decoration of the header row ("Design enrichment v3", rule 8). A header
+ * Decoration of the header row (DESIGN.md §6). A header
  * carries a glyph OR a rule, never both.
  */
 type SectionHeaderDecoration =

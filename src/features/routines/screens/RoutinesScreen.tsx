@@ -7,7 +7,7 @@
  *
  * The active routine is marked with a 6px accent dot, per the feature
  * design — never a badge or pill, and only one row can carry it. The rows
- * are one list group, so they share a single Card (v3 rule 1).
+ * are one list group, so they share a single Card (DESIGN.md §7.2).
  */
 import React, { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -30,7 +30,7 @@ import type { TodayStackParamList } from "@/app/navigation/types";
 
 type Props = NativeStackScreenProps<TodayStackParamList, "Routines">;
 
-/** Empty-state glyph, per v3 rule 6. */
+/** Empty-state glyph, per DESIGN.md §8. */
 const EMPTY_GLYPH_SIZE = 32;
 
 /** Routines list, owned by the Today stack since routines live on Home. */

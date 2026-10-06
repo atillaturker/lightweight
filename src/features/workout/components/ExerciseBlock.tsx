@@ -2,7 +2,7 @@
  * One exercise block of the active session: title, "last time" line, the
  * set table, and the "add set" action.
  *
- * Each block is one Card ("Design enrichment v3", rule 9) — the same
+ * Each block is one Card (DESIGN.md §7.2) — the same
  * component in the live table and the read-only Session Detail table. The
  * column heading row is the only structure above the set table, and the
  * set rows keep their internal hairlines.

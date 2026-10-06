@@ -18,7 +18,7 @@ export interface StatColumnProps {
   label: string;
   /**
    * Optional 16px glyph before the label, only where a natural symbol
-   * exists (e.g. a flame for streak) — v3 rule 6.
+   * exists (e.g. a flame for streak) — DESIGN.md §8.
    */
   icon?: LineIconName;
   /** The value itself, already formatted. */

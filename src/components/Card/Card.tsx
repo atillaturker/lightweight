@@ -17,9 +17,9 @@ export interface CardProps extends Omit<ViewProps, "style"> {
 }
 
 /**
- * Grouping surface for related content, per "Design enrichment v3" rules
- * 1 and 2. Never nest one Card inside another, and never put an
- * `outlined` card inside a `well`. Outer spacing belongs to the caller.
+ * Grouping surface for related content, per DESIGN.md §7.2. Never nest
+ * one Card inside another, and never put an `outlined` card inside a
+ * `well`. Outer spacing belongs to the caller.
  */
 export function Card({
   variant = "outlined",

@@ -45,7 +45,7 @@ const SEARCH_BUTTON_SIZE = 36;
 /** Rendered edge length of the search glyph. */
 const SEARCH_GLYPH_SIZE = 20;
 
-/** Empty-state glyph, per v3 rule 6. */
+/** Empty-state glyph, per DESIGN.md §8. */
 const EMPTY_GLYPH_SIZE = 32;
 
 /** No-op for the search affordance, which ships in a later batch. */

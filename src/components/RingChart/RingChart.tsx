@@ -1,9 +1,8 @@
 /**
  * Ring chart — a single-ratio progress ring for goal-completion metrics.
  *
- * The design system permits rings only on Welcome, Home / Today, Profile,
- * and the post-workout Summary; see /AGENTS.md → "Ring charts" for the
- * full spec. The component encodes every rule that can be enforced in
+ * Rings show progress toward a goal and are never used where precise
+ * comparison is the point; see /DESIGN.md §5.5 for the full spec. The component encodes every rule that can be enforced in
  * code: one ring per instance, round caps, 12 o'clock clockwise start, a
  * stroke width derived from the diameter, and a visual fill capped at
  * 96% so the empty track stays perceptible.

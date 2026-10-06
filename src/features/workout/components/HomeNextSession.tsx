@@ -4,7 +4,7 @@
  * The overline sits on the canvas; the routine name, meta line, and
  * primary CTA are grouped in a single flat card, because they describe
  * one decision ("start this session"). The card uses the canvas fill
- * plus a 1px hairline, per the v2 enrichment rules — no shadow.
+ * plus a 1px hairline (DESIGN.md §7.2) — no shadow.
  *
  * When a session is already open the same block reframes as "IN
  * PROGRESS" and the CTA resumes instead of starting. The 6px dot under

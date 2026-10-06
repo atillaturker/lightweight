@@ -7,7 +7,7 @@ import { styles } from "./Badge.styles";
  * Badge variants:
  * - `neutral` — surface fill, 1px hairline border, primary text.
  * - `pr` — the neutral pill with its label in `colors.success`
- *   ("Design enrichment v3", rule 5: PR badges carry the success color).
+ *   (DESIGN.md §4.2: PR badges carry the success color).
  *   The fill stays neutral; no accent color is introduced.
  */
 export interface BadgeProps extends Omit<ViewProps, "style" | "children"> {

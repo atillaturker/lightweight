@@ -14,7 +14,7 @@
  *
  * At most three routines are shown; when more exist the header carries a
  * "See all" action that opens the full list. The rows are one short list
- * group, so they sit in a single Card (v3 rule 1).
+ * group, so they sit in a single Card (DESIGN.md §7.2).
  */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

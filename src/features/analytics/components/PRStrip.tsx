@@ -1,7 +1,7 @@
 /**
  * One-line PR summary that links to History's PR filter. A single-row Card
- * (v3 rule 1) led by the trophy glyph, which marks the row as records
- * rather than one more metric (v3 rule 6).
+ * (DESIGN.md §7.2) led by the trophy glyph, which marks the row as records
+ * rather than one more metric (DESIGN.md §8).
  */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

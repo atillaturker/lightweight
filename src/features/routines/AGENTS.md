@@ -11,7 +11,7 @@ Routine CRUD and exercise picker. Three screens.
 ## Rules
 
 - The **active routine** is the one the Today screen will start next.
-  Only one routine is active at a time. Marked with a 6px `#3B82F6` dot
+  Only one routine is active at a time. Marked with a 6px `colors.accent` dot
   next to the chevron. Never with a badge or pill.
 - Routines with historical sessions attached cannot be deleted —
   archive them instead. This preserves history integrity.
@@ -26,7 +26,8 @@ Routine CRUD and exercise picker. Three screens.
   different tap behavior.
 - Every exercise has a pictogram. Pictograms are monoline SVG paths in
   `src/components/MuscleIcon/`, keyed by the exercise's muscle group.
-  Never substitute with `@expo/vector-icons`.
+  An exercise illustration (DESIGN.md §9) replaces the pictogram where
+  one exists. Never substitute with `@expo/vector-icons`.
 
 ## Set targets
 

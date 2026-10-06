@@ -7,10 +7,9 @@ import { colors, fineSpacing, fonts, spacing, type } from "@theme";
  * no background, border, shadow, or card. Vertical spacing is owned by
  * the parent so the header can sit in any section rhythm.
  *
- * Per "Design enrichment rules (v2)": section headers are 12px / 600
- * with 0.06em tracking — the color stays muted, only presence grows.
- * Per v3 rule 8 the label may follow a 16px glyph (6px gap) or run into
- * a hairline rule.
+ * Per DESIGN.md §6: section headers are 12px / 600 with 0.06em
+ * tracking in the muted color. The label may follow a 16px glyph
+ * (6px gap) or run into a hairline rule.
  */
 export const styles = StyleSheet.create({
   row: {

@@ -27,7 +27,7 @@ export function toMonogram(text: string): string {
 }
 
 /**
- * 40px leading visual for a list row ("Design enrichment v3", rule 10):
+ * 40px leading visual for a list row (DESIGN.md §8):
  * surface fill, 8px radius, no border, never colored.
  *
  * Variants:

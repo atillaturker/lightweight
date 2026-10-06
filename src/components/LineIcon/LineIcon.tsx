@@ -54,7 +54,7 @@ export interface LineIconProps {
 
 /**
  * Shared monoline glyph for section headers, metric labels and empty
- * states ("Design enrichment v3", rule 6). 1.5px stroke, round caps, no
+ * states (DESIGN.md §8). 1.5px stroke, round caps, no
  * fill. Muscle groups use `MuscleIcon`; the tab bar keeps its own paths.
  */
 export function LineIcon({

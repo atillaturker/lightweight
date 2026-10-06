@@ -2,7 +2,7 @@
  * Home — Section 3, recent activity.
  *
  * A short list of the last few finished sessions, grouped in one Card
- * (v3 rule 1) under a clock-glyph section header (v3 rule 8). Row height is
+ * (DESIGN.md §7.2) under a clock-glyph section header (DESIGN.md §6). Row height is
  * fixed at 56px and hairlines are drawn between rows only. The right column
  * carries the session volume and a chevron — two pieces of information on
  * one row, but only one of them navigates.

@@ -46,6 +46,6 @@ inherits from the same set index in the previous session.
 - Do not add a "Save" or "Done" button inside ActiveWorkout.
 - Do not show a modal for PR achievements. Inline badge only.
 - Do not block the keyboard while typing weight or reps.
-- Do not use filled black circles for read-only historical views —
+- Do not use filled `colors.primary` circles for read-only historical views —
   those are neutral gray outlines.
 - Do not compute volume or e1RM inline. Use `@domain/rules/`.
