@@ -4,7 +4,14 @@
  */
 export type { RoutineTemplateId } from './types';
 
-export { ROUTINES_STORE_KEY, useCustomExerciseStore, useRoutineStore } from './store';
+export {
+  EXERCISE_NOTE_MAX_LENGTH,
+  ROUTINES_STORE_KEY,
+  useCustomExerciseStore,
+  useExerciseNote,
+  useExerciseNoteStore,
+  useRoutineStore,
+} from './store';
 export { useSetCustomExerciseArchived } from './hooks';
 export type { RoutineStore } from './store';
 

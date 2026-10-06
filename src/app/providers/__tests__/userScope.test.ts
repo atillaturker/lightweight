@@ -26,7 +26,7 @@ import { useBodyWeightStore } from '@features/bodyweight/store';
 import type { AuthUser } from '@features/auth/types';
 import { useHistoryStore } from '@features/history/store';
 import { usePreferencesStore } from '@features/profile/store';
-import { useCustomExerciseStore, useRoutineStore } from '@features/routines/store';
+import { useCustomExerciseStore, useExerciseNoteStore, useRoutineStore } from '@features/routines/store';
 import { useActiveWorkoutStore, useLastSessionStore } from '@features/workout/store';
 
 import { registerUserScope } from '../userScope';
@@ -141,5 +141,18 @@ describe('registerUserScope', () => {
     useAuthStore.getState().reset();
     useAuthStore.getState().setUser(makeUser('uid-a'));
     expect(useBodyWeightStore.getState().entries.map((e) => e.weightKg)).toEqual([80]);
+  });
+
+  it('keeps exercise notes with their account', () => {
+    useAuthStore.getState().setUser(makeUser('uid-a'));
+    useExerciseNoteStore.getState().setNote('bench-press', 'Seat 4');
+
+    useAuthStore.getState().reset();
+    useAuthStore.getState().setUser(makeUser('uid-b'));
+    expect(useExerciseNoteStore.getState().notes).toEqual({});
+
+    useAuthStore.getState().reset();
+    useAuthStore.getState().setUser(makeUser('uid-a'));
+    expect(useExerciseNoteStore.getState().notes['bench-press']?.text).toBe('Seat 4');
   });
 });
