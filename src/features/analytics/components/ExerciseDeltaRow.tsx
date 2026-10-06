@@ -9,7 +9,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { MuscleIcon, type MuscleGroup } from '@components/MuscleIcon';
+import { ExerciseThumb } from '@features/routines';
 import { gutter, spacing, type, createStyles, useTheme, type ColorPalette } from '@theme';
 import { formatDecimal } from '@lib/format';
 
@@ -17,9 +17,6 @@ import type { ExerciseProgressRow } from '../utils';
 
 /** Minimum row height. */
 const ROW_HEIGHT = 64;
-
-/** Rendered size of the muscle-group icon. */
-const MUSCLE_ICON_SIZE = 20;
 
 /** Micro-bar geometry. */
 const TRACK_WIDTH = 120;
@@ -32,8 +29,6 @@ export interface ExerciseDeltaRowProps {
   accent: boolean;
   /** Whether to draw the divider above this row. */
   dividerTop: boolean;
-  /** Muscle group for the row icon; omitted when the exercise is unknown. */
-  muscleGroup?: MuscleGroup;
   /**
    * `list` (default) pads the row to the screen gutter; `inset` has no
    * horizontal padding, for rows inside a Card.
@@ -61,7 +56,6 @@ export function ExerciseDeltaRow({
   row,
   accent,
   dividerTop,
-  muscleGroup,
   variant = 'list',
   onPress,
   testID,
@@ -82,20 +76,11 @@ export function ExerciseDeltaRow({
       {dividerTop ? <View style={styles.divider} /> : null}
 
       <View style={styles.body}>
+        <ExerciseThumb exerciseId={row.exerciseId} />
         <View style={styles.left}>
-          <View style={styles.nameRow}>
-            {muscleGroup !== undefined ? (
-              <MuscleIcon
-                color={colors.textPrimary}
-                group={muscleGroup}
-                size={MUSCLE_ICON_SIZE}
-                testID={testID ? `${testID}-muscle` : undefined}
-              />
-            ) : null}
-            <Text numberOfLines={1} style={styles.name}>
-              {row.name}
-            </Text>
-          </View>
+          <Text numberOfLines={1} style={styles.name}>
+            {row.name}
+          </Text>
 
           <View style={styles.track}>
             <View
@@ -132,16 +117,12 @@ const useStyles = createStyles((colors) => ({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.md,
     minHeight: ROW_HEIGHT,
   },
   left: {
     flex: 1,
     justifyContent: 'center',
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
   },
   name: {
     ...type.body,

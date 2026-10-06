@@ -34,3 +34,9 @@ export type {
 } from './exerciseDetail';
 export { buildMuscleMap, MUSCLE_WINDOW_DAYS } from './muscleMap';
 export type { MuscleMapData, MuscleWindow } from './muscleMap';
+export {
+  EXERCISE_SORT_LABELS,
+  nextSortMode,
+  sortExerciseRows,
+} from './exerciseSort';
+export type { ExerciseSortMode } from './exerciseSort';
