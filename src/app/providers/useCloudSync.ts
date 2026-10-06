@@ -34,12 +34,16 @@ import {
   saveUserPreferences,
 } from '@features/profile/services/firestoreProfile';
 
+import { mergeBodyWeight } from '@domain/rules';
+import { fetchBodyWeightFromFirestore } from '@features/bodyweight/services/firestoreBodyWeight';
+import { useBodyWeightStore } from '@features/bodyweight/store';
 import { mergeCustomExercises } from '@features/routines/services';
 import { fetchCustomExercisesFromFirestore } from '@features/routines/services/firestoreCustomExercises';
 import { useCustomExerciseStore } from '@features/routines/store';
 
 import {
   pendingWorkoutIds,
+  queueBodyWeightUploads,
   queueCustomExerciseUploads,
   queueWorkoutUploads,
   resumeQueue,
@@ -132,6 +136,8 @@ async function syncOnSignIn(uid: string): Promise<void> {
 
   await syncCustomExercises(uid);
   if (!isStillSignedIn(uid)) return;
+  await syncBodyWeight(uid);
+  if (!isStillSignedIn(uid)) return;
   lastSyncedAt = Date.now();
   // Deliver anything this account left queued, including parked writes.
   resumeQueue();
@@ -154,6 +160,24 @@ async function syncCustomExercises(uid: string): Promise<void> {
   const merge = mergeCustomExercises(useCustomExerciseStore.getState().exercises, remote);
   useCustomExerciseStore.getState().setExercises(merge.exercises);
   queueCustomExerciseUploads(uid, merge.toUpload);
+}
+
+/**
+ * Merge the cloud's body-weight log with the device's (per day, newer
+ * wins) and queue what the cloud lacks. A failed read changes nothing.
+ */
+async function syncBodyWeight(uid: string): Promise<void> {
+  let remote;
+  try {
+    remote = await fetchBodyWeightFromFirestore(uid);
+  } catch (error: unknown) {
+    console.warn('[firestore] failed to read body weight', error);
+    return;
+  }
+  if (!isStillSignedIn(uid)) return;
+  const merge = mergeBodyWeight(useBodyWeightStore.getState().entries, remote);
+  useBodyWeightStore.getState().setEntries(merge.entries);
+  queueBodyWeightUploads(uid, merge.toUpload);
 }
 
 /** Read the cloud history, or `null` when the read failed. */

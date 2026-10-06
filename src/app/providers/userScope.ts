@@ -11,6 +11,7 @@
  * account's data is in place before React renders the next screen.
  */
 import { useAuthStore } from '@features/auth/store';
+import { BODY_WEIGHT_STORE_KEY, useBodyWeightStore } from '@features/bodyweight/store';
 import { HISTORY_STORE_KEY, useHistoryFilterStore, useHistoryStore } from '@features/history/store';
 import { PREFERENCES_STORE_KEY, usePreferencesStore } from '@features/profile/store';
 import {
@@ -36,6 +37,7 @@ function applyUserScope(uid: string | null): void {
   switchPersistScope(useHistoryStore, HISTORY_STORE_KEY, scope, adopt);
   switchPersistScope(useRoutineStore, ROUTINES_STORE_KEY, scope, adopt);
   switchPersistScope(useCustomExerciseStore, CUSTOM_EXERCISES_STORE_KEY, scope, adopt);
+  switchPersistScope(useBodyWeightStore, BODY_WEIGHT_STORE_KEY, scope, adopt);
   switchPersistScope(useActiveWorkoutStore, ACTIVE_WORKOUT_STORE_KEY, scope, adopt);
   switchPersistScope(usePreferencesStore, PREFERENCES_STORE_KEY, scope, adopt);
   // In-memory stores that can still hold the previous account's data.

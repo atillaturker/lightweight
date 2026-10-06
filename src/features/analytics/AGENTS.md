@@ -24,6 +24,10 @@ analytics-specific behavior.
   (`@domain/rules/activity`: < 30, < 60, < 90, ≥ 90 min) so a colour
   means the same all year; days are local calendar days (DST-safe).
   Tapping a day shows its date, minutes and sessions above the grid.
+- Progress → "Body weight" (data from `@features/bodyweight`): latest
+  weight, 30-day change (always muted — direction depends on the goal),
+  and weekly averages over 12 weeks. It stays visible before the first
+  workout, under the empty state.
 - Progress → "Muscles": the muscle map over the last week / month / 3
   months. Load per region comes from `@domain/rules/muscles` (a working
   set adds 1 to the exercise's target region, 0.5 to secondary ones;

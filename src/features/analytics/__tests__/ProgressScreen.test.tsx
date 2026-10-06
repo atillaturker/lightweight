@@ -112,3 +112,13 @@ describe('ProgressScreen metric selector', () => {
     expect(useHistoryFilterStore.getState().filter).toBe('pr');
   });
 });
+
+describe('ProgressScreen before the first workout', () => {
+  it('still offers body weight', () => {
+    useHistoryStore.setState({ sessions: [] });
+    render(<ProgressScreen navigation={navigation} route={{} as Props['route']} />);
+
+    expect(screen.getByTestId('progress-empty')).toBeTruthy();
+    expect(screen.getByTestId('body-weight-section')).toBeTruthy();
+  });
+});

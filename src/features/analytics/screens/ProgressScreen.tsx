@@ -26,10 +26,12 @@ import { SectionHeader } from "@components/SectionHeader";
 import { SegmentedControl } from "@components/SegmentedControl";
 import { TextTabs } from "@components/TextTabs";
 import { useHistoryFilterStore } from "@features/history";
+import { getWeightUnit } from "@features/workout";
 import { gutter, radii, spacing, type, createStyles, useTheme } from "@theme";
 
 import {
   ActivitySection,
+  BodyWeightSection,
   ExerciseDeltaRow,
   MuscleMapSection,
   PRStrip,
@@ -210,7 +212,14 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
       <ProgressHeader onFilter={noop} />
 
       {!data.hasHistory ? (
-        <ProgressEmptyState />
+        // Body weight does not depend on workouts, so it stays reachable
+        // before the first session.
+        <ScrollView contentContainerStyle={styles.content} testID="progress-empty-scroll">
+          <ProgressEmptyState />
+          <View style={styles.section}>
+            <BodyWeightSection unit={getWeightUnit()} width={chartWidth} />
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView
           contentContainerStyle={styles.content}
@@ -277,6 +286,10 @@ export function ProgressScreen({ navigation }: Props): React.ReactElement {
 
           <View style={styles.section}>
             <ActivitySection width={chartWidth} />
+          </View>
+
+          <View style={styles.section}>
+            <BodyWeightSection unit={getWeightUnit()} width={chartWidth} />
           </View>
 
           <View style={styles.section}>

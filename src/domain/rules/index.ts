@@ -81,3 +81,13 @@ export {
   UNFINISHED_SESSION_MINUTES,
 } from './activity';
 export type { ActivityLevel } from './activity';
+export {
+  dayStartOf,
+  isoDay,
+  latestEntry,
+  liveEntries,
+  mergeBodyWeight,
+  weeklyAverageWeights,
+  weightChange,
+} from './bodyWeight';
+export type { BodyWeightMerge } from './bodyWeight';
