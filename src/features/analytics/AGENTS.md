@@ -11,6 +11,11 @@ analytics-specific behavior.
 - e1RM always uses `@domain/rules/e1rm.ts` (Epley formula), and only
   from sets of at most `E1RM_MAX_REPS` (12) reps (`isE1RMEligible`). The
   Exercise Detail hero names the set the estimate came from.
+- Exercise Detail adapts to the exercise kind (`exerciseKind`): load →
+  e1RM hero, 1RM/Volume/Reps; bodyweight → "Most reps" hero, Reps;
+  timed → "Longest hold" hero, Hold. The read model returns the metrics
+  offered and the one shown; display text lives in
+  `utils/exerciseDetailFormat.ts`.
 - The "Effort" metric (average RPE, `@domain/rules/effort.ts`) appears
   only once the exercise has a rated set. Unrated sets are skipped, never
   counted as zero.

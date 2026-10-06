@@ -12,9 +12,21 @@ export type {
   ProgressMetric,
   ExerciseProgressRow,
 } from './progressData';
-export { buildExerciseDetail } from './exerciseDetail';
+export { buildExerciseDetail, exerciseKind } from './exerciseDetail';
+export {
+  CHART_TITLES,
+  formatChartValue,
+  formatWeightText,
+  heroTexts,
+  METRIC_LABELS,
+  recentSummaryText,
+  recordValueText,
+} from './exerciseDetailFormat';
+export type { HeroTexts } from './exerciseDetailFormat';
 export type {
   ExerciseDetailData,
+  ExerciseHeroData,
+  ExerciseKind,
   ExerciseMetric,
   ExerciseRecordRow,
   ExerciseRecordType,

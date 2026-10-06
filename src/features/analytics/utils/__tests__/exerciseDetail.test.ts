@@ -7,7 +7,7 @@
  */
 import type { Set as DomainSet, Workout } from '@domain/entities';
 
-import { buildExerciseDetail } from '../exerciseDetail';
+import { buildExerciseDetail, exerciseKind } from '../exerciseDetail';
 
 const NOW = Date.UTC(2026, 3, 13, 12, 0, 0);
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -86,7 +86,7 @@ describe('buildExerciseDetail delta', () => {
     const data = buildExerciseDetail(sessions, 'bench-press', 'volume', NOW);
 
     expect(data.delta).toBeNull();
-    expect(data.heroDeltaKg).toBeNull();
+    expect(data.hero.delta).toBeNull();
   });
 
   it('compares the current window against the previous one', () => {
@@ -106,7 +106,7 @@ describe('buildExerciseDetail session counts', () => {
     const data = buildExerciseDetail([], 'bench-press', '1rm', NOW);
 
     expect(data.hasHistory).toBe(false);
-    expect(data.heroE1RMKg).toBeNull();
+    expect(data.hero.value).toBeNull();
     expect(data.points.every((point) => point === null)).toBe(true);
     expect(data.records).toEqual([]);
     expect(data.recentSets).toEqual([]);
@@ -173,7 +173,7 @@ describe('buildExerciseDetail effort and e1RM source', () => {
 
     const data = buildExerciseDetail(sessions, 'bench-press', '1rm', NOW);
 
-    expect(data.heroSource).toEqual({ weightKg: 100, reps: 5 });
+    expect(data.hero.source).toEqual({ weightKg: 100, reps: 5 });
   });
 
   it('charts the average RPE of rated sets', () => {
@@ -184,7 +184,7 @@ describe('buildExerciseDetail effort and e1RM source', () => {
     ];
     const data = buildExerciseDetail([makeSession('s1', 2, sets)], 'bench-press', 'rpe', NOW);
 
-    expect(data.hasEffortData).toBe(true);
+    expect(data.metrics).toContain('rpe');
     expect(data.points).toContain(8.5);
   });
 
@@ -192,6 +192,47 @@ describe('buildExerciseDetail effort and e1RM source', () => {
     const at = NOW - 2 * DAY_MS;
     const sessions = [makeSession('s1', 2, [makeSet('bench-press', 100, 5, at)])];
 
-    expect(buildExerciseDetail(sessions, 'bench-press', 'rpe', NOW).hasEffortData).toBe(false);
+    expect(buildExerciseDetail(sessions, 'bench-press', 'rpe', NOW).metrics).not.toContain('rpe');
+  });
+});
+
+describe('buildExerciseDetail by exercise kind', () => {
+  const at = NOW - 2 * DAY_MS;
+
+  it('classifies exercises by measure and equipment', () => {
+    expect(exerciseKind({ measure: 'time', equipment: 'bodyweight' })).toBe('timed');
+    expect(exerciseKind({ equipment: 'bodyweight' })).toBe('bodyweight');
+    expect(exerciseKind({ equipment: 'barbell' })).toBe('load');
+    expect(exerciseKind(null)).toBe('load');
+  });
+
+  it('leads a timed exercise with its longest hold', () => {
+    const sets = [
+      { ...makeSet('plank', 0, 0, at), durationSec: 40 },
+      { ...makeSet('plank', 0, 0, at + 1), durationSec: 55 },
+    ];
+    const data = buildExerciseDetail([makeSession('s1', 2, sets)], 'plank', '1rm', NOW, 'timed');
+
+    expect(data.hero).toMatchObject({ kind: 'timed', value: 55, source: null });
+    expect(data.metric).toBe('hold');
+    expect(data.metrics).toEqual(['hold']);
+    expect(data.points).toContain(55);
+    expect(data.records.map((row) => row.type)).toEqual(['longest_hold']);
+    expect(data.recentSets[0].durationSec).toBe(55);
+  });
+
+  it('leads a bodyweight exercise with its most reps in a set', () => {
+    const sets = [makeSet('push-up', 0, 12, at), makeSet('push-up', 0, 15, at + 1)];
+    const data = buildExerciseDetail([makeSession('s1', 2, sets)], 'push-up', 'reps', NOW, 'bodyweight');
+
+    expect(data.hero).toMatchObject({ kind: 'bodyweight', value: 15 });
+    expect(data.metrics).toEqual(['reps']);
+  });
+
+  it('counts both sides in total reps', () => {
+    const sets = [{ ...makeSet('row', 30, 8, at), perSide: true }];
+    const data = buildExerciseDetail([makeSession('s1', 2, sets)], 'row', 'reps', NOW);
+
+    expect(data.points).toContain(16);
   });
 });
