@@ -24,3 +24,5 @@ export { ExerciseHero } from './ExerciseHero';
 export type { ExerciseHeroProps } from './ExerciseHero';
 export { MuscleMapSection } from './MuscleMapSection';
 export type { MuscleMapSectionProps } from './MuscleMapSection';
+export { ActivitySection } from './ActivitySection';
+export type { ActivitySectionProps } from './ActivitySection';

@@ -40,3 +40,5 @@ export {
   sortExerciseRows,
 } from './exerciseSort';
 export type { ExerciseSortMode } from './exerciseSort';
+export { buildActivityGrid } from './activityGrid';
+export type { ActivityDay, ActivityGrid, ActivityWeek } from './activityGrid';
