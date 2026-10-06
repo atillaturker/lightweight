@@ -64,6 +64,14 @@ export type TodayStackParamList = {
     routineId?: string;
     /** Exercise ids the picker should render as already selected. */
     preselectedIds?: string[];
+    /** Set by CustomExercise on return: select the exercise just created. */
+    createdExerciseId?: string;
+  };
+  CustomExercise: {
+    /** The picker's params, restored when the new exercise is handed back. */
+    picker: TodayStackParamList["ExercisePicker"];
+    /** Prefill, e.g. the picker's search text. */
+    initialName?: string;
   };
 };
 

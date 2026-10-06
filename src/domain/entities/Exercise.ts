@@ -60,4 +60,6 @@ export interface Exercise {
   isCustom: boolean;
   isArchived: boolean;
   createdAt: number;
+  /** Last edit, for user-created exercises; resolves sync conflicts. */
+  updatedAt?: number;
 }

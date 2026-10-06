@@ -107,8 +107,9 @@ which reacts to sign-in and app-foreground events.
 
 ### Per-account storage
 
-History, routines, the active workout and preferences are persisted per
-signed-in uid (`<key>:<uid>` in MMKV). `src/app/providers/userScope.ts`
+History, routines, custom exercises, the active workout and preferences
+are persisted per signed-in uid (`<key>:<uid>` in MMKV).
+`src/app/providers/userScope.ts`
 switches them synchronously whenever the auth user changes, so one
 account never sees or writes another's data, and nothing is deleted on
 sign-out (routines and an unfinished workout exist only on the device).
@@ -117,10 +118,14 @@ export its base key.
 
 ### Sync
 
-- Firestore paths: `users/{uid}` (profile) and
-  `users/{uid}/workouts/{workoutId}`. Shapes live in
-  `src/features/profile/services/userProfileDocument.ts` and
-  `src/features/history/services/workoutDocument.ts`.
+- Firestore paths: `users/{uid}` (profile),
+  `users/{uid}/workouts/{workoutId}` and
+  `users/{uid}/exercises/{exerciseId}` (custom exercises). Shapes live in
+  `src/features/profile/services/userProfileDocument.ts`,
+  `src/features/history/services/workoutDocument.ts` and
+  `src/features/routines/services/customExerciseDocument.ts`.
+- Custom exercises are never deleted, only archived (logged sets keep
+  their ids); on sign-in they merge by id, newer `updatedAt` winning.
 - Finished workouts are immutable. Deleting one writes a tombstone
   (`{ id, startedAt, deletedAt }`) instead of removing the document, so
   other devices learn about the delete. A tombstone is final.
@@ -330,8 +335,9 @@ Never create a screen before its types, service and hook exist.
   only file left under `src/services/`.
 - **Onboarding, Workout, Routines, Analytics, History, Profile**:
   implemented under `src/features/`.
-- **Backend**: Firebase Auth + Firestore. Workouts, the profile and
-  preferences sync (see "Sync"). Routines are local-only.
+- **Backend**: Firebase Auth + Firestore. Workouts, custom exercises,
+  the profile and preferences sync (see "Sync"). Routines are
+  local-only.
 - **Exercise library**: 1,170 exercises from exercises-dataset (MIT),
   106 with Everkinetic illustrations (CC BY-SA 4.0). See
   `THIRD_PARTY_NOTICES.md`.

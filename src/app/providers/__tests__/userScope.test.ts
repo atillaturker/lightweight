@@ -25,7 +25,7 @@ import { useAuthStore } from '@features/auth/store';
 import type { AuthUser } from '@features/auth/types';
 import { useHistoryStore } from '@features/history/store';
 import { usePreferencesStore } from '@features/profile/store';
-import { useRoutineStore } from '@features/routines/store';
+import { useCustomExerciseStore, useRoutineStore } from '@features/routines/store';
 import { useActiveWorkoutStore, useLastSessionStore } from '@features/workout/store';
 
 import { registerUserScope } from '../userScope';
@@ -113,5 +113,19 @@ describe('registerUserScope', () => {
     useAuthStore.getState().reset();
 
     expect(useLastSessionStore.getState().lastSession).toBeNull();
+  });
+
+  it('keeps custom exercises with the account that created them', () => {
+    const input = { name: 'Seal Row', muscleGroup: 'back' as const, equipment: 'barbell' as const, measure: 'reps' as const, perSide: false };
+    useAuthStore.getState().setUser(makeUser('uid-a'));
+    useCustomExerciseStore.getState().createExercise(input);
+
+    useAuthStore.getState().reset();
+    useAuthStore.getState().setUser(makeUser('uid-b'));
+    expect(useCustomExerciseStore.getState().exercises).toEqual([]);
+
+    useAuthStore.getState().reset();
+    useAuthStore.getState().setUser(makeUser('uid-a'));
+    expect(useCustomExerciseStore.getState().exercises.map((e) => e.name)).toEqual(['Seal Row']);
   });
 });

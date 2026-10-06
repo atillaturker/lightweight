@@ -29,7 +29,7 @@ import { ScreenHeader } from "@components/ScreenHeader";
 import { emptyStatePadding, fineSpacing, gutter, spacing, type, createStyles, useTheme } from "@theme";
 
 import { DEFAULT_ROUTINE_NAME, estimateDurationMinutes } from "../config";
-import { EXERCISE_LIBRARY } from "../services";
+import { useExerciseLibrary } from "../hooks";
 import { useRoutineStore } from "../store";
 import { DurationSheet } from "../components/DurationSheet";
 import { RoutineEditorRow } from "../components/RoutineEditorRow";
@@ -167,8 +167,8 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
   // by their raw id so a stale reference is visible rather than dropped.
   const labels = useMemo(() => supersetLabels(routine?.exercises ?? []), [routine]);
 
+  const { byId } = useExerciseLibrary();
   const rows = useMemo(() => {
-    const byId = new Map(EXERCISE_LIBRARY.map((entry) => [entry.id, entry]));
     return (routine?.exercises ?? []).map((slot) => {
       const exercise = byId.get(slot.exerciseId);
       return {
@@ -184,7 +184,7 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
             : slot.targetReps,
       };
     });
-  }, [routine]);
+  }, [byId, routine]);
 
   const beginRename = useCallback(() => {
     setNameDraft(routine?.name ?? "");

@@ -10,6 +10,10 @@ rules_version = '2';
 //   users/{uid}/workouts/{workoutId} one finished workout, or a tombstone
 //                                    { id, startedAt, deletedAt } once
 //                                    the workout is deleted
+//   users/{uid}/exercises/{id}       one user-created exercise (see
+//                                    src/features/routines/services/
+//                                    customExerciseDocument.ts); never
+//                                    deleted, only archived
 //
 // A signed-in user may read and write only their own documents. Every
 // write is checked against the shape the app produces. Anything not
@@ -60,6 +64,25 @@ service cloud.firestore {
         && d.sets.size() <= 500;
     }
 
+    // A user-created exercise. Ids carry the `custom-` prefix so they can
+    // never shadow a built-in exercise id.
+    function isValidCustomExercise(d, exerciseId) {
+      return d.keys().hasAll(['id', 'name', 'muscleGroup', 'equipment', 'measure', 'perSide', 'isArchived', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['id', 'name', 'muscleGroup', 'equipment', 'measure', 'perSide', 'isArchived', 'createdAt', 'updatedAt'])
+        && d.id == exerciseId
+        && exerciseId.matches('^custom-.+$')
+        && d.name is string
+        && d.name.size() > 0
+        && d.name.size() <= 80
+        && d.muscleGroup in ['chest', 'back', 'legs', 'shoulders', 'arms', 'core']
+        && d.equipment in ['barbell', 'dumbbell', 'cable', 'machine', 'bodyweight', 'kettlebell', 'band']
+        && d.measure in ['reps', 'time']
+        && d.perSide is bool
+        && d.isArchived is bool
+        && d.createdAt is number
+        && d.updatedAt is number;
+    }
+
     // A deleted workout. Carries no training data; it tells other devices
     // the session was deleted rather than never uploaded.
     function isValidTombstone(d, workoutId) {
@@ -84,6 +107,14 @@ service cloud.firestore {
           && (isValidTombstone(request.resource.data, workoutId)
             || (!('deletedAt' in resource.data)
               && isValidWorkout(request.resource.data, workoutId)));
+      }
+
+      match /exercises/{exerciseId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isValidCustomExercise(request.resource.data, exerciseId);
+        // Logged sets keep referencing the id: archive, never delete.
+        allow delete: if false;
       }
     }
   }

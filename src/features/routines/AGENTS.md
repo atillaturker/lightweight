@@ -35,6 +35,17 @@ Routine CRUD and exercise picker. Three screens.
   tile when there is none. Do not fall back to the muscle icon there.
   Never substitute with `@expo/vector-icons`.
 
+## Custom exercises
+
+- Created from the picker ("Create exercise", prefilled with the search
+  text) on `CustomExerciseScreen`; the new exercise comes back selected.
+- Stored in `useCustomExerciseStore` (per account, see `userScope.ts`),
+  ids prefixed `custom-`, mirrored to Firestore through the
+  `syncCustomExerciseToCloud` seam. Never deleted, only archived.
+- Screens read the library through `useExerciseLibrary()`: `pickable`
+  (active custom exercises first, then built-ins) and `byId` (archived
+  included). Never read `EXERCISE_LIBRARY` directly in a screen.
+
 ## Supersets
 
 A superset is a run of consecutive slots sharing `supersetGroup` (stored

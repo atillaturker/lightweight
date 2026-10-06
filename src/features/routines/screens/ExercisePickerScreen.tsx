@@ -15,7 +15,7 @@
  * muscle group, any number of equipment types) lives in
  * `utils/exerciseFilter`.
  */
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -36,7 +36,7 @@ import { emptyStatePadding, fineSpacing, gutter, radii, spacing, type, createSty
 
 import { ExerciseThumb } from "../components/ExerciseThumb";
 import { FilterChips } from "../components/FilterChips";
-import { EXERCISE_LIBRARY } from "../services";
+import { useExerciseLibrary } from "../hooks";
 import { useRoutineStore } from "../store";
 import {
   EQUIPMENT_OPTIONS,
@@ -167,13 +167,37 @@ const PickerRow = React.memo(function PickerRow({
   );
 });
 
+/** Text action that opens the create-exercise screen. */
+function CreateExerciseAction({
+  label,
+  onPress,
+}: {
+  label: string;
+  onPress: () => void;
+}): React.ReactElement {
+  const styles = useStyles();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={styles.createAction}
+      testID="exercise-picker-create"
+    >
+      <PlusGlyph />
+      <Text style={styles.createLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
 /** Shown when search and filter leave no rows. */
 function NoResults(): React.ReactElement {
   const styles = useStyles();
   return (
     <View style={styles.emptyState}>
       <Text style={styles.emptyTitle}>No exercises found</Text>
-      <Text style={styles.emptyMessage}>Try a different search or category.</Text>
+      <Text style={styles.emptyMessage}>
+        Try a different search or category, or create the exercise.
+      </Text>
     </View>
   );
 }
@@ -202,15 +226,36 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
     (): ExerciseFilter => ({ query, group: groupFilter, equipment }),
     [equipment, groupFilter, query],
   );
-  const rows = useMemo(() => filterExercises(EXERCISE_LIBRARY, filter), [filter]);
+  const { pickable } = useExerciseLibrary();
+  const rows = useMemo(() => filterExercises(pickable, filter), [filter, pickable]);
   const equipmentChips = useMemo(
     () =>
-      visibleEquipment(EXERCISE_LIBRARY, filter).map((value) => ({
+      visibleEquipment(pickable, filter).map((value) => ({
         key: value,
         label: EQUIPMENT_LABELS.get(value) ?? value,
       })),
-    [filter],
+    [filter, pickable],
   );
+
+  // Returning from CustomExercise: select the new exercise and clear the
+  // filters so it shows (custom exercises are listed first).
+  const createdExerciseId = route.params.createdExerciseId;
+  useEffect(() => {
+    if (createdExerciseId === undefined) return;
+    setSelectedIds((current) =>
+      current.includes(createdExerciseId) ? current : [...current, createdExerciseId],
+    );
+    setQuery("");
+    setGroupFilter(null);
+    setEquipment(new Set());
+  }, [createdExerciseId]);
+
+  const openCreate = useCallback((): void => {
+    navigation.navigate("CustomExercise", {
+      picker: { mode, routineId },
+      initialName: query.trim() === "" ? undefined : query.trim(),
+    });
+  }, [mode, navigation, query, routineId]);
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
@@ -315,6 +360,14 @@ export function ExercisePickerScreen({ navigation, route }: Props): React.ReactE
         keyExtractor={(exercise) => exercise.id}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={NoResults}
+        ListHeaderComponent={
+          mode === "picker" ? (
+            <CreateExerciseAction
+              label={query.trim() === "" ? "Create exercise" : `Create “${query.trim()}”`}
+              onPress={openCreate}
+            />
+          ) : null
+        }
         renderItem={renderRow}
         showsVerticalScrollIndicator={false}
         style={styles.listScroll}
@@ -416,6 +469,19 @@ const useStyles = createStyles((colors) => ({
     marginTop: spacing.xs,
     fontSize: 14,
     color: colors.textMuted,
+  },
+
+  createAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+    paddingHorizontal: gutter,
+  },
+  createLabel: {
+    ...type.label,
+    fontSize: 15,
+    color: colors.textPrimary,
   },
 
   footer: {

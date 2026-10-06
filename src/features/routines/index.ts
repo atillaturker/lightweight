@@ -22,4 +22,9 @@ export { ExerciseTechnique } from './components/ExerciseTechnique';
 export type { ExerciseTechniqueProps } from './components/ExerciseTechnique';
 export type { RoutineRowProps } from './components/RoutineRow';
 
-export { ExercisePickerScreen, RoutineEditorScreen, RoutinesScreen } from './screens';
+export {
+  CustomExerciseScreen,
+  ExercisePickerScreen,
+  RoutineEditorScreen,
+  RoutinesScreen,
+} from './screens';
