@@ -1,4 +1,4 @@
-export type { Exercise, MuscleGroup, Equipment } from './Exercise';
+export type { Exercise, ExerciseSource, MuscleGroup, Equipment } from './Exercise';
 export type { Set, SetType } from './Set';
 export type { Workout } from './Workout';
 export type { Routine, RoutineExercise } from './Routine';

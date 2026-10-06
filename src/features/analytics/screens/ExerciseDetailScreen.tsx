@@ -2,11 +2,11 @@
  * Exercise Detail — answers "am I getting stronger on this lift?".
  *
  * Reads durable history and the exercise library through the workout
- * feature's provider seams, and the display unit through the same seam, so
- * it never imports another feature directly. The hero is the current
- * estimated 1RM with its 8-week change; the chart switches between the 1RM,
- * volume, and reps series; the records and recent-sets lists round it out.
- * Read-only.
+ * feature's provider seams, and the display unit through the same seam. The
+ * hero is the current estimated 1RM with its 8-week change; the chart
+ * switches between the 1RM, volume, and reps series; the records and
+ * recent-sets lists follow, and the routines feature's technique section
+ * (illustration + how-to steps) closes the screen. Read-only.
  */
 import React, { useCallback, useState } from "react";
 import {
@@ -35,6 +35,7 @@ import {
   formatInteger,
   formatShortDate,
 } from "@lib/format";
+import { ExerciseTechnique } from "@features/routines";
 import { MoreGlyph } from "@features/workout";
 
 import {
@@ -309,6 +310,10 @@ export function ExerciseDetailScreen({ navigation, route }: Props): React.ReactE
             </View>
           </View>
         ) : null}
+
+        <View style={styles.section}>
+          <ExerciseTechnique contentWidth={chartWidth} exercise={exercise} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

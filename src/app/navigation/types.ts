@@ -86,4 +86,5 @@ export type HistoryStackParamList = {
  */
 export type ProfileStackParamList = {
   Profile: undefined;
+  Acknowledgements: undefined;
 };

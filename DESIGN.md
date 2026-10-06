@@ -309,7 +309,7 @@ with `textPrimary` so they work in both themes.
 - No photographs, no 3D-rendered or skin-toned figures, no video.
 - Every media set has a recorded license. Third-party media is used only
   under a license that permits commercial redistribution in an app, and
-  its attribution is shown on Profile → About → Acknowledgements.
+  its attribution is shown on Profile → App → Acknowledgements.
 - An exercise without media falls back to its muscle icon.
 
 ---

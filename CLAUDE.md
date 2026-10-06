@@ -20,6 +20,8 @@ npm run test:rules         # Firestore rules vs emulator (needs Java 21)
 
 node scripts/seed-firestore.js <uid> # seed a user's Firestore data (firebase-admin;
                                      # key from GOOGLE_APPLICATION_CREDENTIALS)
+node scripts/build-exercise-catalog.mjs <exercises.json> <everkinetic-repo>
+                                     # regenerate the exercise catalog + illustrations
 ```
 
 ## Notes for Claude Code

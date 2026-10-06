@@ -14,6 +14,7 @@
 import React, { useCallback, useState } from "react";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { ScreenHeader } from "@components/ScreenHeader";
 import { SettingsRow } from "@components/SettingsRow";
@@ -30,6 +31,10 @@ import {
 } from "../components";
 import { APP_VERSION, REST_TIMER_SECONDS_OPTIONS } from "../config";
 import { usePreferencesStore } from "../store";
+
+import type { ProfileStackParamList } from "@/app/navigation/types";
+
+type Props = NativeStackScreenProps<ProfileStackParamList, "Profile">;
 
 
 /** Which preference sheet is open, if any. */
@@ -61,7 +66,7 @@ const REST_OPTIONS: readonly OptionSheetOption<number>[] =
   }));
 
 /** Root screen of the Profile tab. */
-export function ProfileScreen(): React.ReactElement {
+export function ProfileScreen({ navigation }: Props): React.ReactElement {
   const user = useAuthStore((state) => state.user);
   const { signOut } = useSignInActions();
 
@@ -163,6 +168,12 @@ export function ProfileScreen(): React.ReactElement {
             testID="profile-about"
             value={APP_VERSION}
             variant="value"
+          />
+          <SettingsRow
+            label="Acknowledgements"
+            onPress={() => navigation.navigate("Acknowledgements")}
+            testID="profile-acknowledgements"
+            variant="chevron"
           />
           <SettingsRow
             label="Sign out"

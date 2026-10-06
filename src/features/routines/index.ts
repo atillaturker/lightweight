@@ -14,6 +14,8 @@ export { EXERCISE_LIBRARY, TEMPLATE_EXERCISE_IDS } from './services';
 export { RoutineActionSheet } from './components/RoutineActionSheet';
 export type { RoutineActionSheetProps } from './components/RoutineActionSheet';
 export { RoutineRow } from './components/RoutineRow';
+export { ExerciseTechnique } from './components/ExerciseTechnique';
+export type { ExerciseTechniqueProps } from './components/ExerciseTechnique';
 export type { RoutineRowProps } from './components/RoutineRow';
 
 export { ExercisePickerScreen, RoutineEditorScreen, RoutinesScreen } from './screens';
