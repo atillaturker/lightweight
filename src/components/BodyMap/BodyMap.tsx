@@ -1,5 +1,5 @@
 /**
- * Muscle map (DESIGN.md §5.4): a front and a back figure whose regions are
+ * Body map (DESIGN.md §5.4 "Muscle map"): a front and a back figure whose regions are
  * shaded on the intensity scale by how much work they got. Tapping a
  * region selects it (accent outline) so the caller can show its exact
  * value; tapping it again clears the selection. Accent never shades a
@@ -25,11 +25,13 @@ import {
   type RegionShapes,
 } from "./bodyMapShapes";
 
-/** Props for {@link MuscleMap}. */
-export interface MuscleMapProps {
+/** Props for {@link BodyMap}. */
+export interface BodyMapProps {
   levels: Record<BodyRegion, IntensityLevel>;
-  selected: BodyRegion | null;
-  onSelect: (region: BodyRegion | null) => void;
+  /** Region outlined in accent, if any. */
+  selected?: BodyRegion | null;
+  /** Omit for a display-only map (regions are then not pressable). */
+  onSelect?: (region: BodyRegion | null) => void;
   /** Width available for both figures together. */
   width: number;
   /** Spoken summary, since individual regions are not focusable. */
@@ -72,7 +74,7 @@ function Figure({
   paths: [BodyRegion, string][];
   levels: Record<BodyRegion, IntensityLevel>;
   selected: BodyRegion | null;
-  onSelect: (region: BodyRegion | null) => void;
+  onSelect?: (region: BodyRegion | null) => void;
   width: number;
   testID: string;
 }): React.ReactElement {
@@ -90,7 +92,7 @@ function Figure({
             d={d}
             fill={fillFor(colors, levels[region])}
             key={`${region}-${d}`}
-            onPress={() => onSelect(isSelected ? null : region)}
+            onPress={onSelect === undefined ? undefined : () => onSelect(isSelected ? null : region)}
             stroke={isSelected ? colors.accent : colors.canvas}
             strokeLinejoin="round"
             strokeWidth={isSelected ? 1.5 : 0.8}
@@ -103,14 +105,14 @@ function Figure({
 }
 
 /** Front and back figures side by side, captioned. */
-export function MuscleMap({
+export function BodyMap({
   levels,
-  selected,
+  selected = null,
   onSelect,
   width,
   accessibilityLabel,
-  testID = "muscle-map",
-}: MuscleMapProps): React.ReactElement {
+  testID = "body-map",
+}: BodyMapProps): React.ReactElement {
   const styles = useStyles();
   const figureWidth = (width - FIGURE_GAP) / 2;
   return (

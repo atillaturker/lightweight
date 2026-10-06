@@ -5,6 +5,7 @@ import {
   exerciseRegions,
   intensityLevels,
   regionOfMuscle,
+  routineMuscleLoad,
   untrainedRegions,
 } from '../muscles';
 
@@ -83,5 +84,15 @@ describe('untrainedRegions', () => {
     const untrained = untrainedRegions(load);
     expect(untrained).not.toContain('chest');
     expect(untrained[0]).toBe('shoulders');
+  });
+});
+
+describe('routineMuscleLoad', () => {
+  it('weights each slot by its target sets', () => {
+    const regionsOf = (id: string) =>
+      id === 'bench' ? { primary: ['chest' as const], secondary: ['triceps' as const] } : null;
+    const load = routineMuscleLoad([{ exerciseId: 'bench', targetSets: 4 }, { exerciseId: 'x', targetSets: 3 }], regionsOf);
+    expect(load.chest).toBe(4);
+    expect(load.triceps).toBe(2);
   });
 });

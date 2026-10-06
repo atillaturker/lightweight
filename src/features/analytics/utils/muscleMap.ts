@@ -9,6 +9,7 @@ import {
   exerciseRegions,
   intensityLevels,
   untrainedRegions,
+  BODY_REGIONS,
   type BodyRegion,
   type ExerciseRegions,
   type IntensityLevel,
@@ -26,27 +27,6 @@ export const MUSCLE_WINDOW_DAYS: Record<MuscleWindow, number> = {
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Display name per region. */
-export const REGION_LABELS: Record<BodyRegion, string> = {
-  chest: 'Chest',
-  shoulders: 'Shoulders',
-  biceps: 'Biceps',
-  triceps: 'Triceps',
-  forearms: 'Forearms',
-  abs: 'Abs',
-  obliques: 'Obliques',
-  traps: 'Traps',
-  upperBack: 'Upper back',
-  lats: 'Lats',
-  lowerBack: 'Lower back',
-  glutes: 'Glutes',
-  quads: 'Quads',
-  hamstrings: 'Hamstrings',
-  adductors: 'Adductors',
-  abductors: 'Abductors',
-  calves: 'Calves',
-};
 
 /** Everything the muscle map section renders. */
 export interface MuscleMapData {
@@ -77,6 +57,6 @@ export function buildMuscleMap(
     load,
     levels: intensityLevels(load),
     untrained,
-    hasData: untrained.length < Object.keys(REGION_LABELS).length,
+    hasData: untrained.length < BODY_REGIONS.length,
   };
 }

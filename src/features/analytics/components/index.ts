@@ -22,7 +22,5 @@ export { PRStrip } from './PRStrip';
 export type { PRStripProps } from './PRStrip';
 export { ExerciseHero } from './ExerciseHero';
 export type { ExerciseHeroProps } from './ExerciseHero';
-export { MuscleMap } from './MuscleMap';
-export type { MuscleMapProps } from './MuscleMap';
 export { MuscleMapSection } from './MuscleMapSection';
 export type { MuscleMapSectionProps } from './MuscleMapSection';

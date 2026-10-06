@@ -167,6 +167,25 @@ export function calculateMuscleLoad(
   return load;
 }
 
+/**
+ * Planned load of a routine: each slot adds its target sets to the
+ * exercise's primary regions and {@link SECONDARY_SHARE} of them to its
+ * secondary ones. Previews what a routine trains before it is run.
+ */
+export function routineMuscleLoad(
+  slots: { exerciseId: string; targetSets: number }[],
+  regionsOf: (exerciseId: string) => ExerciseRegions | null,
+): MuscleLoad {
+  const load = emptyMuscleLoad();
+  for (const slot of slots) {
+    const regions = regionsOf(slot.exerciseId);
+    if (regions === null) continue;
+    for (const region of regions.primary) load[region] += slot.targetSets;
+    for (const region of regions.secondary) load[region] += slot.targetSets * SECONDARY_SHARE;
+  }
+  return load;
+}
+
 /** Intensity step 0–4 for drawing: 0 untrained, 4 the most-trained region. */
 export type IntensityLevel = 0 | 1 | 2 | 3 | 4;
 

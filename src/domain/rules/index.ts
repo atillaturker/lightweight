@@ -46,6 +46,7 @@ export {
   exerciseRegions,
   intensityLevels,
   regionOfMuscle,
+  routineMuscleLoad,
   SECONDARY_SHARE,
   untrainedRegions,
 } from './muscles';

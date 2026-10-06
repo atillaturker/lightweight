@@ -9,14 +9,14 @@ import React, { useState } from "react";
 import { Text, View } from "react-native";
 
 import { BODY_REGIONS, type BodyRegion } from "@domain/rules";
+import { BODY_REGION_LABELS as REGION_LABELS, BodyMap } from "@components/BodyMap";
 import { SectionHeader } from "@components/SectionHeader";
 import { SegmentedControl } from "@components/SegmentedControl";
 import { createStyles, spacing, type } from "@theme";
 import { formatDecimal } from "@lib/format";
 
 import { useMuscleMap } from "../hooks";
-import { REGION_LABELS, type MuscleMapData, type MuscleWindow } from "../utils";
-import { MuscleMap } from "./MuscleMap";
+import type { MuscleMapData, MuscleWindow } from "../utils";
 
 const WINDOW_OPTIONS = [
   { value: "week", label: "Week" },
@@ -78,11 +78,12 @@ export function MuscleMapSection({ width }: MuscleMapSectionProps): React.ReactE
       <Text style={styles.readout} testID="muscle-map-readout">
         {readoutText(data, selected)}
       </Text>
-      <MuscleMap
+      <BodyMap
         accessibilityLabel={spokenSummary(data)}
         levels={data.levels}
         onSelect={setSelected}
         selected={selected}
+        testID="muscle-map"
         width={width}
       />
       {gaps !== null ? (

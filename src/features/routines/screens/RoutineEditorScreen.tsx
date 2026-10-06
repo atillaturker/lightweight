@@ -33,6 +33,7 @@ import { useExerciseLibrary } from "../hooks";
 import { useRoutineStore } from "../store";
 import { DurationSheet } from "../components/DurationSheet";
 import { RoutineEditorRow } from "../components/RoutineEditorRow";
+import { RoutineMusclesPreview } from "../components/RoutineMusclesPreview";
 import { TargetSheet } from "../components/TargetSheet";
 import {
   calculatedRoutineMinutes,
@@ -380,6 +381,8 @@ export function RoutineEditorScreen({ navigation, route }: Props): React.ReactEl
           <PlusGlyph />
           <Text style={styles.addLabel}>Add exercise</Text>
         </Pressable>
+
+        <RoutineMusclesPreview byId={byId} slots={routine?.exercises ?? []} />
       </ScrollView>
 
       <View style={styles.footer}>

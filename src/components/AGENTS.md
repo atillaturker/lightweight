@@ -27,6 +27,10 @@ inside that feature's `components/` folder.
   Inactive is 500 weight, no underline.
 - **TabBar** — locked SVG paths, monoline 1.5px stroke, color-only
   active state. Never substitute `@expo/vector-icons`.
+- **BodyMap** — front/back muscle map shaded on the intensity scale;
+  accent only outlines the selected region. Pass `onSelect` to make
+  regions pressable; omit it for a display-only map. Region names live
+  in `BODY_REGION_LABELS`.
 - **Badge** — pill radius, `colors.surface` fill, 1px `colors.hairline`
   border.
 - **Toggle** — 44x24px track, pill radius. Off `colors.trackOff`, on

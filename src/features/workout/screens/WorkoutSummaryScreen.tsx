@@ -16,8 +16,8 @@
  * primary action: it invalidates the sessions query so Home and History
  * refetch, then returns to the top of the Today stack.
  */
-import React, { useCallback } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -32,11 +32,14 @@ import {
 } from '@lib/format';
 import type { TodayStackParamList } from '@/app/navigation/types';
 
+import { MusclesWorked } from '../components/MusclesWorked';
 import { PRSection } from '../components/PRSection';
 import { StatColumn, StatStrip } from '../components/StatColumn';
 import { useSessionSummary } from '../hooks/useSessionSummary';
 import { useWorkoutActions } from '../hooks/useWorkoutActions';
+import { getExerciseLibrary } from '../services';
 import { useLastSessionStore } from '../store';
+import { sessionMuscles } from '../utils/sessionMuscles';
 
 type Props = NativeStackScreenProps<TodayStackParamList, 'WorkoutSummary'>;
 
@@ -71,6 +74,12 @@ export function WorkoutSummaryScreen({
     discard();
     leaveSummary();
   }, [discard, leaveSummary]);
+
+  const { width } = useWindowDimensions();
+  const muscles = useMemo(
+    () => (session === null ? null : sessionMuscles(session.sets, getExerciseLibrary())),
+    [session],
+  );
 
   if (session === null) {
     return (
@@ -173,6 +182,17 @@ export function WorkoutSummaryScreen({
         {personalRecords.length > 0 ? (
           <View style={styles.section}>
             <PRSection rows={personalRecords} testID="summary-prs" />
+          </View>
+        ) : null}
+
+        {muscles !== null && muscles.trained.length > 0 ? (
+          <View style={styles.section}>
+            <MusclesWorked
+              levels={muscles.levels}
+              testID="summary-muscles"
+              trained={muscles.trained}
+              width={width - gutter * 2}
+            />
           </View>
         ) : null}
       </ScrollView>
